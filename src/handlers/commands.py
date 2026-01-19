@@ -837,6 +837,21 @@ async def callback_stats(callback: CallbackQuery):
     
     total = user_chat.length + user_chat.paid_length
     
+    # PvP stats
+    wins = getattr(user_chat, 'pvp_wins', 0) or 0
+    losses = getattr(user_chat, 'pvp_losses', 0) or 0
+    streak = getattr(user_chat, 'pvp_streak', 0) or 0
+    total_battles = wins + losses
+    win_rate = (wins / total_battles * 100) if total_battles > 0 else 0
+    
+    # Streak display
+    if streak > 0:
+        streak_text = f"🔥 {streak}W"
+    elif streak < 0:
+        streak_text = f"❄️ {abs(streak)}L"
+    else:
+        streak_text = "—"
+    
     await callback.message.edit_text(
         f"📊 <b>YOUR STATS</b> 📊\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
@@ -845,6 +860,10 @@ async def callback_stats(callback: CallbackQuery):
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"📐 <b>TOTAL: {total:.1f} cm</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"⚔️ <b>PVP RECORD</b>\n"
+        f"🏆 Wins: <b>{wins}</b> | 💀 Losses: <b>{losses}</b>\n"
+        f"📈 Win Rate: <b>{win_rate:.1f}%</b>\n"
+        f"🔥 Streak: <b>{streak_text}</b>\n\n"
         f"💳 Debt: <b>{user_chat.debt:.1f}</b> cm",
         reply_markup=get_back_button(),
         parse_mode=ParseMode.HTML
@@ -1508,6 +1527,10 @@ async def pvp_accept_callback(callback: CallbackQuery):
     loser_user = await db.get_user_by_telegram_id(result['loser_id'])
     loser_name = loser_user.first_name if loser_user else "Loser"
     
+    # Get streak info
+    winner_streak = result.get('winner_streak', 0)
+    streak_line = f"🔥 <b>{winner_streak} Win Streak!</b>\n" if winner_streak > 1 else ""
+    
     await callback.message.edit_text(
         f"⚔️ <b>PVP RESULT</b> ⚔️\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
@@ -1515,7 +1538,8 @@ async def pvp_accept_callback(callback: CallbackQuery):
         f"{challenger_name}: {result['challenger_roll']}\n"
         f"{opponent_name}: {result['opponent_roll']}\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"🏆 <b>{winner_name} WINS!</b> 🏆\n\n"
+        f"🏆 <b>{winner_name} WINS!</b> 🏆\n"
+        f"{streak_line}\n"
         f"📊 <b>RESULTS:</b>\n"
         f"✅ {winner_name}: +{result['bet']:.1f} cm → {winner_length:.1f} cm\n"
         f"❌ {loser_name}: -{result['bet']:.1f} cm → {loser_length:.1f} cm",

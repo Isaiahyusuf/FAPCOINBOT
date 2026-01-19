@@ -31,6 +31,9 @@ class UserChat(Base):
     last_grow = Column(DateTime, nullable=True)
     last_active = Column(DateTime, default=datetime.utcnow)
     created_at = Column(DateTime, default=datetime.utcnow)
+    pvp_wins = Column(Integer, default=0)
+    pvp_losses = Column(Integer, default=0)
+    pvp_streak = Column(Integer, default=0)
 
 
 class Transaction(Base):
@@ -133,7 +136,22 @@ async def init_db():
                 ))
                 conn.commit()
             except Exception:
-                pass  # Column might already exist or DB doesn't support IF NOT EXISTS
+                pass
+            
+            # Add PvP stats columns
+            try:
+                conn.execute(text(
+                    "ALTER TABLE user_chats ADD COLUMN IF NOT EXISTS pvp_wins INTEGER DEFAULT 0"
+                ))
+                conn.execute(text(
+                    "ALTER TABLE user_chats ADD COLUMN IF NOT EXISTS pvp_losses INTEGER DEFAULT 0"
+                ))
+                conn.execute(text(
+                    "ALTER TABLE user_chats ADD COLUMN IF NOT EXISTS pvp_streak INTEGER DEFAULT 0"
+                ))
+                conn.commit()
+            except Exception:
+                pass
         
         engine.dispose()
     except Exception as e:

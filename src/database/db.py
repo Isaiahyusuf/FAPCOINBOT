@@ -540,8 +540,18 @@ async def accept_pvp_challenge(challenge_id: int) -> dict:
         
         if winner_chat:
             winner_chat.length += challenge.bet_amount
+            winner_chat.pvp_wins = (winner_chat.pvp_wins or 0) + 1
+            if (winner_chat.pvp_streak or 0) >= 0:
+                winner_chat.pvp_streak = (winner_chat.pvp_streak or 0) + 1
+            else:
+                winner_chat.pvp_streak = 1
         if loser_chat:
             loser_chat.length -= challenge.bet_amount
+            loser_chat.pvp_losses = (loser_chat.pvp_losses or 0) + 1
+            if (loser_chat.pvp_streak or 0) <= 0:
+                loser_chat.pvp_streak = (loser_chat.pvp_streak or 0) - 1
+            else:
+                loser_chat.pvp_streak = -1
         
         challenge.status = 'resolved'
         challenge.winner_id = winner_id
@@ -555,7 +565,9 @@ async def accept_pvp_challenge(challenge_id: int) -> dict:
             'challenger_id': challenge.challenger_id,
             'opponent_id': challenge.opponent_id,
             'challenger_roll': challenger_roll,
-            'opponent_roll': opponent_roll
+            'opponent_roll': opponent_roll,
+            'winner_streak': winner_chat.pvp_streak if winner_chat else 0,
+            'loser_streak': loser_chat.pvp_streak if loser_chat else 0
         }
 
 
