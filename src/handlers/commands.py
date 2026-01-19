@@ -710,6 +710,99 @@ async def cmd_loan(message: Message):
     )
 
 
+@router.message(Command("gift"))
+async def cmd_gift(message: Message):
+    """Gift cm to another user."""
+    if message.chat.type == ChatType.PRIVATE:
+        await message.answer("❌ Gifts only work in groups!", parse_mode=None)
+        return
+    
+    telegram_id = message.from_user.id
+    chat_id = message.chat.id
+    
+    # Check if replying to someone
+    if not message.reply_to_message:
+        await message.answer(
+            "🎁 <b>GIFT CM</b> 🎁\n\n"
+            "Reply to someone's message with:\n"
+            "<code>/gift [amount]</code>\n\n"
+            "Example: Reply + <code>/gift 10</code>\n"
+            "to give them 10 cm!",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    receiver = message.reply_to_message.from_user
+    
+    if receiver.is_bot:
+        await message.answer("❌ Can't gift to bots!", parse_mode=None)
+        return
+    
+    if receiver.id == telegram_id:
+        await message.answer("❌ Can't gift to yourself!", parse_mode=None)
+        return
+    
+    # Parse amount
+    args = message.text.split()
+    if len(args) < 2:
+        await message.answer(
+            "❌ Specify amount!\n\n"
+            "Usage: <code>/gift [amount]</code>",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    try:
+        amount = float(args[1])
+    except ValueError:
+        await message.answer("❌ Invalid amount!", parse_mode=None)
+        return
+    
+    if amount <= 0:
+        await message.answer("❌ Amount must be positive!", parse_mode=None)
+        return
+    
+    if amount < 1:
+        await message.answer("❌ Minimum gift is 1 cm!", parse_mode=None)
+        return
+    
+    # Ensure both users exist
+    await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
+    await db.get_or_create_user(receiver.id, receiver.username, receiver.first_name)
+    await db.get_or_create_user_chat(telegram_id, chat_id)
+    await db.get_or_create_user_chat(receiver.id, chat_id)
+    
+    # Process gift
+    result = await db.gift_length(telegram_id, receiver.id, chat_id, amount)
+    
+    if not result["success"]:
+        if result["error"] == "insufficient_length":
+            await message.answer(
+                f"❌ <b>Not enough length!</b>\n\n"
+                f"You have: <b>{result['available']:.1f}</b> cm\n"
+                f"Trying to gift: <b>{amount:.1f}</b> cm",
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            await message.answer("❌ Gift failed. Try again.", parse_mode=None)
+        return
+    
+    sender_name = message.from_user.first_name or message.from_user.username or "Someone"
+    receiver_name = receiver.first_name or receiver.username or "Someone"
+    
+    await message.answer(
+        f"🎁 <b>GIFT SENT!</b> 🎁\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"💝 <b>{sender_name}</b> gifted\n"
+        f"🍆 <b>{amount:.1f} cm</b> to\n"
+        f"🎉 <b>{receiver_name}</b>!\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"📏 Your new length: <b>{result['sender_new_total']:.1f}</b> cm\n"
+        f"📏 Their new length: <b>{result['receiver_new_total']:.1f}</b> cm",
+        parse_mode=ParseMode.HTML
+    )
+
+
 @router.callback_query(F.data == "action_stats")
 async def callback_stats(callback: CallbackQuery):
     telegram_id = callback.from_user.id
@@ -1488,6 +1581,7 @@ async def cmd_help(message: Message):
         "/grow - Daily growth\n"
         "/top - Leaderboard\n"
         "/pvp - PvP battle\n"
+        "/gift - Gift cm to someone\n"
         "/buy - Buy growth\n"
         "/verify - Verify payment\n"
         "/about - About this bot\n"
@@ -1522,6 +1616,9 @@ async def cmd_about(message: Message):
         "🏆 <b>LEADERBOARDS</b>\n"
         "Compete to be the biggest in your group!\n"
         "Check /top to see who's winning!\n\n"
+        "🎁 <b>GIFTING</b>\n"
+        "Send cm to your friends!\n"
+        "Reply to someone + <code>/gift 10</code>\n\n"
         "💰 <b>BUY GROWTH</b>\n"
         "Skip the grind! Buy instant growth\n"
         "with <b>$FAPCOIN</b> on Solana!\n\n"

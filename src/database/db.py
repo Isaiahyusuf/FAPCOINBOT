@@ -606,6 +606,59 @@ async def resolve_pvp(challenge_id: int, winner_id: int) -> bool:
         return True
 
 
+async def gift_length(sender_id: int, receiver_id: int, chat_id: int, amount: float) -> dict:
+    """Transfer length from one user to another in the same chat."""
+    Session = get_session()
+    async with Session() as session:
+        # Get sender's stats
+        sender_result = await session.execute(
+            select(UserChat).where(
+                and_(UserChat.telegram_id == sender_id, UserChat.chat_id == chat_id)
+            )
+        )
+        sender_chat = sender_result.scalar_one_or_none()
+        
+        if not sender_chat:
+            return {"success": False, "error": "sender_not_found"}
+        
+        # Calculate total length (free + paid)
+        sender_total = sender_chat.length + sender_chat.paid_length
+        
+        if sender_total < amount:
+            return {"success": False, "error": "insufficient_length", "available": sender_total}
+        
+        # Get receiver's stats
+        receiver_result = await session.execute(
+            select(UserChat).where(
+                and_(UserChat.telegram_id == receiver_id, UserChat.chat_id == chat_id)
+            )
+        )
+        receiver_chat = receiver_result.scalar_one_or_none()
+        
+        if not receiver_chat:
+            return {"success": False, "error": "receiver_not_found"}
+        
+        # Deduct from sender (prioritize free length first)
+        remaining_to_deduct = amount
+        if sender_chat.length >= remaining_to_deduct:
+            sender_chat.length -= remaining_to_deduct
+        else:
+            # Use all free length first, then paid length
+            remaining_to_deduct -= sender_chat.length
+            sender_chat.length = 0
+            sender_chat.paid_length -= remaining_to_deduct
+        
+        # Add to receiver's free length
+        receiver_chat.length += amount
+        
+        await session.commit()
+        return {
+            "success": True,
+            "sender_new_total": sender_chat.length + sender_chat.paid_length,
+            "receiver_new_total": receiver_chat.length + receiver_chat.paid_length
+        }
+
+
 async def create_support_request(telegram_id: int, support_username: str) -> SupportRequest:
     Session = get_session()
     async with Session() as session:

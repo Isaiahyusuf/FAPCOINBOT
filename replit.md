@@ -51,6 +51,7 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 ### Core Gameplay
 - `/grow` - Daily random growth (-5 to +20 cm), once per day per chat
 - `/top` - Chat leaderboard showing top 10 players
+- `/gift` - Gift cm to another user (reply + /gift [amount])
 - `/loan` - Reset negative length to zero, creating repayment debt
 - `/help` - Show all commands
 - Debt bonus: Users with negative length get 0.2% bonus per growth
