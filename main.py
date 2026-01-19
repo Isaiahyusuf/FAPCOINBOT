@@ -68,6 +68,13 @@ PROMO_MESSAGES = [
                 "Tag + <code>/pvp [bet]</code> to challenge! ⚔️",
         "button": "⚔️ Fight Now"
     },
+    {
+        "text": "🍆 <b>Interested in a bigger dick?</b> 🍆\n\n"
+                "Every purchase in $FAPCOIN is sent to our treasury wallet\n"
+                "to continue to support the project! 💎\n\n"
+                "Use /buy to grow instantly!",
+        "button": "💰 Support & Grow"
+    },
 ]
 
 
