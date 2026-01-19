@@ -50,7 +50,8 @@ async def cmd_start(message: Message):
             "FAPCOIN DICK BOT is active in this group!\n\n"
             "Use /grow once per day to grow your length.\n"
             "Use /top to see the leaderboard.\n"
-            "Use /help for all commands."
+            "Use /help for all commands.",
+            parse_mode=None
         )
     else:
         await message.answer(
@@ -60,13 +61,14 @@ async def cmd_start(message: Message):
             "/grow - Daily random growth (-5 to +20 cm)\n"
             "/top - Show chat leaderboard\n"
             "/daily - Trigger daily Dick of the Day selection\n"
-            "/pvp @user <bet> - Challenge a user\n"
+            "/pvp @user [bet] - Challenge a user\n"
             "/loan - Reset debt to zero\n"
-            "/wallet <address> - Register Solana wallet\n"
-            "/buy <package> - Purchase growth with $FAPCOIN\n"
-            "/verify <tx_hash> - Verify a FAPCOIN payment\n"
+            "/wallet [address] - Register Solana wallet\n"
+            "/buy [package] - Purchase growth with $FAPCOIN\n"
+            "/verify [tx_hash] - Verify a FAPCOIN payment\n"
             "/support - Request support\n\n"
-            "Grow your length and compete with others!"
+            "Grow your length and compete with others!",
+            parse_mode=None
         )
 
 
@@ -78,17 +80,18 @@ async def cmd_help(message: Message):
         "/grow - Daily random growth (-5 to +20 cm)\n"
         "/top - Show chat leaderboard\n"
         "/daily - Select today's Dick of the Day\n"
-        "/pvp @user <bet> - Challenge a user to PvP\n"
+        "/pvp @user [bet] - Challenge a user to PvP\n"
         "/loan - Reset negative length to zero (creates debt)\n\n"
         "FAPCOIN Purchases:\n"
-        "/wallet <address> - Register your Solana wallet\n"
+        "/wallet [address] - Register your Solana wallet\n"
         "/buy - View growth packages\n"
-        "/buy <number> - Purchase a package\n"
-        "/verify <tx_hash> - Verify payment after sending\n\n"
+        "/buy [number] - Purchase a package\n"
+        "/verify [tx_hash] - Verify payment after sending\n\n"
         "Other:\n"
         "/support - Request support\n"
         "/help - Show this message\n\n"
-        "Each group has its own leaderboard!"
+        "Each group has its own leaderboard!",
+        parse_mode=None
     )
 
 
@@ -213,7 +216,7 @@ async def cmd_wallet(message: Message):
         if wallet:
             await message.answer(f"Your registered wallet: {wallet}")
         else:
-            await message.answer("Usage: /wallet <SOL_ADDRESS>\n\nExample: /wallet So1anA...")
+            await message.answer("Usage: /wallet [SOL_ADDRESS]\n\nExample: /wallet So1anA...", parse_mode=None)
         return
     
     wallet_address = args[1].strip()
@@ -236,15 +239,15 @@ async def cmd_buy(message: Message):
     
     wallet = await db.get_wallet(telegram_id)
     if not wallet:
-        await message.answer("Please register your wallet first using /wallet <SOL_ADDRESS>")
+        await message.answer("Please register your wallet first using /wallet [SOL_ADDRESS]", parse_mode=None)
         return
     
     if len(args) < 2:
         text = "Available packages:\n\n"
         for num, pkg in PACKAGES.items():
             text += f"Package {num}: {pkg['growth']} cm for {pkg['price']:,} FAPCOIN\n"
-        text += "\nUsage: /buy <package_number>\n"
-        text += "After payment, use /verify <tx_hash> to verify your transaction."
+        text += "\nUsage: /buy [package_number]\n"
+        text += "After payment, use /verify [tx_hash] to verify your transaction."
         await message.answer(text)
         return
     
@@ -268,7 +271,7 @@ async def cmd_buy(message: Message):
         f"Send exactly {pkg['price']:,} $FAPCOIN to:\n"
         f"`{team_wallet}`\n\n"
         f"After sending, use:\n"
-        f"/verify <transaction_hash>\n\n"
+        f"/verify [transaction_hash]\n\n"
         f"Your growth will be credited once verified!",
         parse_mode=ParseMode.MARKDOWN
     )
@@ -283,7 +286,7 @@ async def cmd_verify(message: Message):
     await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
     
     if len(args) < 2:
-        await message.answer("Usage: /verify <transaction_hash>\n\nProvide the Solana transaction hash after payment.")
+        await message.answer("Usage: /verify [transaction_hash]\n\nProvide the Solana transaction hash after payment.", parse_mode=None)
         return
     
     tx_hash = args[1].strip()
@@ -494,7 +497,7 @@ async def cmd_pvp(message: Message):
     await db.get_or_create_user_chat(telegram_id, chat_id)
     
     if len(args) < 3:
-        await message.answer("Usage: /pvp @username <bet_amount>\n\nExample: /pvp @friend 10")
+        await message.answer("Usage: /pvp @username [bet_amount]\n\nExample: /pvp @friend 10", parse_mode=None)
         return
     
     opponent_id = None
