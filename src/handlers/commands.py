@@ -614,14 +614,13 @@ async def callback_paid(callback: CallbackQuery):
     await callback.message.edit_text(
         "📝 <b>ENTER TRANSACTION HASH</b> 📝\n\n"
         "━━━━━━━━━━━━━━━━━━━━━\n"
-        "Just paste your Solana transaction hash here!\n"
+        "Send your transaction hash using:\n\n"
+        "<code>/verify YOUR_TX_HASH</code>\n"
         "━━━━━━━━━━━━━━━━━━━━━\n\n"
-        "💡 <b>Where to find it:</b>\n"
-        "• Open your wallet app\n"
-        "• Find the transaction you just sent\n"
-        "• Copy the transaction signature/hash\n"
-        "• Paste it in this chat\n\n"
-        "🔍 We'll verify it automatically!",
+        "💡 <b>Example:</b>\n"
+        "<code>/verify 3mYk9yAq...</code>\n\n"
+        "📋 Copy your tx hash from your wallet,\n"
+        "then type /verify and paste it!",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
