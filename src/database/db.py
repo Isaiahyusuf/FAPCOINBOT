@@ -683,3 +683,19 @@ async def get_package_price(package_num: int, default_price: int) -> int:
 async def set_package_price(package_num: int, price: int, updated_by: int = None) -> bool:
     """Set package price in database."""
     return await set_setting(f'package_{package_num}_price', str(price), updated_by)
+
+
+async def get_package_growth(package_num: int, default_growth: int) -> int:
+    """Get package growth from database or return default."""
+    growth_str = await get_setting(f'package_{package_num}_growth')
+    if growth_str:
+        try:
+            return int(growth_str)
+        except ValueError:
+            pass
+    return default_growth
+
+
+async def set_package_growth(package_num: int, growth: int, updated_by: int = None) -> bool:
+    """Set package growth in database."""
+    return await set_setting(f'package_{package_num}_growth', str(growth), updated_by)

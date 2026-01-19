@@ -27,20 +27,22 @@ PACKAGES = DEFAULT_PACKAGES
 
 
 async def get_package(package_num: int) -> dict | None:
-    """Get package with current price from database."""
+    """Get package with current price and growth from database."""
     if package_num not in DEFAULT_PACKAGES:
         return None
     pkg = DEFAULT_PACKAGES[package_num].copy()
     pkg['price'] = await db.get_package_price(package_num, pkg['price'])
+    pkg['growth'] = await db.get_package_growth(package_num, pkg['growth'])
     return pkg
 
 
 async def get_all_packages() -> dict:
-    """Get all packages with current prices from database."""
+    """Get all packages with current prices and growth from database."""
     packages = {}
     for num, pkg in DEFAULT_PACKAGES.items():
         packages[num] = pkg.copy()
         packages[num]['price'] = await db.get_package_price(num, pkg['price'])
+        packages[num]['growth'] = await db.get_package_growth(num, pkg['growth'])
     return packages
 
 
@@ -264,6 +266,7 @@ async def cmd_admin(message: Message):
         f"<b>Commands:</b>\n"
         f"/setwallet [address] - Set team wallet\n"
         f"/setprice [pkg] [price] - Set package price\n"
+        f"/setgrowth [pkg] [cm] - Set package growth\n"
         f"/prices - View current prices",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
@@ -371,12 +374,63 @@ async def cmd_setprice(message: Message):
         return
     
     await db.set_package_price(package_num, new_price, telegram_id)
-    pkg = DEFAULT_PACKAGES[package_num]
+    pkg = await get_package(package_num)
     
     await message.answer(
         f"✅ <b>Package {package_num} Price Updated!</b>\n\n"
         f"{pkg['emoji']} +{pkg['growth']}cm\n"
         f"💵 New Price: <b>{new_price:,} FAPCOIN</b>",
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(Command("setgrowth"))
+async def cmd_setgrowth(message: Message):
+    """Set package growth - owner only."""
+    telegram_id = message.from_user.id
+    
+    if not is_owner(telegram_id):
+        await message.answer("❌ This command is only for the bot owner.", parse_mode=None)
+        return
+    
+    args = message.text.split()
+    if len(args) < 3:
+        packages = await get_all_packages()
+        pkg_list = "\n".join([
+            f"  {num}: {pkg['emoji']} +{pkg['growth']}cm = {pkg['price']:,} FAPCOIN"
+            for num, pkg in packages.items()
+        ])
+        await message.answer(
+            f"📝 <b>Usage:</b> /setgrowth [package] [cm]\n\n"
+            f"<b>Current Packages:</b>\n{pkg_list}\n\n"
+            f"<b>Example:</b>\n<code>/setgrowth 1 25</code>\n"
+            f"(Sets Package 1 to give +25cm)",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    try:
+        package_num = int(args[1])
+        new_growth = int(args[2])
+    except ValueError:
+        await message.answer("❌ Invalid numbers. Use: /setgrowth [package] [cm]", parse_mode=None)
+        return
+    
+    if package_num not in DEFAULT_PACKAGES:
+        await message.answer(f"❌ Invalid package number. Use 1-{len(DEFAULT_PACKAGES)}.", parse_mode=None)
+        return
+    
+    if new_growth < 1:
+        await message.answer("❌ Growth must be at least 1cm.", parse_mode=None)
+        return
+    
+    await db.set_package_growth(package_num, new_growth, telegram_id)
+    pkg = await get_package(package_num)
+    
+    await message.answer(
+        f"✅ <b>Package {package_num} Growth Updated!</b>\n\n"
+        f"{pkg['emoji']} New Growth: <b>+{new_growth}cm</b>\n"
+        f"💵 Price: {pkg['price']:,} FAPCOIN",
         parse_mode=ParseMode.HTML
     )
 
@@ -469,6 +523,7 @@ async def callback_admin(callback: CallbackQuery):
         f"<b>Commands:</b>\n"
         f"/setwallet [address] - Set team wallet\n"
         f"/setprice [pkg] [price] - Set package price\n"
+        f"/setgrowth [pkg] [cm] - Set package growth\n"
         f"/prices - View current prices",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
@@ -498,8 +553,9 @@ async def callback_admin_setprices(callback: CallbackQuery):
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"{pkg_list}\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"To change a price, send:\n"
-        f"<code>/setprice [package] [price]</code>\n\n"
+        f"<b>To change:</b>\n"
+        f"Price: <code>/setprice [pkg] [price]</code>\n"
+        f"Growth: <code>/setgrowth [pkg] [cm]</code>\n\n"
         f"Example: <code>/setprice 1 7500</code>",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
