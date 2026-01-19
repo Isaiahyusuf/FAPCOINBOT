@@ -434,17 +434,7 @@ async def create_pvp_challenge(chat_id: int, challenger_id: int, opponent_id: in
         if not challenger or (challenger.length + challenger.paid_length) < bet:
             return None
         
-        existing = await session.execute(
-            select(PvpChallenge).where(
-                and_(
-                    PvpChallenge.chat_id == chat_id,
-                    PvpChallenge.challenger_id == challenger_id,
-                    PvpChallenge.status == 'pending'
-                )
-            )
-        )
-        if existing.scalar_one_or_none():
-            return None
+        # Allow multiple challenges - no restriction on pending challenges
         
         challenge = PvpChallenge(
             chat_id=chat_id,

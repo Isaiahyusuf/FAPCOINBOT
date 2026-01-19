@@ -1374,7 +1374,7 @@ async def cmd_pvp(message: Message):
     challenge = await db.create_pvp_challenge(chat_id, telegram_id, opponent_id, bet)
     
     if not challenge:
-        await message.answer("❌ Could not create challenge. You may have a pending challenge.", parse_mode=None)
+        await message.answer("❌ Could not create challenge. Not enough length for that bet!", parse_mode=None)
         return
     
     challenger_name = message.from_user.first_name or "Player"
