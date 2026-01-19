@@ -2,6 +2,7 @@ import os
 import random
 import re
 import aiohttp
+import base58
 from datetime import datetime
 from aiogram import Router, F, Bot
 from aiogram.types import Message, InlineQuery, InlineQueryResultArticle, InputTextMessageContent, CallbackQuery
@@ -14,26 +15,95 @@ from src.database import db
 router = Router()
 
 PACKAGES = {
-    1: {"growth": 20, "price": 5000},
-    2: {"growth": 40, "price": 10000},
-    3: {"growth": 60, "price": 15000},
-    4: {"growth": 80, "price": 20000},
-    5: {"growth": 100, "price": 25000},
+    1: {"growth": 20, "price": 5000, "emoji": "🌱"},
+    2: {"growth": 40, "price": 10000, "emoji": "🌿"},
+    3: {"growth": 60, "price": 15000, "emoji": "🌳"},
+    4: {"growth": 80, "price": 20000, "emoji": "🚀"},
+    5: {"growth": 100, "price": 25000, "emoji": "👑"},
 }
 
-FAPCOIN_TOKEN_ADDRESS = os.environ.get('FAPCOIN_TOKEN_ADDRESS', '')
+
+def get_main_menu_keyboard():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🌱 Grow", callback_data="action_grow"),
+            InlineKeyboardButton(text="🏆 Leaderboard", callback_data="action_top")
+        ],
+        [
+            InlineKeyboardButton(text="⚔️ PvP Battle", callback_data="action_pvp_info"),
+            InlineKeyboardButton(text="🎲 Daily Winner", callback_data="action_daily")
+        ],
+        [
+            InlineKeyboardButton(text="💰 Buy Growth", callback_data="action_buy"),
+            InlineKeyboardButton(text="👛 My Wallet", callback_data="action_wallet")
+        ],
+        [
+            InlineKeyboardButton(text="📊 My Stats", callback_data="action_stats"),
+            InlineKeyboardButton(text="💳 Loan", callback_data="action_loan")
+        ],
+        [
+            InlineKeyboardButton(text="❓ Help", callback_data="action_help"),
+            InlineKeyboardButton(text="🆘 Support", callback_data="action_support")
+        ]
+    ])
+
+
+def get_back_button():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+    ])
+
+
+def get_packages_keyboard():
+    buttons = []
+    for num, pkg in PACKAGES.items():
+        buttons.append([
+            InlineKeyboardButton(
+                text=f"{pkg['emoji']} Package {num}: +{pkg['growth']}cm for {pkg['price']:,} FAPCOIN",
+                callback_data=f"buy_package_{num}"
+            )
+        ])
+    buttons.append([InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")])
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def validate_solana_tx_hash(tx_hash: str) -> bool:
+    if len(tx_hash) < 86 or len(tx_hash) > 90:
+        return False
+    try:
+        decoded = base58.b58decode(tx_hash)
+        if len(decoded) != 64:
+            return False
+        return True
+    except:
+        return False
+
+
+def validate_solana_address(address: str) -> bool:
+    if len(address) < 32 or len(address) > 44:
+        return False
+    try:
+        decoded = base58.b58decode(address)
+        if len(decoded) != 32:
+            return False
+        return True
+    except:
+        return False
 
 
 @router.my_chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def bot_added_to_chat(event: ChatMemberUpdated):
     if event.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🎮 Start Playing", callback_data="action_menu")]
+        ])
         await event.answer(
-            "Thanks for adding me to this group!\n\n"
-            "I'm FAPCOIN DICK BOT - a competitive growth game!\n\n"
-            "Everyone can use /grow once per day to grow their length.\n"
-            "Use /top to see who's winning!\n"
-            "Use /help to see all commands.\n\n"
-            "Let the competition begin!"
+            "🎉 <b>FAPCOIN DICK BOT has joined!</b> 🎉\n\n"
+            "Welcome to the ultimate growth competition!\n\n"
+            "🌱 Grow daily • 🏆 Compete • ⚔️ Battle friends\n\n"
+            "Click below to start playing!",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
         )
 
 
@@ -45,54 +115,108 @@ async def cmd_start(message: Message):
         message.from_user.first_name
     )
     
-    if message.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
-        await message.answer(
-            "FAPCOIN DICK BOT is active in this group!\n\n"
-            "Use /grow once per day to grow your length.\n"
-            "Use /top to see the leaderboard.\n"
-            "Use /help for all commands.",
-            parse_mode=None
-        )
-    else:
-        await message.answer(
-            "Welcome to FAPCOIN DICK BOT!\n\n"
-            "Add me to a group to start competing!\n\n"
-            "Commands:\n"
-            "/grow - Daily random growth (-5 to +20 cm)\n"
-            "/top - Show chat leaderboard\n"
-            "/daily - Trigger daily Dick of the Day selection\n"
-            "/pvp @user [bet] - Challenge a user\n"
-            "/loan - Reset debt to zero\n"
-            "/wallet [address] - Register Solana wallet\n"
-            "/buy [package] - Purchase growth with $FAPCOIN\n"
-            "/verify [tx_hash] - Verify a FAPCOIN payment\n"
-            "/support - Request support\n\n"
-            "Grow your length and compete with others!",
-            parse_mode=None
-        )
-
-
-@router.message(Command("help"))
-async def cmd_help(message: Message):
+    name = message.from_user.first_name or "Player"
+    
     await message.answer(
-        "FAPCOIN DICK BOT - Commands:\n\n"
-        "Game Commands:\n"
-        "/grow - Daily random growth (-5 to +20 cm)\n"
-        "/top - Show chat leaderboard\n"
-        "/daily - Select today's Dick of the Day\n"
-        "/pvp @user [bet] - Challenge a user to PvP\n"
-        "/loan - Reset negative length to zero (creates debt)\n\n"
-        "FAPCOIN Purchases:\n"
-        "/wallet [address] - Register your Solana wallet\n"
-        "/buy - View growth packages\n"
-        "/buy [number] - Purchase a package\n"
-        "/verify [tx_hash] - Verify payment after sending\n\n"
-        "Other:\n"
-        "/support - Request support\n"
-        "/help - Show this message\n\n"
-        "Each group has its own leaderboard!",
-        parse_mode=None
+        f"🍆 <b>Welcome, {name}!</b> 🍆\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n"
+        "       <b>FAPCOIN DICK BOT</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "🎮 <b>Grow your length daily</b>\n"
+        "🏆 <b>Compete on leaderboards</b>\n"
+        "⚔️ <b>Battle friends in PvP</b>\n"
+        "💰 <b>Buy growth with $FAPCOIN</b>\n\n"
+        "Select an option below to begin:",
+        reply_markup=get_main_menu_keyboard(),
+        parse_mode=ParseMode.HTML
     )
+
+
+@router.message(Command("menu"))
+async def cmd_menu(message: Message):
+    await message.answer(
+        "🎮 <b>Main Menu</b>\n\n"
+        "Select an option:",
+        reply_markup=get_main_menu_keyboard(),
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.callback_query(F.data == "action_menu")
+async def callback_menu(callback: CallbackQuery):
+    await callback.message.edit_text(
+        "🎮 <b>Main Menu</b>\n\n"
+        "Select an option:",
+        reply_markup=get_main_menu_keyboard(),
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action_grow")
+async def callback_grow(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    chat_id = callback.message.chat.id
+    
+    await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
+    await db.get_or_create_user_chat(telegram_id, chat_id)
+    
+    can_grow = await db.can_grow_today(telegram_id, chat_id)
+    if not can_grow:
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🏆 View Leaderboard", callback_data="action_top")],
+            [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+        ])
+        await callback.message.edit_text(
+            "⏰ <b>Already Grown Today!</b>\n\n"
+            "Come back tomorrow for your next growth.\n\n"
+            "💡 Tip: Try PvP battles to gain more length!",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer("You already grew today!", show_alert=True)
+        return
+    
+    growth = random.randint(-5, 20)
+    old_length, new_length, actual_growth, bonus = await db.do_grow(telegram_id, chat_id, growth)
+    
+    name = callback.from_user.first_name or "Player"
+    
+    if growth < 0:
+        emoji = "📉"
+        result = f"<b>Ouch!</b> You shrunk by {abs(growth)} cm!"
+        mood = "😢"
+    elif growth == 0:
+        emoji = "😐"
+        result = "<b>No change today...</b>"
+        mood = "🤷"
+    elif growth < 10:
+        emoji = "📈"
+        result = f"<b>Nice!</b> You grew by {growth} cm!"
+        mood = "😊"
+    else:
+        emoji = "🚀"
+        result = f"<b>AMAZING!</b> You grew by {growth} cm!"
+        mood = "🔥"
+    
+    bonus_text = f"\n🎁 Debt Bonus: +{bonus:.1f} cm" if bonus > 0 else ""
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🏆 View Leaderboard", callback_data="action_top")],
+        [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+    ])
+    
+    await callback.message.edit_text(
+        f"{emoji} <b>DAILY GROWTH</b> {emoji}\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"{mood} {result}{bonus_text}\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"📏 <b>Your Total Length:</b> {new_length:.1f} cm\n\n"
+        f"Come back tomorrow for more growth!",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer(f"You grew {growth} cm!")
 
 
 @router.message(Command("grow"))
@@ -100,39 +224,74 @@ async def cmd_grow(message: Message):
     telegram_id = message.from_user.id
     chat_id = message.chat.id
     
-    await db.get_or_create_user(
-        telegram_id,
-        message.from_user.username,
-        message.from_user.first_name
-    )
+    await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
     await db.get_or_create_user_chat(telegram_id, chat_id)
     
     can_grow = await db.can_grow_today(telegram_id, chat_id)
     if not can_grow:
-        await message.answer("You already grew today! Come back tomorrow.")
+        await message.answer("⏰ You already grew today! Come back tomorrow.", parse_mode=None)
         return
     
     growth = random.randint(-5, 20)
     old_length, new_length, actual_growth, bonus = await db.do_grow(telegram_id, chat_id, growth)
     
-    name = message.from_user.first_name or message.from_user.username or "User"
+    name = message.from_user.first_name or "Player"
     
     if growth < 0:
         emoji = "📉"
-        text = f"{emoji} {name} shrunk by {abs(growth)} cm!"
     elif growth == 0:
         emoji = "😐"
-        text = f"{emoji} {name} didn't grow today."
     else:
         emoji = "📈"
-        text = f"{emoji} {name} grew by {growth} cm!"
     
-    if bonus > 0:
-        text += f"\nDebt bonus: +{bonus:.1f} cm"
+    bonus_text = f"\n🎁 Debt Bonus: +{bonus:.1f} cm" if bonus > 0 else ""
     
-    text += f"\n\nTotal length: {new_length:.1f} cm"
+    await message.answer(
+        f"{emoji} <b>{name}</b> {'shrunk' if growth < 0 else 'grew'} by <b>{abs(growth)}</b> cm!{bonus_text}\n\n"
+        f"📏 Total: <b>{new_length:.1f}</b> cm",
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.callback_query(F.data == "action_top")
+async def callback_top(callback: CallbackQuery):
+    chat_id = callback.message.chat.id
+    leaderboard = await db.get_leaderboard(chat_id)
     
-    await message.answer(text)
+    if not leaderboard:
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🌱 Be the First to Grow!", callback_data="action_grow")],
+            [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+        ])
+        await callback.message.edit_text(
+            "🏆 <b>LEADERBOARD</b>\n\n"
+            "No players yet!\n"
+            "Be the first to grow and claim the top spot!",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer()
+        return
+    
+    medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
+    
+    text = "🏆 <b>LEADERBOARD</b> 🏆\n\n━━━━━━━━━━━━━━━━━━━━━\n"
+    
+    for i, user in enumerate(leaderboard):
+        name = user['first_name'] or user['username'] or f"Player"
+        if user['username']:
+            name = f"@{user['username']}"
+        medal = medals[i] if i < len(medals) else f"{i+1}."
+        text += f"{medal} {name}: <b>{user['total']:.1f}</b> cm\n"
+    
+    text += "━━━━━━━━━━━━━━━━━━━━━"
+    
+    await callback.message.edit_text(
+        text,
+        reply_markup=get_back_button(),
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
 
 
 @router.message(Command("top"))
@@ -141,67 +300,197 @@ async def cmd_top(message: Message):
     leaderboard = await db.get_leaderboard(chat_id)
     
     if not leaderboard:
-        await message.answer("No one has grown in this chat yet! Use /grow to start.")
+        await message.answer("🏆 No players yet! Use /grow to start.", parse_mode=None)
         return
     
-    text = "🏆 Leaderboard:\n\n"
-    for i, user in enumerate(leaderboard, 1):
-        name = user['first_name'] or user['username'] or f"User {user['telegram_id']}"
+    medals = ["🥇", "🥈", "🥉"]
+    text = "🏆 <b>LEADERBOARD</b> 🏆\n\n"
+    
+    for i, user in enumerate(leaderboard):
+        name = user['first_name'] or user['username'] or f"Player"
         if user['username']:
             name = f"@{user['username']}"
-        medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
-        text += f"{medal} {name}: {user['total']:.1f} cm\n"
+        medal = medals[i] if i < len(medals) else f"{i+1}."
+        text += f"{medal} {name}: <b>{user['total']:.1f}</b> cm\n"
     
-    await message.answer(text)
+    await message.answer(text, parse_mode=ParseMode.HTML)
 
 
-@router.message(Command("daily"))
-async def cmd_daily(message: Message):
-    chat_id = message.chat.id
+@router.callback_query(F.data == "action_stats")
+async def callback_stats(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    chat_id = callback.message.chat.id
+    
+    await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
+    user_chat = await db.get_or_create_user_chat(telegram_id, chat_id)
+    wallet = await db.get_wallet(telegram_id)
+    
+    total = user_chat.length + user_chat.paid_length
+    
+    wallet_text = f"👛 Wallet: <code>{wallet[:8]}...{wallet[-8:]}</code>" if wallet else "👛 Wallet: Not registered"
+    
+    await callback.message.edit_text(
+        f"📊 <b>YOUR STATS</b> 📊\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"📏 Free Growth: <b>{user_chat.length:.1f}</b> cm\n"
+        f"💰 Paid Growth: <b>{user_chat.paid_length:.1f}</b> cm\n"
+        f"📐 <b>TOTAL: {total:.1f} cm</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"💳 Debt: <b>{user_chat.debt:.1f}</b> cm\n"
+        f"{wallet_text}",
+        reply_markup=get_back_button(),
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action_daily")
+async def callback_daily(callback: CallbackQuery):
+    chat_id = callback.message.chat.id
     
     has_winner = await db.has_daily_winner_today(chat_id)
     if has_winner:
-        await message.answer("Today's Dick of the Day has already been selected! Come back tomorrow.")
+        await callback.message.edit_text(
+            "🎲 <b>DICK OF THE DAY</b> 🎲\n\n"
+            "Today's winner has already been selected!\n\n"
+            "Come back tomorrow for the next drawing!",
+            reply_markup=get_back_button(),
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer("Already selected today!", show_alert=True)
         return
     
     winner = await db.select_daily_winner(chat_id)
     
     if not winner:
-        await message.answer("No eligible users for Dick of the Day! Users must /grow at least once in the past 7 days.")
+        await callback.message.edit_text(
+            "🎲 <b>DICK OF THE DAY</b> 🎲\n\n"
+            "No eligible players!\n\n"
+            "Players must use /grow at least once in the past 7 days to be eligible.",
+            reply_markup=get_back_button(),
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer("No eligible players!", show_alert=True)
         return
     
-    name = winner['first_name'] or winner['username'] or f"User {winner['telegram_id']}"
+    name = winner['first_name'] or winner['username'] or "Player"
     if winner['username']:
         name = f"@{winner['username']}"
     
-    await message.answer(
-        f"🎉 DICK OF THE DAY 🎉\n\n"
-        f"Congratulations to {name}!\n\n"
-        f"You've been awarded +{winner['bonus']} cm bonus growth!\n\n"
-        f"Keep growing and you might be next!"
+    await callback.message.edit_text(
+        f"🎲 <b>DICK OF THE DAY</b> 🎲\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉\n\n"
+        f"👑 <b>{name}</b> 👑\n\n"
+        f"🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"🎁 Bonus: <b>+{winner['bonus']} cm</b>!\n\n"
+        f"Keep growing for your chance tomorrow!",
+        reply_markup=get_back_button(),
+        parse_mode=ParseMode.HTML
     )
+    await callback.answer(f"🎉 {name} wins!", show_alert=True)
 
 
-@router.message(Command("loan"))
-async def cmd_loan(message: Message):
-    telegram_id = message.from_user.id
-    chat_id = message.chat.id
+@router.callback_query(F.data == "action_loan")
+async def callback_loan(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    chat_id = callback.message.chat.id
     
-    await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
+    await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
     await db.get_or_create_user_chat(telegram_id, chat_id)
+    
+    user_chat = await db.get_or_create_user_chat(telegram_id, chat_id)
+    
+    if user_chat.length >= 0:
+        await callback.message.edit_text(
+            "💳 <b>LOAN SYSTEM</b> 💳\n\n"
+            f"Your current length: <b>{user_chat.length:.1f}</b> cm\n"
+            f"Current debt: <b>{user_chat.debt:.1f}</b> cm\n\n"
+            "You don't need a loan! Your length is positive.\n\n"
+            "💡 Loans are for resetting negative length to zero.",
+            reply_markup=get_back_button(),
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer("You don't need a loan!")
+        return
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Accept Loan", callback_data="confirm_loan")],
+        [InlineKeyboardButton(text="❌ Cancel", callback_data="action_menu")]
+    ])
+    
+    debt_amount = abs(user_chat.length)
+    
+    await callback.message.edit_text(
+        f"💳 <b>LOAN OFFER</b> 💳\n\n"
+        f"Your current length: <b>{user_chat.length:.1f}</b> cm\n\n"
+        f"We can reset your length to <b>0 cm</b>!\n\n"
+        f"⚠️ This will add <b>{debt_amount:.1f} cm</b> to your debt.\n"
+        f"📉 20% of future growth goes to debt repayment.\n\n"
+        f"Accept the loan?",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "confirm_loan")
+async def callback_confirm_loan(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    chat_id = callback.message.chat.id
     
     success, new_length, debt = await db.apply_loan(telegram_id, chat_id)
     
     if success:
-        await message.answer(
-            f"Loan approved! Your length is now {new_length:.1f} cm.\n"
-            f"Total debt: {debt:.1f} cm (will be repaid with future growth)"
+        await callback.message.edit_text(
+            "✅ <b>LOAN APPROVED</b> ✅\n\n"
+            f"Your length is now: <b>{new_length:.1f}</b> cm\n"
+            f"Total debt: <b>{debt:.1f}</b> cm\n\n"
+            "20% of your positive growth will repay the debt.",
+            reply_markup=get_back_button(),
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer("Loan approved!")
+    else:
+        await callback.answer("Loan not needed - you have positive length!", show_alert=True)
+
+
+@router.callback_query(F.data == "action_wallet")
+async def callback_wallet(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    
+    await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
+    wallet = await db.get_wallet(telegram_id)
+    
+    if wallet:
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🔄 Update Wallet", callback_data="update_wallet")],
+            [InlineKeyboardButton(text="💰 Buy Growth", callback_data="action_buy")],
+            [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+        ])
+        await callback.message.edit_text(
+            "👛 <b>YOUR WALLET</b> 👛\n\n"
+            f"<code>{wallet}</code>\n\n"
+            "✅ Wallet registered! You can now buy growth packages.",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
         )
     else:
-        await message.answer(
-            f"You don't need a loan! Your length is {new_length:.1f} cm.\n"
-            f"Current debt: {debt:.1f} cm"
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="📝 Register Wallet", callback_data="update_wallet")],
+            [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+        ])
+        await callback.message.edit_text(
+            "👛 <b>WALLET REGISTRATION</b> 👛\n\n"
+            "No wallet registered yet.\n\n"
+            "To buy growth packages with $FAPCOIN, you need to register your Solana wallet.\n\n"
+            "Send your wallet address using:\n"
+            "<code>/wallet YourSolanaAddress</code>",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
         )
+    await callback.answer()
 
 
 @router.message(Command("wallet"))
@@ -214,67 +503,122 @@ async def cmd_wallet(message: Message):
     if len(args) < 2:
         wallet = await db.get_wallet(telegram_id)
         if wallet:
-            await message.answer(f"Your registered wallet: {wallet}")
+            await message.answer(
+                f"👛 <b>Your Wallet</b>\n\n<code>{wallet}</code>",
+                parse_mode=ParseMode.HTML
+            )
         else:
-            await message.answer("Usage: /wallet [SOL_ADDRESS]\n\nExample: /wallet So1anA...", parse_mode=None)
+            await message.answer(
+                "👛 No wallet registered.\n\n"
+                "Usage: /wallet YourSolanaAddress",
+                parse_mode=None
+            )
         return
     
     wallet_address = args[1].strip()
-    if len(wallet_address) < 32 or len(wallet_address) > 44:
-        await message.answer("Invalid Solana wallet address. Please provide a valid address.")
+    
+    if not validate_solana_address(wallet_address):
+        await message.answer(
+            "❌ <b>Invalid Wallet Address</b>\n\n"
+            "Please provide a valid Solana wallet address.",
+            parse_mode=ParseMode.HTML
+        )
         return
     
     await db.set_wallet(telegram_id, wallet_address)
-    await message.answer(f"Wallet registered: {wallet_address}")
+    await message.answer(
+        f"✅ <b>Wallet Registered!</b>\n\n"
+        f"<code>{wallet_address}</code>\n\n"
+        f"You can now buy growth packages!",
+        parse_mode=ParseMode.HTML
+    )
 
 
-@router.message(Command("buy"))
-async def cmd_buy(message: Message):
-    telegram_id = message.from_user.id
-    chat_id = message.chat.id
-    args = message.text.split()
-    
-    await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
-    await db.get_or_create_user_chat(telegram_id, chat_id)
+@router.callback_query(F.data == "action_buy")
+async def callback_buy(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
     
     wallet = await db.get_wallet(telegram_id)
     if not wallet:
-        await message.answer("Please register your wallet first using /wallet [SOL_ADDRESS]", parse_mode=None)
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="📝 Register Wallet First", callback_data="action_wallet")],
+            [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+        ])
+        await callback.message.edit_text(
+            "💰 <b>BUY GROWTH</b> 💰\n\n"
+            "⚠️ You need to register your Solana wallet first!\n\n"
+            "Click below to register:",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer("Register wallet first!", show_alert=True)
         return
     
-    if len(args) < 2:
-        text = "Available packages:\n\n"
-        for num, pkg in PACKAGES.items():
-            text += f"Package {num}: {pkg['growth']} cm for {pkg['price']:,} FAPCOIN\n"
-        text += "\nUsage: /buy [package_number]\n"
-        text += "After payment, use /verify [tx_hash] to verify your transaction."
-        await message.answer(text)
+    await callback.message.edit_text(
+        "💰 <b>GROWTH PACKAGES</b> 💰\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n"
+        "Select a package to purchase:\n"
+        "━━━━━━━━━━━━━━━━━━━━━",
+        reply_markup=get_packages_keyboard(),
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("buy_package_"))
+async def callback_buy_package(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    chat_id = callback.message.chat.id
+    package_num = int(callback.data.split("_")[2])
+    
+    pkg = PACKAGES.get(package_num)
+    if not pkg:
+        await callback.answer("Invalid package!", show_alert=True)
         return
     
-    try:
-        package_num = int(args[1])
-    except ValueError:
-        await message.answer("Invalid package number. Use /buy to see available packages.")
+    wallet = await db.get_wallet(telegram_id)
+    if not wallet:
+        await callback.answer("Register wallet first!", show_alert=True)
         return
     
-    if package_num not in PACKAGES:
-        await message.answer("Invalid package number. Use /buy to see available packages.")
-        return
+    await db.get_or_create_user_chat(telegram_id, chat_id)
+    await db.create_pending_transaction(telegram_id, chat_id, package_num, pkg['price'])
     
-    pkg = PACKAGES[package_num]
     team_wallet = os.environ.get('TEAM_WALLET_ADDRESS', 'Not configured')
     
-    tx = await db.create_pending_transaction(telegram_id, chat_id, package_num, pkg['price'])
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ I've Sent Payment", callback_data=f"verify_prompt_{package_num}")],
+        [InlineKeyboardButton(text="❌ Cancel", callback_data="action_buy")]
+    ])
     
-    await message.answer(
-        f"To purchase Package {package_num} ({pkg['growth']} cm):\n\n"
-        f"Send exactly {pkg['price']:,} $FAPCOIN to:\n"
-        f"`{team_wallet}`\n\n"
-        f"After sending, use:\n"
-        f"/verify [transaction_hash]\n\n"
-        f"Your growth will be credited once verified!",
-        parse_mode=ParseMode.MARKDOWN
+    await callback.message.edit_text(
+        f"💰 <b>PURCHASE PACKAGE {package_num}</b> 💰\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"{pkg['emoji']} <b>+{pkg['growth']} cm Growth</b>\n"
+        f"💵 Price: <b>{pkg['price']:,} $FAPCOIN</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"📤 Send exactly <b>{pkg['price']:,}</b> FAPCOIN to:\n\n"
+        f"<code>{team_wallet}</code>\n\n"
+        f"After sending, click the button below!",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
     )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("verify_prompt_"))
+async def callback_verify_prompt(callback: CallbackQuery):
+    package_num = int(callback.data.split("_")[2])
+    
+    await callback.message.edit_text(
+        "📝 <b>VERIFY PAYMENT</b> 📝\n\n"
+        "Please send the Solana transaction hash:\n\n"
+        "<code>/verify YOUR_TX_HASH</code>\n\n"
+        "You can find this in your wallet's transaction history.",
+        reply_markup=get_back_button(),
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
 
 
 @router.message(Command("verify"))
@@ -286,30 +630,48 @@ async def cmd_verify(message: Message):
     await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
     
     if len(args) < 2:
-        await message.answer("Usage: /verify [transaction_hash]\n\nProvide the Solana transaction hash after payment.", parse_mode=None)
+        await message.answer(
+            "📝 <b>VERIFY PAYMENT</b>\n\n"
+            "Usage: /verify [transaction_hash]\n\n"
+            "Paste your Solana transaction signature after /verify",
+            parse_mode=ParseMode.HTML
+        )
         return
     
     tx_hash = args[1].strip()
     
-    if len(tx_hash) < 64 or len(tx_hash) > 100:
-        await message.answer("Invalid transaction hash. Please provide a valid Solana transaction signature.")
+    if not validate_solana_tx_hash(tx_hash):
+        await message.answer(
+            "❌ <b>Invalid Transaction Hash</b>\n\n"
+            "Please provide a valid Solana transaction signature.\n\n"
+            "It should be 87-88 characters of base58 encoding.",
+            parse_mode=ParseMode.HTML
+        )
         return
     
     already_used = await db.is_transaction_already_used(tx_hash)
     if already_used:
-        await message.answer("This transaction has already been used for a previous purchase.")
+        await message.answer(
+            "❌ <b>Transaction Already Used</b>\n\n"
+            "This transaction has already been claimed.",
+            parse_mode=ParseMode.HTML
+        )
         return
     
     pending_txs = await db.get_pending_transactions(telegram_id)
     if not pending_txs:
-        await message.answer("No pending purchases found. Use /buy to make a purchase first.")
+        await message.answer(
+            "❌ <b>No Pending Purchase</b>\n\n"
+            "Use /menu to buy a package first.",
+            parse_mode=ParseMode.HTML
+        )
         return
     
     pending_tx = pending_txs[0]
     pkg = PACKAGES.get(pending_tx.package_number)
     
     if not pkg:
-        await message.answer("Invalid package in pending transaction.")
+        await message.answer("❌ Invalid package.", parse_mode=None)
         return
     
     solana_rpc = os.environ.get('SOLANA_RPC_URL', '')
@@ -318,71 +680,55 @@ async def cmd_verify(message: Message):
     
     if not solana_rpc or not team_wallet:
         await message.answer(
-            "Payment verification is not configured yet. Please contact support.\n"
-            "Your transaction will be manually verified."
+            "⚠️ <b>Verification Unavailable</b>\n\n"
+            "Payment verification is not configured.\n"
+            "Please contact support.",
+            parse_mode=ParseMode.HTML
         )
         return
     
-    await message.answer("Verifying transaction on Solana blockchain... Please wait.")
+    await message.answer("🔍 <b>Verifying transaction...</b>", parse_mode=ParseMode.HTML)
     
     try:
         verification = await verify_solana_transaction(
-            tx_hash, 
-            user_wallet, 
-            team_wallet, 
-            pending_tx.amount_paid,
-            solana_rpc
+            tx_hash, user_wallet, team_wallet, pending_tx.amount_paid, solana_rpc
         )
         
         if verification['verified']:
             success = await db.confirm_transaction(pending_tx.transaction_id, tx_hash, pkg['growth'])
             if success:
                 await message.answer(
-                    f"Payment verified!\n\n"
-                    f"You received +{pkg['growth']} cm growth!\n"
-                    f"Thank you for your purchase!"
+                    f"✅ <b>PAYMENT VERIFIED!</b> ✅\n\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"🎉 You received <b>+{pkg['growth']} cm</b>!\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                    f"Thank you for your purchase!",
+                    parse_mode=ParseMode.HTML
                 )
             else:
-                await message.answer("Error confirming transaction. Please contact support.")
+                await message.answer("❌ Error confirming. Contact support.", parse_mode=None)
         else:
             error = verification.get('error', 'unknown')
-            
             if error == 'tx_not_found':
-                error_msg = "Transaction not found on blockchain. It may still be processing - please wait a few minutes and try again."
+                error_msg = "Transaction not found. Wait a few minutes and try again."
             elif error == 'tx_failed':
-                error_msg = "The transaction failed on the blockchain. Please check your wallet and try again."
+                error_msg = "Transaction failed on blockchain."
             elif error == 'transfer_not_found':
-                error_msg = (
-                    f"Could not find a transfer to our wallet in this transaction.\n\n"
-                    f"Please ensure you sent FAPCOIN tokens to:\n"
-                    f"`{team_wallet}`"
-                )
-            elif error == 'rpc_error':
-                error_msg = "Error connecting to Solana network. Please try again in a few minutes."
+                error_msg = "Transfer to team wallet not found in transaction."
             else:
-                error_msg = "Could not verify the transaction."
+                error_msg = "Could not verify transaction."
             
             await message.answer(
-                f"Verification failed!\n\n"
-                f"{error_msg}\n\n"
-                f"Expected: {int(pending_tx.amount_paid):,} FAPCOIN\n"
-                f"To wallet: `{team_wallet}`\n\n"
-                "If you believe this is an error, use /support.",
-                parse_mode=ParseMode.MARKDOWN
+                f"❌ <b>Verification Failed</b>\n\n{error_msg}\n\n"
+                f"If you believe this is an error, contact support.",
+                parse_mode=ParseMode.HTML
             )
     except Exception as e:
-        await message.answer(
-            "Error verifying transaction. Please try again later or contact support."
-        )
+        await message.answer("❌ Error verifying. Try again later.", parse_mode=None)
 
 
 async def verify_solana_transaction(tx_hash: str, from_wallet: str, to_wallet: str, expected_amount: float, rpc_url: str) -> dict:
-    result = {
-        'verified': False,
-        'error': None,
-        'found_amount': 0,
-        'found_to': None
-    }
+    result = {'verified': False, 'error': None, 'found_amount': 0, 'found_to': None}
     
     try:
         async with aiohttp.ClientSession() as session:
@@ -390,10 +736,7 @@ async def verify_solana_transaction(tx_hash: str, from_wallet: str, to_wallet: s
                 "jsonrpc": "2.0",
                 "id": 1,
                 "method": "getTransaction",
-                "params": [
-                    tx_hash,
-                    {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 0}
-                ]
+                "params": [tx_hash, {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 0}]
             }
             
             async with session.post(rpc_url, json=payload) as response:
@@ -436,8 +779,7 @@ async def verify_solana_transaction(tx_hash: str, from_wallet: str, to_wallet: s
                             amount = float(token_amount.get('uiAmount', 0))
                         else:
                             amount = float(info.get('amount', 0))
-                            decimals = 9
-                            amount = amount / (10 ** decimals)
+                            amount = amount / (10 ** 9)
                         
                         result['found_amount'] = amount
                         result['found_to'] = destination
@@ -447,25 +789,13 @@ async def verify_solana_transaction(tx_hash: str, from_wallet: str, to_wallet: s
                                 result['verified'] = True
                                 return result
                 
-                account_keys = tx.get('transaction', {}).get('message', {}).get('accountKeys', [])
-                for key in account_keys:
-                    if isinstance(key, dict):
-                        pubkey = key.get('pubkey', '')
-                    else:
-                        pubkey = str(key)
-                    if to_wallet.lower() == pubkey.lower():
-                        result['verified'] = True
-                        result['found_to'] = pubkey
-                        return result
-                
-                pre_balances = tx.get('meta', {}).get('preTokenBalances', [])
                 post_balances = tx.get('meta', {}).get('postTokenBalances', [])
+                pre_balances = tx.get('meta', {}).get('preTokenBalances', [])
                 
                 for post in post_balances:
                     owner = post.get('owner', '')
                     if owner.lower() == to_wallet.lower():
                         post_amount = float(post.get('uiTokenAmount', {}).get('uiAmount', 0) or 0)
-                        
                         pre_amount = 0
                         for pre in pre_balances:
                             if pre.get('accountIndex') == post.get('accountIndex'):
@@ -483,8 +813,28 @@ async def verify_solana_transaction(tx_hash: str, from_wallet: str, to_wallet: s
                 return result
                 
     except Exception as e:
-        result['error'] = f'exception: {str(e)}'
+        result['error'] = f'exception'
         return result
+
+
+@router.callback_query(F.data == "action_pvp_info")
+async def callback_pvp_info(callback: CallbackQuery):
+    await callback.message.edit_text(
+        "⚔️ <b>PVP BATTLES</b> ⚔️\n\n"
+        "Challenge other players and bet your length!\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n"
+        "📋 <b>How to Play:</b>\n"
+        "1️⃣ Reply to someone's message\n"
+        "2️⃣ Use: /pvp [bet amount]\n"
+        "3️⃣ They accept or decline\n"
+        "4️⃣ Winner takes the bet!\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "Example: <code>/pvp 10</code>\n"
+        "(Bet 10 cm on the battle)",
+        reply_markup=get_back_button(),
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
 
 
 @router.message(Command("pvp"))
@@ -496,74 +846,78 @@ async def cmd_pvp(message: Message):
     await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
     await db.get_or_create_user_chat(telegram_id, chat_id)
     
-    if len(args) < 3:
-        await message.answer("Usage: /pvp @username [bet_amount]\n\nExample: /pvp @friend 10", parse_mode=None)
+    if not message.reply_to_message:
+        await message.answer(
+            "⚔️ <b>PVP BATTLE</b>\n\n"
+            "Reply to someone's message and use:\n"
+            "<code>/pvp [bet]</code>\n\n"
+            "Example: Reply to a message, then send <code>/pvp 10</code>",
+            parse_mode=ParseMode.HTML
+        )
         return
     
-    opponent_id = None
-    opponent_name = None
-    
-    if message.entities:
-        for entity in message.entities:
-            if entity.type == 'mention':
-                opponent_name = message.text[entity.offset:entity.offset + entity.length]
-                break
-            elif entity.type == 'text_mention' and entity.user:
-                opponent_id = entity.user.id
-                opponent_name = entity.user.first_name or entity.user.username
-                await db.get_or_create_user(
-                    entity.user.id,
-                    entity.user.username,
-                    entity.user.first_name
-                )
-                await db.get_or_create_user_chat(entity.user.id, chat_id)
-                break
-    
-    if not opponent_id and not opponent_name:
-        await message.answer("Please mention a valid user to challenge.")
+    if len(args) < 2:
+        await message.answer("Usage: Reply to a message + /pvp [bet_amount]", parse_mode=None)
         return
     
     try:
-        bet = float(args[-1])
+        bet = float(args[1])
         if bet <= 0:
             raise ValueError()
     except ValueError:
-        await message.answer("Invalid bet amount. Must be a positive number.")
+        await message.answer("❌ Invalid bet. Use a positive number.", parse_mode=None)
+        return
+    
+    opponent = message.reply_to_message.from_user
+    if opponent.id == telegram_id:
+        await message.answer("❌ You can't battle yourself!", parse_mode=None)
+        return
+    
+    if opponent.is_bot:
+        await message.answer("❌ You can't battle bots!", parse_mode=None)
         return
     
     total = await db.get_total_length(telegram_id, chat_id)
     if total < bet:
-        await message.answer(f"Insufficient length! You have {total:.1f} cm but need {bet:.1f} cm to bet.")
+        await message.answer(
+            f"❌ <b>Insufficient Length</b>\n\n"
+            f"You have: {total:.1f} cm\n"
+            f"Bet required: {bet:.1f} cm",
+            parse_mode=ParseMode.HTML
+        )
         return
     
-    if opponent_id:
-        challenge = await db.create_pvp_challenge(chat_id, telegram_id, opponent_id, bet)
-        
-        if not challenge:
-            await message.answer("Could not create challenge. You may already have a pending challenge.")
-            return
-        
-        challenger_name = message.from_user.first_name or message.from_user.username or "User"
-        
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [
-                InlineKeyboardButton(text="Accept", callback_data=f"pvp_accept_{challenge.id}"),
-                InlineKeyboardButton(text="Decline", callback_data=f"pvp_decline_{challenge.id}")
-            ]
-        ])
-        
-        await message.answer(
-            f"⚔️ PVP CHALLENGE ⚔️\n\n"
-            f"{challenger_name} challenges {opponent_name}!\n"
-            f"Bet: {bet:.1f} cm\n\n"
-            f"{opponent_name}, click below to respond!",
-            reply_markup=keyboard
-        )
-    else:
-        await message.answer(
-            f"To challenge {opponent_name}, they need to send a message first.\n"
-            f"Then you can challenge them with /pvp @{opponent_name} {bet}"
-        )
+    await db.get_or_create_user(opponent.id, opponent.username, opponent.first_name)
+    await db.get_or_create_user_chat(opponent.id, chat_id)
+    
+    challenge = await db.create_pvp_challenge(chat_id, telegram_id, opponent.id, bet)
+    
+    if not challenge:
+        await message.answer("❌ Could not create challenge. You may have a pending challenge.", parse_mode=None)
+        return
+    
+    challenger_name = message.from_user.first_name or "Player"
+    opponent_name = opponent.first_name or "Player"
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="⚔️ ACCEPT", callback_data=f"pvp_accept_{challenge.id}"),
+            InlineKeyboardButton(text="🏃 DECLINE", callback_data=f"pvp_decline_{challenge.id}")
+        ]
+    ])
+    
+    await message.answer(
+        f"⚔️ <b>PVP CHALLENGE!</b> ⚔️\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"🔵 <b>{challenger_name}</b>\n"
+        f"       ⚔️ VS ⚔️\n"
+        f"🔴 <b>{opponent_name}</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"💰 Bet: <b>{bet:.1f} cm</b>\n\n"
+        f"<b>{opponent_name}</b>, do you accept?",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
 
 
 @router.callback_query(F.data.startswith("pvp_accept_"))
@@ -574,7 +928,7 @@ async def pvp_accept_callback(callback: CallbackQuery):
     challenge = await db.get_pending_pvp_challenge(challenge_id)
     
     if not challenge:
-        await callback.answer("This challenge is no longer available!", show_alert=True)
+        await callback.answer("Challenge expired!", show_alert=True)
         return
     
     if user_id != challenge.opponent_id:
@@ -584,42 +938,45 @@ async def pvp_accept_callback(callback: CallbackQuery):
     result = await db.accept_pvp_challenge(challenge_id)
     
     if not result:
-        await callback.answer("Error processing challenge!", show_alert=True)
+        await callback.answer("Error!", show_alert=True)
         return
     
     if result.get('error') == 'insufficient_funds':
-        await callback.answer("You don't have enough length to accept this bet!", show_alert=True)
-        return
-    
-    if result.get('draw'):
-        await callback.message.edit_text(
-            f"⚔️ PVP RESULT ⚔️\n\n"
-            f"It's a DRAW!\n\n"
-            f"Challenger rolled: {result['challenger_roll']}\n"
-            f"Opponent rolled: {result['opponent_roll']}\n\n"
-            f"No length was exchanged."
-        )
-        await callback.answer("It's a draw!")
+        await callback.answer("You don't have enough length!", show_alert=True)
         return
     
     challenger_user = await db.get_user_by_telegram_id(result['challenger_id'])
     opponent_user = await db.get_user_by_telegram_id(result['opponent_id'])
-    winner_user = await db.get_user_by_telegram_id(result['winner_id'])
-    loser_id = result['loser_id']
     
-    challenger_name = challenger_user.first_name if challenger_user else "Challenger"
-    opponent_name = opponent_user.first_name if opponent_user else "Opponent"
+    challenger_name = challenger_user.first_name if challenger_user else "Player 1"
+    opponent_name = opponent_user.first_name if opponent_user else "Player 2"
+    
+    if result.get('draw'):
+        await callback.message.edit_text(
+            f"⚔️ <b>PVP RESULT</b> ⚔️\n\n"
+            f"🎲 {challenger_name}: <b>{result['challenger_roll']}</b>\n"
+            f"🎲 {opponent_name}: <b>{result['opponent_roll']}</b>\n\n"
+            f"🤝 <b>IT'S A DRAW!</b>\n\n"
+            f"No length exchanged.",
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer("It's a draw!")
+        return
+    
+    winner_user = await db.get_user_by_telegram_id(result['winner_id'])
     winner_name = winner_user.first_name if winner_user else "Winner"
     
     await callback.message.edit_text(
-        f"⚔️ PVP RESULT ⚔️\n\n"
-        f"{challenger_name} rolled: {result['challenger_roll']}\n"
-        f"{opponent_name} rolled: {result['opponent_roll']}\n\n"
-        f"🏆 {winner_name} WINS! 🏆\n\n"
-        f"+{result['bet']:.1f} cm gained!\n"
-        f"-{result['bet']:.1f} cm lost by the loser!"
+        f"⚔️ <b>PVP RESULT</b> ⚔️\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"🎲 {challenger_name}: <b>{result['challenger_roll']}</b>\n"
+        f"🎲 {opponent_name}: <b>{result['opponent_roll']}</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"🏆 <b>{winner_name} WINS!</b> 🏆\n\n"
+        f"💰 +{result['bet']:.1f} cm",
+        parse_mode=ParseMode.HTML
     )
-    await callback.answer(f"{winner_name} wins!")
+    await callback.answer(f"🏆 {winner_name} wins!")
 
 
 @router.callback_query(F.data.startswith("pvp_decline_"))
@@ -630,7 +987,7 @@ async def pvp_decline_callback(callback: CallbackQuery):
     challenge = await db.get_pending_pvp_challenge(challenge_id)
     
     if not challenge:
-        await callback.answer("This challenge is no longer available!", show_alert=True)
+        await callback.answer("Challenge expired!", show_alert=True)
         return
     
     if user_id != challenge.opponent_id:
@@ -640,110 +997,121 @@ async def pvp_decline_callback(callback: CallbackQuery):
     await db.decline_pvp_challenge(challenge_id)
     
     await callback.message.edit_text(
-        f"⚔️ PVP DECLINED ⚔️\n\n"
-        f"The challenge was declined."
+        "⚔️ <b>CHALLENGE DECLINED</b> ⚔️\n\n"
+        "🏃 The opponent ran away!",
+        parse_mode=ParseMode.HTML
     )
     await callback.answer("Challenge declined!")
 
 
+@router.callback_query(F.data == "action_help")
+async def callback_help(callback: CallbackQuery):
+    await callback.message.edit_text(
+        "❓ <b>HELP & COMMANDS</b> ❓\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n"
+        "🎮 <b>GAMEPLAY</b>\n"
+        "/grow - Daily growth (-5 to +20 cm)\n"
+        "/top - Leaderboard\n"
+        "/daily - Dick of the Day\n"
+        "/pvp - Challenge players\n"
+        "/loan - Borrow to reset debt\n\n"
+        "💰 <b>PURCHASES</b>\n"
+        "/wallet - Register Solana wallet\n"
+        "/buy - View packages\n"
+        "/verify - Verify payment\n\n"
+        "📱 <b>OTHER</b>\n"
+        "/menu - Main menu\n"
+        "/support - Get help\n"
+        "━━━━━━━━━━━━━━━━━━━━━",
+        reply_markup=get_back_button(),
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action_support")
+async def callback_support(callback: CallbackQuery):
+    support_username = os.environ.get('SUPPORT_USERNAME', '')
+    
+    if support_username:
+        if not support_username.startswith('@'):
+            support_username = '@' + support_username
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💬 Contact Support", url=f"https://t.me/{support_username.lstrip('@')}")],
+            [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+        ])
+        
+        await callback.message.edit_text(
+            "🆘 <b>SUPPORT</b> 🆘\n\n"
+            f"Need help? Contact our support:\n\n"
+            f"👤 {support_username}\n\n"
+            "Click the button below to start a chat:",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    else:
+        await callback.message.edit_text(
+            "🆘 <b>SUPPORT</b> 🆘\n\n"
+            "Support is not configured.\n\n"
+            "Please try again later.",
+            reply_markup=get_back_button(),
+            parse_mode=ParseMode.HTML
+        )
+    await callback.answer()
+
+
 @router.message(Command("support"))
 async def cmd_support(message: Message):
-    telegram_id = message.from_user.id
-    args = message.text.split(maxsplit=1)
+    support_username = os.environ.get('SUPPORT_USERNAME', '')
     
-    await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
-    
-    if len(args) < 2:
+    if support_username:
+        if not support_username.startswith('@'):
+            support_username = '@' + support_username
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💬 Contact Support", url=f"https://t.me/{support_username.lstrip('@')}")]
+        ])
+        
         await message.answer(
-            "Need help? Please provide your support username:\n\n"
-            "Usage: /support @your_telegram_username\n\n"
-            "Our team will contact you directly."
+            f"🆘 <b>SUPPORT</b>\n\n"
+            f"Contact: {support_username}",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
         )
-        return
-    
-    support_username = args[1].strip()
-    await db.create_support_request(telegram_id, support_username)
-    
+    else:
+        await message.answer("Support not configured.", parse_mode=None)
+
+
+@router.message(Command("help"))
+async def cmd_help(message: Message):
     await message.answer(
-        f"Support request created!\n\n"
-        f"We'll contact you at: {support_username}\n"
-        f"Please wait for our team to respond."
+        "❓ <b>COMMANDS</b>\n\n"
+        "/menu - Main menu\n"
+        "/grow - Daily growth\n"
+        "/top - Leaderboard\n"
+        "/pvp - PvP battle\n"
+        "/wallet - Set wallet\n"
+        "/verify - Verify payment\n"
+        "/support - Get help",
+        parse_mode=ParseMode.HTML
     )
 
 
 @router.inline_query()
 async def inline_handler(inline_query: InlineQuery):
-    query = inline_query.query.lower().strip()
-    results = []
-    
-    if query.startswith("grow") or not query:
-        results.append(
-            InlineQueryResultArticle(
-                id="grow",
-                title="/grow",
-                description="Get your daily growth",
-                input_message_content=InputTextMessageContent(message_text="/grow")
-            )
-        )
-    
-    if query.startswith("top") or not query:
-        results.append(
-            InlineQueryResultArticle(
-                id="top",
-                title="/top",
-                description="Show leaderboard",
-                input_message_content=InputTextMessageContent(message_text="/top")
-            )
-        )
-    
-    if query.startswith("daily") or not query:
-        results.append(
-            InlineQueryResultArticle(
-                id="daily",
-                title="/daily",
-                description="Dick of the Day selection",
-                input_message_content=InputTextMessageContent(message_text="/daily")
-            )
-        )
-    
-    if query.startswith("loan") or not query:
-        results.append(
-            InlineQueryResultArticle(
-                id="loan",
-                title="/loan",
-                description="Reset debt to zero",
-                input_message_content=InputTextMessageContent(message_text="/loan")
-            )
-        )
-    
-    if query.startswith("wallet") or not query:
-        results.append(
-            InlineQueryResultArticle(
-                id="wallet",
-                title="/wallet",
-                description="Register your Solana wallet",
-                input_message_content=InputTextMessageContent(message_text="/wallet")
-            )
-        )
-    
-    if query.startswith("buy") or not query:
-        results.append(
-            InlineQueryResultArticle(
-                id="buy",
-                title="/buy",
-                description="Purchase growth packages",
-                input_message_content=InputTextMessageContent(message_text="/buy")
-            )
-        )
-    
-    if query.startswith("support") or not query:
-        results.append(
-            InlineQueryResultArticle(
-                id="support",
-                title="/support",
-                description="Request support",
-                input_message_content=InputTextMessageContent(message_text="/support")
-            )
-        )
-    
-    await inline_query.answer(results[:10], cache_time=60)
+    results = [
+        InlineQueryResultArticle(
+            id="grow", title="🌱 Grow", description="Daily growth",
+            input_message_content=InputTextMessageContent(message_text="/grow")
+        ),
+        InlineQueryResultArticle(
+            id="top", title="🏆 Leaderboard", description="View rankings",
+            input_message_content=InputTextMessageContent(message_text="/top")
+        ),
+        InlineQueryResultArticle(
+            id="menu", title="📱 Menu", description="Open main menu",
+            input_message_content=InputTextMessageContent(message_text="/menu")
+        ),
+    ]
+    await inline_query.answer(results, cache_time=60)
