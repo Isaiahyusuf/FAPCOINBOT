@@ -15,13 +15,33 @@ from src.database import db
 
 router = Router()
 
-PACKAGES = {
+DEFAULT_PACKAGES = {
     1: {"growth": 20, "price": 5000, "emoji": "🌱"},
     2: {"growth": 40, "price": 10000, "emoji": "🌿"},
     3: {"growth": 60, "price": 15000, "emoji": "🌳"},
     4: {"growth": 80, "price": 20000, "emoji": "🚀"},
     5: {"growth": 100, "price": 25000, "emoji": "👑"},
 }
+
+PACKAGES = DEFAULT_PACKAGES
+
+
+async def get_package(package_num: int) -> dict | None:
+    """Get package with current price from database."""
+    if package_num not in DEFAULT_PACKAGES:
+        return None
+    pkg = DEFAULT_PACKAGES[package_num].copy()
+    pkg['price'] = await db.get_package_price(package_num, pkg['price'])
+    return pkg
+
+
+async def get_all_packages() -> dict:
+    """Get all packages with current prices from database."""
+    packages = {}
+    for num, pkg in DEFAULT_PACKAGES.items():
+        packages[num] = pkg.copy()
+        packages[num]['price'] = await db.get_package_price(num, pkg['price'])
+    return packages
 
 
 def is_owner(telegram_id: int) -> bool:
@@ -70,9 +90,10 @@ def get_back_button():
     ])
 
 
-def get_packages_keyboard():
+async def get_packages_keyboard():
+    packages = await get_all_packages()
     buttons = []
-    for num, pkg in PACKAGES.items():
+    for num, pkg in packages.items():
         buttons.append([
             InlineKeyboardButton(
                 text=f"{pkg['emoji']} Package {num}: +{pkg['growth']}cm for {pkg['price']:,} FAPCOIN",
@@ -139,7 +160,7 @@ async def cmd_start_with_param(message: Message, bot: Bot):
             "Buy growth with <b>$FAPCOIN</b>!\n"
             "Select a package below:\n"
             "━━━━━━━━━━━━━━━━━━━━━",
-            reply_markup=get_packages_keyboard(),
+            reply_markup=await get_packages_keyboard(),
             parse_mode=ParseMode.HTML
         )
         return
@@ -230,6 +251,7 @@ async def cmd_admin(message: Message):
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="💰 Set Team Wallet", callback_data="admin_setwallet")],
+        [InlineKeyboardButton(text="💵 Set Prices", callback_data="admin_setprices")],
         [InlineKeyboardButton(text="📊 View Stats", callback_data="admin_stats")],
     ])
     
@@ -241,7 +263,8 @@ async def cmd_admin(message: Message):
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
         f"<b>Commands:</b>\n"
         f"/setwallet [address] - Set team wallet\n"
-        f"/showwallet - Show current wallet",
+        f"/setprice [pkg] [price] - Set package price\n"
+        f"/prices - View current prices",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
@@ -307,6 +330,82 @@ async def cmd_showwallet(message: Message):
     )
 
 
+@router.message(Command("setprice"))
+async def cmd_setprice(message: Message):
+    """Set package price - owner only."""
+    telegram_id = message.from_user.id
+    
+    if not is_owner(telegram_id):
+        await message.answer("❌ This command is only for the bot owner.", parse_mode=None)
+        return
+    
+    args = message.text.split()
+    if len(args) < 3:
+        packages = await get_all_packages()
+        pkg_list = "\n".join([
+            f"  {num}: {pkg['emoji']} +{pkg['growth']}cm = {pkg['price']:,} FAPCOIN"
+            for num, pkg in packages.items()
+        ])
+        await message.answer(
+            f"📝 <b>Usage:</b> /setprice [package] [price]\n\n"
+            f"<b>Current Packages:</b>\n{pkg_list}\n\n"
+            f"<b>Example:</b>\n<code>/setprice 1 7500</code>\n"
+            f"(Sets Package 1 to 7,500 FAPCOIN)",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    try:
+        package_num = int(args[1])
+        new_price = int(args[2])
+    except ValueError:
+        await message.answer("❌ Invalid numbers. Use: /setprice [package] [price]", parse_mode=None)
+        return
+    
+    if package_num not in DEFAULT_PACKAGES:
+        await message.answer(f"❌ Invalid package number. Use 1-{len(DEFAULT_PACKAGES)}.", parse_mode=None)
+        return
+    
+    if new_price < 1:
+        await message.answer("❌ Price must be at least 1.", parse_mode=None)
+        return
+    
+    await db.set_package_price(package_num, new_price, telegram_id)
+    pkg = DEFAULT_PACKAGES[package_num]
+    
+    await message.answer(
+        f"✅ <b>Package {package_num} Price Updated!</b>\n\n"
+        f"{pkg['emoji']} +{pkg['growth']}cm\n"
+        f"💵 New Price: <b>{new_price:,} FAPCOIN</b>",
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(Command("prices"))
+async def cmd_prices(message: Message):
+    """Show current prices - owner only."""
+    telegram_id = message.from_user.id
+    
+    if not is_owner(telegram_id):
+        await message.answer("❌ This command is only for the bot owner.", parse_mode=None)
+        return
+    
+    packages = await get_all_packages()
+    pkg_list = "\n".join([
+        f"{pkg['emoji']} Package {num}: +{pkg['growth']}cm = <b>{pkg['price']:,}</b> FAPCOIN"
+        for num, pkg in packages.items()
+    ])
+    
+    await message.answer(
+        f"💰 <b>Current Package Prices</b>\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"{pkg_list}\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"Use /setprice [package] [price] to change.",
+        parse_mode=ParseMode.HTML
+    )
+
+
 @router.callback_query(F.data == "admin_setwallet")
 async def callback_admin_setwallet(callback: CallbackQuery):
     """Prompt to set wallet via command."""
@@ -357,6 +456,7 @@ async def callback_admin(callback: CallbackQuery):
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="💰 Set Team Wallet", callback_data="admin_setwallet")],
+        [InlineKeyboardButton(text="💵 Set Prices", callback_data="admin_setprices")],
         [InlineKeyboardButton(text="📊 View Stats", callback_data="admin_stats")],
     ])
     
@@ -368,7 +468,39 @@ async def callback_admin(callback: CallbackQuery):
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
         f"<b>Commands:</b>\n"
         f"/setwallet [address] - Set team wallet\n"
-        f"/showwallet - Show current wallet",
+        f"/setprice [pkg] [price] - Set package price\n"
+        f"/prices - View current prices",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "admin_setprices")
+async def callback_admin_setprices(callback: CallbackQuery):
+    """Show prices and how to change them - owner only."""
+    if not is_owner(callback.from_user.id):
+        await callback.answer("❌ Owner only", show_alert=True)
+        return
+    
+    packages = await get_all_packages()
+    pkg_list = "\n".join([
+        f"{pkg['emoji']} Package {num}: +{pkg['growth']}cm = <b>{pkg['price']:,}</b> FAPCOIN"
+        for num, pkg in packages.items()
+    ])
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="◀️ Back to Admin", callback_data="action_admin")]
+    ])
+    
+    await callback.message.edit_text(
+        f"💵 <b>Package Prices</b>\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"{pkg_list}\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"To change a price, send:\n"
+        f"<code>/setprice [package] [price]</code>\n\n"
+        f"Example: <code>/setprice 1 7500</code>",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
@@ -589,7 +721,7 @@ async def cmd_buy(message: Message):
         "━━━━━━━━━━━━━━━━━━━━━\n"
         "Buy growth with <b>$FAPCOIN</b>!\n"
         "━━━━━━━━━━━━━━━━━━━━━",
-        reply_markup=get_packages_keyboard(),
+        reply_markup=await get_packages_keyboard(),
         parse_mode=ParseMode.HTML
     )
 
@@ -784,7 +916,7 @@ async def callback_buy(callback: CallbackQuery):
         "Buy growth with <b>$FAPCOIN</b>!\n"
         "Select a package below:\n"
         "━━━━━━━━━━━━━━━━━━━━━",
-        reply_markup=get_packages_keyboard(),
+        reply_markup=await get_packages_keyboard(),
         parse_mode=ParseMode.HTML
     )
     await callback.answer()
@@ -796,7 +928,7 @@ async def callback_buy_package(callback: CallbackQuery):
     chat_id = callback.message.chat.id
     package_num = int(callback.data.split("_")[2])
     
-    pkg = PACKAGES.get(package_num)
+    pkg = await get_package(package_num)
     if not pkg:
         await callback.answer("Invalid package!", show_alert=True)
         return
@@ -831,7 +963,7 @@ async def callback_buy_package(callback: CallbackQuery):
 @router.callback_query(F.data.startswith("paid_"))
 async def callback_paid(callback: CallbackQuery):
     package_num = int(callback.data.split("_")[1])
-    pkg = PACKAGES.get(package_num, {})
+    pkg = await get_package(package_num) or {}
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="◀️ Back to Packages", callback_data="action_buy")]
@@ -908,7 +1040,7 @@ async def cmd_verify(message: Message):
         return
     
     pending_tx = pending_txs[0]
-    pkg = PACKAGES.get(pending_tx.package_number)
+    pkg = await get_package(pending_tx.package_number)
     logger.info(f"Verifying tx {tx_hash[:20]}... for package {pending_tx.package_number}")
     
     if not pkg:
@@ -1442,7 +1574,7 @@ async def catch_tx_hash(message: Message):
             return
         
         pending_tx = pending_txs[0]
-        pkg = PACKAGES.get(pending_tx.package_number)
+        pkg = await get_package(pending_tx.package_number)
         
         if not pkg:
             await message.answer("❌ Invalid package.", parse_mode=None)
