@@ -1145,8 +1145,14 @@ async def catch_tx_hash(message: Message):
     
     text = message.text.strip() if message.text else ""
     
+    logger.info(f"Received message from {message.from_user.id}: '{text[:50]}...' (len={len(text)})")
+    
     if len(text) >= 43 and len(text) <= 100 and not text.startswith("/"):
-        if validate_solana_tx_hash(text):
+        logger.info(f"Length check passed, validating as tx hash...")
+        is_valid = validate_solana_tx_hash(text)
+        logger.info(f"Validation result: {is_valid}")
+        
+        if is_valid:
             logger.info(f"Detected tx hash from user {message.from_user.id}: {text[:20]}...")
             
             telegram_id = message.from_user.id
