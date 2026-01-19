@@ -5,6 +5,7 @@ from datetime import datetime, time
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
+from aiogram.types import BotCommand, BotCommandScopeAllGroupChats, BotCommandScopeAllPrivateChats
 
 from src.database.models import init_db
 from src.database import db
@@ -79,6 +80,32 @@ async def main():
     
     dp = Dispatcher()
     dp.include_router(router)
+    
+    group_commands = [
+        BotCommand(command="menu", description="🎮 Open main menu"),
+        BotCommand(command="grow", description="🌱 Daily growth"),
+        BotCommand(command="top", description="🏆 View leaderboard"),
+        BotCommand(command="pvp", description="⚔️ Challenge someone (reply to them)"),
+        BotCommand(command="daily", description="🎲 Dick of the Day"),
+        BotCommand(command="wallet", description="👛 Register Solana wallet"),
+        BotCommand(command="buy", description="💰 Buy growth packages"),
+        BotCommand(command="verify", description="✅ Verify payment"),
+        BotCommand(command="loan", description="💳 Get a loan"),
+        BotCommand(command="support", description="🆘 Contact support"),
+        BotCommand(command="help", description="❓ Show help"),
+    ]
+    
+    private_commands = [
+        BotCommand(command="start", description="🚀 Start the bot"),
+        BotCommand(command="menu", description="🎮 Open main menu"),
+        BotCommand(command="wallet", description="👛 Register Solana wallet"),
+        BotCommand(command="support", description="🆘 Contact support"),
+        BotCommand(command="help", description="❓ Show help"),
+    ]
+    
+    await bot.set_my_commands(group_commands, scope=BotCommandScopeAllGroupChats())
+    await bot.set_my_commands(private_commands, scope=BotCommandScopeAllPrivateChats())
+    logger.info("Bot commands registered for groups and private chats")
     
     asyncio.create_task(daily_winner_task(bot))
     

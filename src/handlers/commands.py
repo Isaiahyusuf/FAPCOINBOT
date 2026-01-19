@@ -316,6 +316,107 @@ async def cmd_top(message: Message):
     await message.answer(text, parse_mode=ParseMode.HTML)
 
 
+@router.message(Command("daily"))
+async def cmd_daily(message: Message):
+    chat_id = message.chat.id
+    
+    has_winner = await db.has_daily_winner_today(chat_id)
+    if has_winner:
+        await message.answer(
+            "🎲 <b>DICK OF THE DAY</b>\n\n"
+            "Today's winner has already been selected!\n"
+            "Come back tomorrow!",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    winner = await db.select_daily_winner(chat_id)
+    
+    if not winner:
+        await message.answer(
+            "🎲 <b>DICK OF THE DAY</b>\n\n"
+            "No eligible players! Use /grow first.",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    name = winner['first_name'] or winner['username'] or "Player"
+    if winner['username']:
+        name = f"@{winner['username']}"
+    
+    await message.answer(
+        f"🎲 <b>DICK OF THE DAY</b> 🎲\n\n"
+        f"🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉\n\n"
+        f"👑 <b>{name}</b> 👑\n\n"
+        f"🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉\n\n"
+        f"🎁 Bonus: <b>+{winner['bonus']} cm</b>!",
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(Command("buy"))
+async def cmd_buy(message: Message):
+    telegram_id = message.from_user.id
+    chat_id = message.chat.id
+    
+    await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
+    await db.get_or_create_user_chat(telegram_id, chat_id)
+    
+    wallet = await db.get_wallet(telegram_id)
+    if not wallet:
+        await message.answer(
+            "💰 <b>BUY GROWTH</b>\n\n"
+            "⚠️ Register your wallet first!\n"
+            "Use: /wallet YourSolanaAddress",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    await message.answer(
+        "💰 <b>GROWTH PACKAGES</b> 💰\n\n"
+        "Select a package to purchase:",
+        reply_markup=get_packages_keyboard(),
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(Command("loan"))
+async def cmd_loan(message: Message):
+    telegram_id = message.from_user.id
+    chat_id = message.chat.id
+    
+    await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
+    user_chat = await db.get_or_create_user_chat(telegram_id, chat_id)
+    
+    if user_chat.length >= 0:
+        await message.answer(
+            "💳 <b>LOAN SYSTEM</b>\n\n"
+            f"Your length: <b>{user_chat.length:.1f}</b> cm\n"
+            f"Debt: <b>{user_chat.debt:.1f}</b> cm\n\n"
+            "You don't need a loan!",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Accept Loan", callback_data="confirm_loan")],
+        [InlineKeyboardButton(text="❌ Cancel", callback_data="action_menu")]
+    ])
+    
+    debt_amount = abs(user_chat.length)
+    
+    await message.answer(
+        f"💳 <b>LOAN OFFER</b> 💳\n\n"
+        f"Your length: <b>{user_chat.length:.1f}</b> cm\n\n"
+        f"We can reset to <b>0 cm</b>!\n\n"
+        f"⚠️ Adds <b>{debt_amount:.1f} cm</b> debt.\n"
+        f"📉 20% of growth goes to repayment.\n\n"
+        f"Accept?",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+
+
 @router.callback_query(F.data == "action_stats")
 async def callback_stats(callback: CallbackQuery):
     telegram_id = callback.from_user.id
