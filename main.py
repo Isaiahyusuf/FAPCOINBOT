@@ -1,11 +1,12 @@
 import os
 import asyncio
 import logging
+import random
 from datetime import datetime, time
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
-from aiogram.types import BotCommand, BotCommandScopeAllGroupChats, BotCommandScopeAllPrivateChats
+from aiogram.types import BotCommand, BotCommandScopeAllGroupChats, BotCommandScopeAllPrivateChats, InlineKeyboardMarkup, InlineKeyboardButton
 
 from src.database.models import init_db
 from src.database import db
@@ -16,6 +17,94 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+PROMO_MESSAGES = [
+    {
+        "text": "🍆 <b>Who's got the biggest one?</b> 🍆\n\n"
+                "Use /grow to find out!\n"
+                "Will you grow or shrink today? 😏",
+        "button": "🌱 Grow Now!"
+    },
+    {
+        "text": "⚔️ <b>BATTLE TIME!</b> ⚔️\n\n"
+                "Think you're bigger than your friends?\n"
+                "Tag them with <code>@username /pvp 5</code> to prove it!",
+        "button": "⚔️ Start Battle"
+    },
+    {
+        "text": "🏆 <b>LEADERBOARD UPDATE</b> 🏆\n\n"
+                "Who's dominating the group today?\n"
+                "Check /top to see the rankings!",
+        "button": "🏆 View Top"
+    },
+    {
+        "text": "💰 <b>WANT INSTANT GROWTH?</b> 💰\n\n"
+                "Skip the grind! Buy growth with $FAPCOIN!\n"
+                "Use /buy to see packages 🚀",
+        "button": "💰 Buy Growth"
+    },
+    {
+        "text": "🎲 <b>DAILY CHALLENGE!</b> 🎲\n\n"
+                "Have you grown today?\n"
+                "Don't miss your daily growth chance! 🍀",
+        "button": "🌱 Daily Grow"
+    },
+    {
+        "text": "😈 <b>FEELING RISKY?</b> 😈\n\n"
+                "Challenge someone to a PvP battle!\n"
+                "Winner takes all! Reply to someone + <code>/pvp 10</code>",
+        "button": "⚔️ Challenge"
+    },
+    {
+        "text": "📈 <b>GROWTH REPORT</b> 📈\n\n"
+                "Some of you are MASSIVE! 🍆\n"
+                "Others... not so much 😂\n\n"
+                "Use /top to see where you stand!",
+        "button": "📊 Check Stats"
+    },
+    {
+        "text": "🔥 <b>HOT TIP!</b> 🔥\n\n"
+                "Win PvP battles to steal cm from others!\n"
+                "Tag + <code>/pvp [bet]</code> to challenge! ⚔️",
+        "button": "⚔️ Fight Now"
+    },
+]
+
+
+async def promo_message_task(bot: Bot):
+    """Send promotional messages to active groups every 5 minutes."""
+    await asyncio.sleep(60)  # Wait 1 minute before first promo
+    
+    while True:
+        try:
+            active_chats = await db.get_active_chats()
+            
+            if active_chats:
+                promo = random.choice(PROMO_MESSAGES)
+                
+                keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                    [InlineKeyboardButton(text=promo["button"], callback_data="action_menu")]
+                ])
+                
+                for chat_id in active_chats:
+                    try:
+                        await bot.send_message(
+                            chat_id,
+                            promo["text"],
+                            reply_markup=keyboard,
+                            parse_mode=ParseMode.HTML
+                        )
+                        logger.info(f"Sent promo to chat {chat_id}")
+                    except Exception as e:
+                        logger.warning(f"Could not send promo to chat {chat_id}: {e}")
+                    
+                    await asyncio.sleep(1)  # Small delay between chats
+            
+            await asyncio.sleep(300)  # 5 minutes
+            
+        except Exception as e:
+            logger.error(f"Error in promo task: {e}")
+            await asyncio.sleep(60)
 
 
 async def daily_winner_task(bot: Bot):
@@ -107,9 +196,11 @@ async def main():
     logger.info("Bot commands registered for groups and private chats")
     
     asyncio.create_task(daily_winner_task(bot))
+    asyncio.create_task(promo_message_task(bot))
     
     logger.info("Starting FAPCOIN DICK BOT...")
     logger.info("Daily winner selection task started (runs at 12:00 UTC)")
+    logger.info("Promo message task started (runs every 5 minutes)")
     
     await dp.start_polling(bot)
 
