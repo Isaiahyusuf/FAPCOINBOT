@@ -243,8 +243,13 @@ async def cmd_verify(message: Message):
     
     tx_hash = args[1].strip()
     
-    if len(tx_hash) < 80 or len(tx_hash) > 100:
+    if len(tx_hash) < 64 or len(tx_hash) > 100:
         await message.answer("Invalid transaction hash. Please provide a valid Solana transaction signature.")
+        return
+    
+    already_used = await db.is_transaction_already_used(tx_hash)
+    if already_used:
+        await message.answer("This transaction has already been used for a previous purchase.")
         return
     
     pending_txs = await db.get_pending_transactions(telegram_id)
@@ -270,8 +275,10 @@ async def cmd_verify(message: Message):
         )
         return
     
+    await message.answer("Verifying transaction on Solana blockchain... Please wait.")
+    
     try:
-        verified = await verify_solana_transaction(
+        verification = await verify_solana_transaction(
             tx_hash, 
             user_wallet, 
             team_wallet, 
@@ -279,7 +286,7 @@ async def cmd_verify(message: Message):
             solana_rpc
         )
         
-        if verified:
+        if verification['verified']:
             success = await db.confirm_transaction(pending_tx.transaction_id, tx_hash, pkg['growth'])
             if success:
                 await message.answer(
@@ -290,12 +297,30 @@ async def cmd_verify(message: Message):
             else:
                 await message.answer("Error confirming transaction. Please contact support.")
         else:
+            error = verification.get('error', 'unknown')
+            
+            if error == 'tx_not_found':
+                error_msg = "Transaction not found on blockchain. It may still be processing - please wait a few minutes and try again."
+            elif error == 'tx_failed':
+                error_msg = "The transaction failed on the blockchain. Please check your wallet and try again."
+            elif error == 'transfer_not_found':
+                error_msg = (
+                    f"Could not find a transfer to our wallet in this transaction.\n\n"
+                    f"Please ensure you sent FAPCOIN tokens to:\n"
+                    f"`{team_wallet}`"
+                )
+            elif error == 'rpc_error':
+                error_msg = "Error connecting to Solana network. Please try again in a few minutes."
+            else:
+                error_msg = "Could not verify the transaction."
+            
             await message.answer(
-                "Could not verify the transaction. Please ensure:\n"
-                f"1. You sent exactly {int(pending_tx.amount_paid):,} FAPCOIN\n"
-                f"2. You sent from your registered wallet\n"
-                f"3. You sent to the correct address\n\n"
-                "If you believe this is an error, use /support."
+                f"Verification failed!\n\n"
+                f"{error_msg}\n\n"
+                f"Expected: {int(pending_tx.amount_paid):,} FAPCOIN\n"
+                f"To wallet: `{team_wallet}`\n\n"
+                "If you believe this is an error, use /support.",
+                parse_mode=ParseMode.MARKDOWN
             )
     except Exception as e:
         await message.answer(
@@ -303,7 +328,14 @@ async def cmd_verify(message: Message):
         )
 
 
-async def verify_solana_transaction(tx_hash: str, from_wallet: str, to_wallet: str, expected_amount: float, rpc_url: str) -> bool:
+async def verify_solana_transaction(tx_hash: str, from_wallet: str, to_wallet: str, expected_amount: float, rpc_url: str) -> dict:
+    result = {
+        'verified': False,
+        'error': None,
+        'found_amount': 0,
+        'found_to': None
+    }
+    
     try:
         async with aiohttp.ClientSession() as session:
             payload = {
@@ -318,22 +350,93 @@ async def verify_solana_transaction(tx_hash: str, from_wallet: str, to_wallet: s
             
             async with session.post(rpc_url, json=payload) as response:
                 if response.status != 200:
-                    return False
+                    result['error'] = 'rpc_error'
+                    return result
                 
                 data = await response.json()
                 
                 if 'result' not in data or data['result'] is None:
-                    return False
+                    result['error'] = 'tx_not_found'
+                    return result
                 
                 tx = data['result']
                 
                 if tx.get('meta', {}).get('err') is not None:
-                    return False
+                    result['error'] = 'tx_failed'
+                    return result
                 
-                return True
+                instructions = tx.get('transaction', {}).get('message', {}).get('instructions', [])
+                inner_instructions = tx.get('meta', {}).get('innerInstructions', [])
                 
-    except Exception:
-        return False
+                all_instructions = list(instructions)
+                for inner in inner_instructions:
+                    all_instructions.extend(inner.get('instructions', []))
+                
+                for instr in all_instructions:
+                    parsed = instr.get('parsed')
+                    if not parsed:
+                        continue
+                    
+                    instr_type = parsed.get('type', '')
+                    info = parsed.get('info', {})
+                    
+                    if instr_type in ['transfer', 'transferChecked']:
+                        destination = info.get('destination', '')
+                        
+                        if instr_type == 'transferChecked':
+                            token_amount = info.get('tokenAmount', {})
+                            amount = float(token_amount.get('uiAmount', 0))
+                        else:
+                            amount = float(info.get('amount', 0))
+                            decimals = 9
+                            amount = amount / (10 ** decimals)
+                        
+                        result['found_amount'] = amount
+                        result['found_to'] = destination
+                        
+                        if to_wallet.lower() in destination.lower() or destination.lower() in to_wallet.lower():
+                            if amount >= expected_amount * 0.99:
+                                result['verified'] = True
+                                return result
+                
+                account_keys = tx.get('transaction', {}).get('message', {}).get('accountKeys', [])
+                for key in account_keys:
+                    if isinstance(key, dict):
+                        pubkey = key.get('pubkey', '')
+                    else:
+                        pubkey = str(key)
+                    if to_wallet.lower() == pubkey.lower():
+                        result['verified'] = True
+                        result['found_to'] = pubkey
+                        return result
+                
+                pre_balances = tx.get('meta', {}).get('preTokenBalances', [])
+                post_balances = tx.get('meta', {}).get('postTokenBalances', [])
+                
+                for post in post_balances:
+                    owner = post.get('owner', '')
+                    if owner.lower() == to_wallet.lower():
+                        post_amount = float(post.get('uiTokenAmount', {}).get('uiAmount', 0) or 0)
+                        
+                        pre_amount = 0
+                        for pre in pre_balances:
+                            if pre.get('accountIndex') == post.get('accountIndex'):
+                                pre_amount = float(pre.get('uiTokenAmount', {}).get('uiAmount', 0) or 0)
+                                break
+                        
+                        received = post_amount - pre_amount
+                        if received >= expected_amount * 0.99:
+                            result['verified'] = True
+                            result['found_amount'] = received
+                            result['found_to'] = owner
+                            return result
+                
+                result['error'] = 'transfer_not_found'
+                return result
+                
+    except Exception as e:
+        result['error'] = f'exception: {str(e)}'
+        return result
 
 
 @router.message(Command("pvp"))

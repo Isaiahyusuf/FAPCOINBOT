@@ -225,6 +225,20 @@ async def get_pending_transactions(telegram_id: int) -> list:
         return result.scalars().all()
 
 
+async def is_transaction_already_used(tx_hash: str) -> bool:
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(Transaction).where(
+                and_(
+                    Transaction.transaction_id == tx_hash,
+                    Transaction.status == 'confirmed'
+                )
+            )
+        )
+        return result.scalar_one_or_none() is not None
+
+
 async def confirm_transaction(transaction_id: str, on_chain_tx_id: str, growth: float) -> bool:
     Session = get_session()
     async with Session() as session:
