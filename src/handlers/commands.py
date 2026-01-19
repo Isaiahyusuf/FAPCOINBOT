@@ -1565,56 +1565,38 @@ async def callback_help(callback: CallbackQuery):
 
 @router.callback_query(F.data == "action_support")
 async def callback_support(callback: CallbackQuery):
-    support_username = os.environ.get('SUPPORT_USERNAME', '')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💬 Join Our TG", url="https://t.me/FapcoinByShitoshi")],
+        [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+    ])
     
-    if support_username:
-        if not support_username.startswith('@'):
-            support_username = '@' + support_username
-        
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="💬 Contact Support", url=f"https://t.me/{support_username.lstrip('@')}")],
-            [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
-        ])
-        
-        await callback.message.edit_text(
-            "🆘 <b>SUPPORT</b> 🆘\n\n"
-            f"Need help? Contact our support:\n\n"
-            f"👤 {support_username}\n\n"
-            "Click the button below to start a chat:",
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
-    else:
-        await callback.message.edit_text(
-            "🆘 <b>SUPPORT</b> 🆘\n\n"
-            "Support is not configured.\n\n"
-            "Please try again later.",
-            reply_markup=get_back_button(),
-            parse_mode=ParseMode.HTML
-        )
+    await callback.message.edit_text(
+        "🆘 <b>SUPPORT</b> 🆘\n\n"
+        "https://t.me/FapcoinByShitoshi\n\n"
+        "Need help? Contact our support by joining our TG and tagging:\n\n"
+        "👤 @boosteryting\n\n"
+        "Click the button below to join our TG:",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
     await callback.answer()
 
 
 @router.message(Command("support"))
 async def cmd_support(message: Message):
-    support_username = os.environ.get('SUPPORT_USERNAME', '')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💬 Join Our TG", url="https://t.me/FapcoinByShitoshi")]
+    ])
     
-    if support_username:
-        if not support_username.startswith('@'):
-            support_username = '@' + support_username
-        
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="💬 Contact Support", url=f"https://t.me/{support_username.lstrip('@')}")]
-        ])
-        
-        await message.answer(
-            f"🆘 <b>SUPPORT</b>\n\n"
-            f"Contact: {support_username}",
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
-    else:
-        await message.answer("Support not configured.", parse_mode=None)
+    await message.answer(
+        "🆘 <b>SUPPORT</b> 🆘\n\n"
+        "https://t.me/FapcoinByShitoshi\n\n"
+        "Need help? Contact our support by joining our TG and tagging:\n\n"
+        "👤 @boosteryting\n\n"
+        "Click the button below to join our TG:",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
 
 
 @router.message(Command("help"))
