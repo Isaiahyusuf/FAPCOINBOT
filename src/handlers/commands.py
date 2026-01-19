@@ -5,9 +5,9 @@ import aiohttp
 from datetime import datetime
 from aiogram import Router, F, Bot
 from aiogram.types import Message, InlineQuery, InlineQueryResultArticle, InputTextMessageContent, CallbackQuery
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.filters import Command, CommandStart
-from aiogram.enums import ParseMode
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ChatMemberUpdated
+from aiogram.filters import Command, CommandStart, ChatMemberUpdatedFilter, IS_MEMBER, IS_NOT_MEMBER
+from aiogram.enums import ParseMode, ChatType
 
 from src.database import db
 
@@ -24,6 +24,19 @@ PACKAGES = {
 FAPCOIN_TOKEN_ADDRESS = os.environ.get('FAPCOIN_TOKEN_ADDRESS', '')
 
 
+@router.my_chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
+async def bot_added_to_chat(event: ChatMemberUpdated):
+    if event.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
+        await event.answer(
+            "Thanks for adding me to this group!\n\n"
+            "I'm FAPCOIN DICK BOT - a competitive growth game!\n\n"
+            "Everyone can use /grow once per day to grow their length.\n"
+            "Use /top to see who's winning!\n"
+            "Use /help to see all commands.\n\n"
+            "Let the competition begin!"
+        )
+
+
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     await db.get_or_create_user(
@@ -31,19 +44,51 @@ async def cmd_start(message: Message):
         message.from_user.username,
         message.from_user.first_name
     )
+    
+    if message.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
+        await message.answer(
+            "FAPCOIN DICK BOT is active in this group!\n\n"
+            "Use /grow once per day to grow your length.\n"
+            "Use /top to see the leaderboard.\n"
+            "Use /help for all commands."
+        )
+    else:
+        await message.answer(
+            "Welcome to FAPCOIN DICK BOT!\n\n"
+            "Add me to a group to start competing!\n\n"
+            "Commands:\n"
+            "/grow - Daily random growth (-5 to +20 cm)\n"
+            "/top - Show chat leaderboard\n"
+            "/daily - Trigger daily Dick of the Day selection\n"
+            "/pvp @user <bet> - Challenge a user\n"
+            "/loan - Reset debt to zero\n"
+            "/wallet <address> - Register Solana wallet\n"
+            "/buy <package> - Purchase growth with $FAPCOIN\n"
+            "/verify <tx_hash> - Verify a FAPCOIN payment\n"
+            "/support - Request support\n\n"
+            "Grow your length and compete with others!"
+        )
+
+
+@router.message(Command("help"))
+async def cmd_help(message: Message):
     await message.answer(
-        "Welcome to FAPCOIN DICK BOT!\n\n"
-        "Commands:\n"
+        "FAPCOIN DICK BOT - Commands:\n\n"
+        "Game Commands:\n"
         "/grow - Daily random growth (-5 to +20 cm)\n"
         "/top - Show chat leaderboard\n"
-        "/daily - Trigger daily Dick of the Day selection\n"
-        "/pvp @user <bet> - Challenge a user\n"
-        "/loan - Reset debt to zero\n"
-        "/wallet <address> - Register Solana wallet\n"
-        "/buy <package> - Purchase growth with $FAPCOIN\n"
-        "/verify <tx_hash> - Verify a FAPCOIN payment\n"
-        "/support - Request support\n\n"
-        "Grow your length and compete with others!"
+        "/daily - Select today's Dick of the Day\n"
+        "/pvp @user <bet> - Challenge a user to PvP\n"
+        "/loan - Reset negative length to zero (creates debt)\n\n"
+        "FAPCOIN Purchases:\n"
+        "/wallet <address> - Register your Solana wallet\n"
+        "/buy - View growth packages\n"
+        "/buy <number> - Purchase a package\n"
+        "/verify <tx_hash> - Verify payment after sending\n\n"
+        "Other:\n"
+        "/support - Request support\n"
+        "/help - Show this message\n\n"
+        "Each group has its own leaderboard!"
     )
 
 
