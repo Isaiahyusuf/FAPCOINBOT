@@ -162,19 +162,31 @@ async def get_leaderboard(chat_id: int, limit: int = 10) -> list:
         sorted_users = sorted(seen_users.values(), key=lambda x: x.length + x.paid_length, reverse=True)[:limit]
         
         leaderboard = []
+        seen_usernames = set()
         for uc in sorted_users:
             user_result = await session.execute(
                 select(User).where(User.telegram_id == uc.telegram_id)
             )
             user = user_result.scalar_one_or_none()
+            username = user.username if user else None
+            
+            # Also skip if username already seen (handles same username different IDs)
+            if username and username.lower() in seen_usernames:
+                continue
+            if username:
+                seen_usernames.add(username.lower())
+            
             leaderboard.append({
                 'telegram_id': uc.telegram_id,
-                'username': user.username if user else None,
+                'username': username,
                 'first_name': user.first_name if user else None,
                 'length': uc.length,
                 'paid_length': uc.paid_length,
                 'total': uc.length + uc.paid_length
             })
+            
+            if len(leaderboard) >= limit:
+                break
         return leaderboard
 
 
