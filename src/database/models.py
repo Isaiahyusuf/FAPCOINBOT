@@ -82,25 +82,40 @@ class SupportRequest(Base):
 
 def get_database_url():
     url = os.environ.get('DATABASE_URL', '')
+    if not url:
+        raise ValueError("DATABASE_URL environment variable is not set")
     if url.startswith('postgres://'):
         url = url.replace('postgres://', 'postgresql+asyncpg://', 1)
     elif url.startswith('postgresql://'):
         url = url.replace('postgresql://', 'postgresql+asyncpg://', 1)
+    elif not url.startswith('postgresql+asyncpg://'):
+        url = 'postgresql+asyncpg://' + url.split('://', 1)[-1] if '://' in url else url
     return url
 
 
 def get_sync_database_url():
     url = os.environ.get('DATABASE_URL', '')
+    if not url:
+        raise ValueError("DATABASE_URL environment variable is not set")
     if url.startswith('postgres://'):
         url = url.replace('postgres://', 'postgresql://', 1)
+    elif url.startswith('postgresql+asyncpg://'):
+        url = url.replace('postgresql+asyncpg://', 'postgresql://', 1)
+    elif not url.startswith('postgresql://'):
+        url = 'postgresql://' + url.split('://', 1)[-1] if '://' in url else url
     return url
 
 
 async def init_db():
-    sync_url = get_sync_database_url()
-    engine = create_engine(sync_url)
-    Base.metadata.create_all(engine)
-    engine.dispose()
+    try:
+        sync_url = get_sync_database_url()
+        engine = create_engine(sync_url)
+        Base.metadata.create_all(engine)
+        engine.dispose()
+    except Exception as e:
+        print(f"Database initialization error: {e}")
+        print(f"DATABASE_URL format: {os.environ.get('DATABASE_URL', 'NOT SET')[:50]}...")
+        raise
 
 
 def create_async_session():

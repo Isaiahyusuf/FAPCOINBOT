@@ -13,22 +13,38 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 │   │   └── db.py              # Database operations
 │   └── handlers/
 │       └── commands.py        # Telegram command handlers
-├── pyproject.toml             # Python dependencies
+├── requirements.txt           # Python dependencies for Railway
+├── Procfile                   # Railway process file
+├── railway.toml               # Railway config
 └── README.md                  # Original project documentation
 ```
 
 ## Tech Stack
-- Python 3.11
+- Python 3.11+
 - aiogram 3.x (Telegram Bot API)
 - SQLAlchemy with asyncpg (PostgreSQL async driver)
-- PostgreSQL database (Replit built-in)
+- PostgreSQL database
 - aiohttp for Solana RPC calls
 
 ## Required Environment Variables
-- `BOT_TOKEN` - Telegram bot token (REQUIRED)
-- `TEAM_WALLET_ADDRESS` - Solana wallet for receiving FAPCOIN payments
-- `SOLANA_RPC_URL` - RPC endpoint for Solana transaction verification
-- `DATABASE_URL` - Automatically provided by Replit PostgreSQL
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `BOT_TOKEN` | Telegram bot token from @BotFather | Yes |
+| `DATABASE_URL` | PostgreSQL connection string | Yes |
+| `TEAM_WALLET_ADDRESS` | Solana wallet for receiving FAPCOIN | Yes |
+| `SOLANA_RPC_URL` | Solana RPC endpoint | Yes |
+
+## Railway Deployment
+
+1. Push code to GitHub
+2. Connect Railway to your GitHub repo
+3. Add a PostgreSQL database in Railway
+4. Set environment variables in Railway:
+   - `BOT_TOKEN` - Your Telegram bot token
+   - `DATABASE_URL` - Auto-provided when you add PostgreSQL
+   - `TEAM_WALLET_ADDRESS` - Your Solana wallet address
+   - `SOLANA_RPC_URL` - e.g., `https://api.mainnet-beta.solana.com`
+5. Deploy!
 
 ## Implemented Features
 
@@ -36,8 +52,14 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 - `/grow` - Daily random growth (-5 to +20 cm), once per day per chat
 - `/top` - Chat leaderboard showing top 10 players
 - `/loan` - Reset negative length to zero, creating repayment debt
+- `/help` - Show all commands
 - Debt bonus: Users with negative length get 0.2% bonus per growth
 - Debt repayment: 20% of positive growth goes to debt repayment
+
+### Group Support
+- Bot works in any group when added with admin rights
+- Each group has its own separate leaderboard
+- Auto-welcome message when bot joins a group
 
 ### Daily Election - "Dick of the Day"
 - `/daily` - Manually trigger daily winner selection
@@ -54,8 +76,9 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 ### FAPCOIN Integration
 - `/wallet <address>` - Register Solana wallet
 - `/buy <package>` - View and purchase growth packages
-- `/verify <tx_hash>` - Verify Solana transaction
+- `/verify <tx_hash>` - Verify Solana transaction on-chain
 - Package prices: 5k-25k FAPCOIN for 20-100 cm growth
+- Double-spend protection (same tx can't be used twice)
 
 ### Support
 - `/support` - Create support ticket with contact username
@@ -67,9 +90,3 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 - DailyWinner: Daily winner records per chat
 - PvpChallenge: PvP betting records (pending/resolved/declined)
 - SupportRequest: Support ticket tracking
-
-## Running the Bot
-1. Set the `BOT_TOKEN` secret with your Telegram bot token
-2. Set `TEAM_WALLET_ADDRESS` for payment receiving wallet
-3. Set `SOLANA_RPC_URL` for transaction verification
-4. The workflow will automatically start the bot

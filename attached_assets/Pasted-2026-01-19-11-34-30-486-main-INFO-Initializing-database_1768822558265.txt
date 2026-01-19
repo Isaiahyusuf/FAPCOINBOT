@@ -1,0 +1,94 @@
+2026-01-19 11:34:30,486 - __main__ - INFO - Initializing database...
+Traceback (most recent call last):
+  File "/app/main.py", line 92, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/mise/installs/python/3.13.11/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/mise/installs/python/3.13.11/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/mise/installs/python/3.13.11/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/app/main.py", line 72, in main
+    await init_db()
+  File "/app/src/database/models.py", line 101, in init_db
+    engine = create_engine(sync_url)
+  File "<string>", line 2, in create_engine
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/util/deprecations.py", line 281, in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/create.py", line 564, in create_engine
+    u = _url.make_url(url)
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/url.py", line 856, in make_url
+    return _parse_url(name_or_url)
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/url.py", line 922, in _parse_url
+    raise exc.ArgumentError(
+        "Could not parse SQLAlchemy URL from given URL string"
+    )
+sqlalchemy.exc.ArgumentError: Could not parse SQLAlchemy URL from given URL string
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/create.py", line 564, in create_engine
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/mise/installs/python/3.13.11/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+2026-01-19 11:34:35,548 - __main__ - INFO - Initializing database...
+    return future.result()
+Traceback (most recent call last):
+           ~~~~~~~~~~~~~^^
+  File "/app/main.py", line 72, in main
+  File "/app/main.py", line 92, in <module>
+    await init_db()
+  File "/app/src/database/models.py", line 101, in init_db
+    engine = create_engine(sync_url)
+    asyncio.run(main())
+  File "<string>", line 2, in create_engine
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/util/deprecations.py", line 281, in warned
+    ~~~~~~~~~~~^^^^^^^^
+  File "/mise/installs/python/3.13.11/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/mise/installs/python/3.13.11/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+    u = _url.make_url(url)
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/url.py", line 856, in make_url
+    return _parse_url(name_or_url)
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/url.py", line 922, in _parse_url
+    raise exc.ArgumentError(
+        "Could not parse SQLAlchemy URL from given URL string"
+    )
+sqlalchemy.exc.ArgumentError: Could not parse SQLAlchemy URL from given URL string
+  File "/mise/installs/python/3.13.11/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+2026-01-19 11:34:40,429 - __main__ - INFO - Initializing database...
+Traceback (most recent call last):
+  File "/app/main.py", line 92, in <module>
+    return future.result()
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+           ~~~~~~~~~~~~~^^
+  File "/mise/installs/python/3.13.11/lib/python3.13/asyncio/runners.py", line 195, in run
+  File "/app/main.py", line 72, in main
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+    await init_db()
+  File "/mise/installs/python/3.13.11/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "/app/src/database/models.py", line 101, in init_db
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+    engine = create_engine(sync_url)
+  File "<string>", line 2, in create_engine
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/util/deprecations.py", line 281, in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/create.py", line 564, in create_engine
+    u = _url.make_url(url)
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/url.py", line 856, in make_url
+    return _parse_url(name_or_url)
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/url.py", line 922, in _parse_url
+    raise exc.ArgumentError(
+        "Could not parse SQLAlchemy URL from given URL string"
+    )
+sqlalchemy.exc.ArgumentError: Could not parse SQLAlchemy URL from given URL string
+You reached the end of the range
+Jan 19, 2026 at 12:34 PM
+
+FAPCOINBOT | Railway
