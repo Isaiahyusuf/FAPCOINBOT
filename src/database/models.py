@@ -80,6 +80,16 @@ class SupportRequest(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class BotSettings(Base):
+    __tablename__ = 'bot_settings'
+    
+    id = Column(Integer, primary_key=True)
+    key = Column(String(255), unique=True, nullable=False)
+    value = Column(String(1024), nullable=False)
+    updated_by = Column(BigInteger, nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 def get_database_url():
     url = os.environ.get('DATABASE_URL', '')
     if not url:

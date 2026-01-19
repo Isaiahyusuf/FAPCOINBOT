@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import random
 from sqlalchemy import select, update, and_, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
-from .models import User, UserChat, Transaction, DailyWinner, PvpChallenge, SupportRequest, create_async_session
+from .models import User, UserChat, Transaction, DailyWinner, PvpChallenge, SupportRequest, BotSettings, create_async_session
 
 
 SessionLocal = None
@@ -606,3 +606,37 @@ async def create_support_request(telegram_id: int, support_username: str) -> Sup
         await session.commit()
         await session.refresh(request)
         return request
+
+
+async def get_setting(key: str) -> str | None:
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(BotSettings).where(BotSettings.key == key)
+        )
+        setting = result.scalar_one_or_none()
+        return setting.value if setting else None
+
+
+async def set_setting(key: str, value: str, updated_by: int = None) -> bool:
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(BotSettings).where(BotSettings.key == key)
+        )
+        setting = result.scalar_one_or_none()
+        
+        if setting:
+            setting.value = value
+            setting.updated_by = updated_by
+            setting.updated_at = datetime.utcnow()
+        else:
+            setting = BotSettings(key=key, value=value, updated_by=updated_by)
+            session.add(setting)
+        
+        await session.commit()
+        return True
+
+
+async def get_team_wallet() -> str | None:
+    return await get_setting('team_wallet_address')

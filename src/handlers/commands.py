@@ -24,6 +24,17 @@ PACKAGES = {
 }
 
 
+def is_owner(telegram_id: int) -> bool:
+    """Check if user is the bot owner."""
+    owner_id = os.environ.get('OWNER_ID', '')
+    if not owner_id:
+        return False
+    try:
+        return int(owner_id) == telegram_id
+    except ValueError:
+        return False
+
+
 def get_main_menu_keyboard(bot_username: str = None, is_private: bool = False):
     if is_private or not bot_username:
         buy_button = InlineKeyboardButton(text="💰 Buy Growth", callback_data="action_buy")
@@ -201,6 +212,164 @@ async def callback_menu(callback: CallbackQuery, bot: Bot):
         "🎮 <b>Main Menu</b>\n\n"
         "Select an option:",
         reply_markup=get_main_menu_keyboard(bot_info.username, is_private),
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.message(Command("admin"))
+async def cmd_admin(message: Message):
+    """Admin panel - owner only."""
+    telegram_id = message.from_user.id
+    
+    if not is_owner(telegram_id):
+        await message.answer("❌ This command is only for the bot owner.", parse_mode=None)
+        return
+    
+    current_wallet = await db.get_team_wallet() or os.environ.get('TEAM_WALLET_ADDRESS', 'Not set')
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💰 Set Team Wallet", callback_data="admin_setwallet")],
+        [InlineKeyboardButton(text="📊 View Stats", callback_data="admin_stats")],
+    ])
+    
+    await message.answer(
+        f"🔐 <b>ADMIN PANEL</b> 🔐\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"👤 Owner ID: <code>{telegram_id}</code>\n"
+        f"💰 Team Wallet:\n<code>{current_wallet}</code>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"<b>Commands:</b>\n"
+        f"/setwallet [address] - Set team wallet\n"
+        f"/showwallet - Show current wallet",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(Command("setwallet"))
+async def cmd_setwallet(message: Message):
+    """Set team wallet - owner only."""
+    telegram_id = message.from_user.id
+    
+    if not is_owner(telegram_id):
+        await message.answer("❌ This command is only for the bot owner.", parse_mode=None)
+        return
+    
+    args = message.text.split(maxsplit=1)
+    if len(args) < 2:
+        await message.answer(
+            "📝 <b>Usage:</b> /setwallet [wallet_address]\n\n"
+            "Example:\n<code>/setwallet 9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM</code>",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    new_wallet = args[1].strip()
+    
+    # Basic validation - Solana addresses are 32-44 base58 chars
+    if len(new_wallet) < 32 or len(new_wallet) > 44:
+        await message.answer("❌ Invalid wallet address format.", parse_mode=None)
+        return
+    
+    await db.set_setting('team_wallet_address', new_wallet, telegram_id)
+    
+    await message.answer(
+        f"✅ <b>Team Wallet Updated!</b>\n\n"
+        f"New wallet address:\n<code>{new_wallet}</code>\n\n"
+        f"All payments will now be verified against this wallet.",
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(Command("showwallet"))
+async def cmd_showwallet(message: Message):
+    """Show current team wallet - owner only."""
+    telegram_id = message.from_user.id
+    
+    if not is_owner(telegram_id):
+        await message.answer("❌ This command is only for the bot owner.", parse_mode=None)
+        return
+    
+    db_wallet = await db.get_team_wallet()
+    env_wallet = os.environ.get('TEAM_WALLET_ADDRESS', '')
+    
+    current_wallet = db_wallet or env_wallet or 'Not configured'
+    source = "Database (set via /setwallet)" if db_wallet else ("Environment variable" if env_wallet else "None")
+    
+    await message.answer(
+        f"💰 <b>Team Wallet Info</b>\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"<b>Current Wallet:</b>\n<code>{current_wallet}</code>\n\n"
+        f"<b>Source:</b> {source}\n"
+        f"━━━━━━━━━━━━━━━━━━━━━",
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.callback_query(F.data == "admin_setwallet")
+async def callback_admin_setwallet(callback: CallbackQuery):
+    """Prompt to set wallet via command."""
+    if not is_owner(callback.from_user.id):
+        await callback.answer("❌ Owner only", show_alert=True)
+        return
+    
+    await callback.message.answer(
+        "📝 <b>Set Team Wallet</b>\n\n"
+        "Send the command:\n"
+        "<code>/setwallet YOUR_WALLET_ADDRESS</code>",
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "admin_stats")
+async def callback_admin_stats(callback: CallbackQuery):
+    """Show bot stats - owner only."""
+    if not is_owner(callback.from_user.id):
+        await callback.answer("❌ Owner only", show_alert=True)
+        return
+    
+    # Get some basic stats
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="◀️ Back to Admin", callback_data="action_admin")]
+    ])
+    
+    await callback.message.edit_text(
+        "📊 <b>Bot Statistics</b>\n\n"
+        "(Full stats coming soon)",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action_admin")
+async def callback_admin(callback: CallbackQuery):
+    """Show admin panel via button."""
+    telegram_id = callback.from_user.id
+    
+    if not is_owner(telegram_id):
+        await callback.answer("❌ Owner only", show_alert=True)
+        return
+    
+    current_wallet = await db.get_team_wallet() or os.environ.get('TEAM_WALLET_ADDRESS', 'Not set')
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💰 Set Team Wallet", callback_data="admin_setwallet")],
+        [InlineKeyboardButton(text="📊 View Stats", callback_data="admin_stats")],
+    ])
+    
+    await callback.message.edit_text(
+        f"🔐 <b>ADMIN PANEL</b> 🔐\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"👤 Owner ID: <code>{telegram_id}</code>\n"
+        f"💰 Team Wallet:\n<code>{current_wallet}</code>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"<b>Commands:</b>\n"
+        f"/setwallet [address] - Set team wallet\n"
+        f"/showwallet - Show current wallet",
+        reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
     await callback.answer()
@@ -636,7 +805,7 @@ async def callback_buy_package(callback: CallbackQuery):
     await db.get_or_create_user_chat(telegram_id, chat_id)
     await db.create_pending_transaction(telegram_id, chat_id, package_num, pkg['price'])
     
-    team_wallet = os.environ.get('TEAM_WALLET_ADDRESS', 'Not configured')
+    team_wallet = await db.get_team_wallet() or os.environ.get('TEAM_WALLET_ADDRESS', 'Not configured')
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✅ I've Paid!", callback_data=f"paid_{package_num}")],
@@ -747,7 +916,7 @@ async def cmd_verify(message: Message):
         return
     
     solana_rpc = os.environ.get('SOLANA_RPC_URL', '')
-    team_wallet = os.environ.get('TEAM_WALLET_ADDRESS', '')
+    team_wallet = await db.get_team_wallet() or os.environ.get('TEAM_WALLET_ADDRESS', '')
     
     if not solana_rpc or not team_wallet:
         await message.answer(
@@ -1280,7 +1449,7 @@ async def catch_tx_hash(message: Message):
             return
         
         solana_rpc = os.environ.get('SOLANA_RPC_URL', '')
-        team_wallet = os.environ.get('TEAM_WALLET_ADDRESS', '')
+        team_wallet = await db.get_team_wallet() or os.environ.get('TEAM_WALLET_ADDRESS', '')
         
         if not solana_rpc or not team_wallet:
             await message.answer(
