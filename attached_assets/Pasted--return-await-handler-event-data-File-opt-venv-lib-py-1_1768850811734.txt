@@ -1,0 +1,103 @@
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/aiogram/dispatcher/middlewares/user_context.py", line 58, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/aiogram/fsm/middleware.py", line 43, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/aiogram/dispatcher/event/telegram.py", line 126, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/aiogram/dispatcher/event/handler.py", line 71, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/aiogram/dispatcher/dispatcher.py", line 283, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/aiogram/dispatcher/router.py", line 161, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/aiogram/dispatcher/router.py", line 153, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/aiogram/dispatcher/router.py", line 189, in _propagate_event
+    response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/aiogram/dispatcher/router.py", line 161, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/aiogram/dispatcher/router.py", line 153, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/aiogram/dispatcher/router.py", line 181, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/aiogram/dispatcher/event/telegram.py", line 126, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/aiogram/dispatcher/event/handler.py", line 71, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/app/src/handlers/commands.py", line 1299, in cmd_pvp
+    opponent_user = await db.get_user_by_username(username)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/database/db.py", line 51, in get_user_by_username
+    return result.scalar_one_or_none()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/result.py", line 1492, in scalar_one_or_none
+    return self._only_one_row(
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/result.py", line 813, in _only_one_row
+    raise exc.MultipleResultsFound(
+sqlalchemy.exc.MultipleResultsFound: Multiple rows were found when one or none was required
+2026-01-19 19:18:49,972 - src.handlers.commands - INFO - Received message from 6772858486: 'You can pay it?😁...'
+2026-01-19 19:18:49,972 - aiogram.event - INFO - Update id=590839412 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:19:44,595 - src.handlers.commands - INFO - Received message from 8584503753: '🚨This diamond can only be purchased in Trojan 🚨
++...'
+2026-01-19 19:19:44,596 - aiogram.event - INFO - Update id=590839413 is handled. Duration 2 ms by bot id=8407392392
+2026-01-19 19:19:59,831 - src.handlers.commands - INFO - Received message from 8267378310: 'REMINDER: NO ONE FROM OUR TEAM WILL REACH OUT VIA ...'
+2026-01-19 19:19:59,831 - aiogram.event - INFO - Update id=590839414 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:20:03,963 - aiogram.event - INFO - Update id=590839415 is handled. Duration 250 ms by bot id=8407392392
+2026-01-19 19:20:06,323 - aiogram.event - INFO - Update id=590839416 is handled. Duration 242 ms by bot id=8407392392
+2026-01-19 19:20:09,076 - aiogram.event - INFO - Update id=590839417 is handled. Duration 226 ms by bot id=8407392392
+2026-01-19 19:20:10,786 - aiogram.event - INFO - Update id=590839418 is handled. Duration 354 ms by bot id=8407392392
+2026-01-19 19:20:12,775 - aiogram.event - INFO - Update id=590839419 is handled. Duration 362 ms by bot id=8407392392
+2026-01-19 19:20:31,883 - aiogram.event - INFO - Update id=590839420 is not handled. Duration 0 ms by bot id=8407392392
+2026-01-19 19:21:21,784 - aiogram.event - INFO - Update id=590839421 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:21:40,695 - aiogram.event - INFO - Update id=590839422 is not handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:21:41,256 - src.handlers.commands - INFO - Received message from 6738003378: 'Another reminder: TEAM HAS THE FAPCLUB EMOJI. 🔵🔵🔵🔵...'
+2026-01-19 19:21:41,257 - aiogram.event - INFO - Update id=590839423 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:21:48,590 - src.handlers.commands - INFO - Received message from 7029833772: 'Getting dms from fake pol😂...'
+2026-01-19 19:21:48,591 - aiogram.event - INFO - Update id=590839424 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:22:04,226 - src.handlers.commands - INFO - Received message from 6738003378: 'yes we all do haha...'
+2026-01-19 19:22:04,226 - aiogram.event - INFO - Update id=590839425 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:22:14,574 - src.handlers.commands - INFO - Received message from 6738003378: 'poor pol. he's from america now apparantly....'
+2026-01-19 19:22:14,574 - aiogram.event - INFO - Update id=590839426 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:22:15,441 - src.handlers.commands - INFO - Received message from 1647497603: '@Polishbread101...'
+2026-01-19 19:22:15,441 - aiogram.event - INFO - Update id=590839427 is handled. Duration 2 ms by bot id=8407392392
+2026-01-19 19:22:22,434 - src.handlers.commands - INFO - Received message from 1647497603: 'Real one....'
+2026-01-19 19:22:22,434 - aiogram.event - INFO - Update id=590839428 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:22:25,884 - src.handlers.commands - INFO - Received message from 6738003378: 'LOL with POL...'
+2026-01-19 19:22:25,885 - aiogram.event - INFO - Update id=590839429 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:22:27,711 - __main__ - INFO - Sent promo to chat 1647497603
+2026-01-19 19:22:28,717 - __main__ - WARNING - Could not send promo to chat -1003137554300: Telegram server says - Forbidden: bot was kicked from the supergroup chat
+2026-01-19 19:22:29,809 - __main__ - INFO - Sent promo to chat 7446442925
+2026-01-19 19:22:30,844 - __main__ - INFO - Sent promo to chat -5256315707
+2026-01-19 19:22:31,882 - __main__ - INFO - Sent promo to chat 8435563121
+2026-01-19 19:22:33,214 - __main__ - INFO - Sent promo to chat -1003006076902
+2026-01-19 19:22:44,869 - src.handlers.commands - INFO - Received message from 5064825039: 'What's this??...'
+2026-01-19 19:22:44,869 - aiogram.event - INFO - Update id=590839430 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:23:10,808 - src.handlers.commands - INFO - Received message from 6738003378: 'New bot!...'
+2026-01-19 19:23:10,808 - aiogram.event - INFO - Update id=590839431 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:23:13,643 - aiogram.event - INFO - Update id=590839432 is not handled. Duration 0 ms by bot id=8407392392
+2026-01-19 19:23:53,623 - aiogram.event - INFO - Update id=590839433 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:23:53,623 - src.handlers.commands - INFO - Received message from 6362887756: '?...'
+2026-01-19 19:24:46,635 - aiogram.event - INFO - Update id=590839434 is not handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:25:44,852 - src.handlers.commands - INFO - Received message from 7944886009: '🔒 Security Alert: Re-Verification Required 🔒
+Duе...'
+2026-01-19 19:25:44,852 - aiogram.event - INFO - Update id=590839435 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:25:55,107 - src.handlers.commands - INFO - Received message from 7029833772: 'https://x.com/domanc12/status/2013330710879146241?...'
+2026-01-19 19:25:55,107 - aiogram.event - INFO - Update id=590839436 is handled. Duration 1 ms by bot id=8407392392
+2026-01-19 19:26:20,489 - src.handlers.commands - INFO - Received message from 6081215503: 'The fuckin snail trail... 🤣 i probably couldve fap...'
+2026-01-19 19:26:20,489 - aiogram.event - INFO - Update id=590839437 is handled. Duration 1 ms by bot id=8407392392

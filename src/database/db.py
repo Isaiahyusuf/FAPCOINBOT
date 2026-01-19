@@ -42,11 +42,14 @@ async def get_user_by_telegram_id(telegram_id: int) -> User:
 
 
 async def get_user_by_username(username: str) -> User:
-    """Find user by their Telegram username (case insensitive)."""
+    """Find user by their Telegram username (case insensitive). Returns most recent if multiple found."""
     Session = get_session()
     async with Session() as session:
         result = await session.execute(
-            select(User).where(func.lower(User.username) == username.lower())
+            select(User)
+            .where(func.lower(User.username) == username.lower())
+            .order_by(User.created_at.desc())
+            .limit(1)
         )
         return result.scalar_one_or_none()
 
