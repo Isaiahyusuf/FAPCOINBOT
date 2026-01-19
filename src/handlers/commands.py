@@ -15,35 +15,8 @@ from src.database import db
 
 router = Router()
 
-DEFAULT_PACKAGES = {
-    1: {"growth": 20, "price": 5000, "emoji": "🌱"},
-    2: {"growth": 40, "price": 10000, "emoji": "🌿"},
-    3: {"growth": 60, "price": 15000, "emoji": "🌳"},
-    4: {"growth": 80, "price": 20000, "emoji": "🚀"},
-    5: {"growth": 100, "price": 25000, "emoji": "👑"},
-}
-
-PACKAGES = DEFAULT_PACKAGES
-
-
-async def get_package(package_num: int) -> dict | None:
-    """Get package with current price and growth from database."""
-    if package_num not in DEFAULT_PACKAGES:
-        return None
-    pkg = DEFAULT_PACKAGES[package_num].copy()
-    pkg['price'] = await db.get_package_price(package_num, pkg['price'])
-    pkg['growth'] = await db.get_package_growth(package_num, pkg['growth'])
-    return pkg
-
-
-async def get_all_packages() -> dict:
-    """Get all packages with current prices and growth from database."""
-    packages = {}
-    for num, pkg in DEFAULT_PACKAGES.items():
-        packages[num] = pkg.copy()
-        packages[num]['price'] = await db.get_package_price(num, pkg['price'])
-        packages[num]['growth'] = await db.get_package_growth(num, pkg['growth'])
-    return packages
+MAX_BUY_AMOUNT = 1000  # Max cm per purchase (1 FAPCOIN = 1 cm)
+QUICK_BUY_OPTIONS = [50, 100, 250, 500, 1000]  # Quick buy buttons
 
 
 def is_owner(telegram_id: int) -> bool:
@@ -92,16 +65,21 @@ def get_back_button():
     ])
 
 
-async def get_packages_keyboard():
-    packages = await get_all_packages()
+def get_buy_keyboard():
+    """Get keyboard with quick buy options (1:1 ratio)."""
     buttons = []
-    for num, pkg in packages.items():
-        buttons.append([
-            InlineKeyboardButton(
-                text=f"{pkg['emoji']} Package {num}: +{pkg['growth']}cm for {pkg['price']:,} FAPCOIN",
-                callback_data=f"buy_package_{num}"
-            )
-        ])
+    row = []
+    for amount in QUICK_BUY_OPTIONS:
+        row.append(InlineKeyboardButton(
+            text=f"+{amount} cm",
+            callback_data=f"buy_amount_{amount}"
+        ))
+        if len(row) == 2:
+            buttons.append(row)
+            row = []
+    if row:
+        buttons.append(row)
+    buttons.append([InlineKeyboardButton(text="📝 Custom Amount", callback_data="buy_custom")])
     buttons.append([InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -329,133 +307,6 @@ async def cmd_showwallet(message: Message):
         f"<b>Current Wallet:</b>\n<code>{current_wallet}</code>\n\n"
         f"<b>Source:</b> {source}\n"
         f"━━━━━━━━━━━━━━━━━━━━━",
-        parse_mode=ParseMode.HTML
-    )
-
-
-@router.message(Command("setprice"))
-async def cmd_setprice(message: Message):
-    """Set package price - owner only."""
-    telegram_id = message.from_user.id
-    
-    if not is_owner(telegram_id):
-        await message.answer("❌ This command is only for the bot owner.", parse_mode=None)
-        return
-    
-    args = message.text.split()
-    if len(args) < 3:
-        packages = await get_all_packages()
-        pkg_list = "\n".join([
-            f"  {num}: {pkg['emoji']} +{pkg['growth']}cm = {pkg['price']:,} FAPCOIN"
-            for num, pkg in packages.items()
-        ])
-        await message.answer(
-            f"📝 <b>Usage:</b> /setprice [package] [price]\n\n"
-            f"<b>Current Packages:</b>\n{pkg_list}\n\n"
-            f"<b>Example:</b>\n<code>/setprice 1 7500</code>\n"
-            f"(Sets Package 1 to 7,500 FAPCOIN)",
-            parse_mode=ParseMode.HTML
-        )
-        return
-    
-    try:
-        package_num = int(args[1])
-        new_price = int(args[2])
-    except ValueError:
-        await message.answer("❌ Invalid numbers. Use: /setprice [package] [price]", parse_mode=None)
-        return
-    
-    if package_num not in DEFAULT_PACKAGES:
-        await message.answer(f"❌ Invalid package number. Use 1-{len(DEFAULT_PACKAGES)}.", parse_mode=None)
-        return
-    
-    if new_price < 1:
-        await message.answer("❌ Price must be at least 1.", parse_mode=None)
-        return
-    
-    await db.set_package_price(package_num, new_price, telegram_id)
-    pkg = await get_package(package_num)
-    
-    await message.answer(
-        f"✅ <b>Package {package_num} Price Updated!</b>\n\n"
-        f"{pkg['emoji']} +{pkg['growth']}cm\n"
-        f"💵 New Price: <b>{new_price:,} FAPCOIN</b>",
-        parse_mode=ParseMode.HTML
-    )
-
-
-@router.message(Command("setgrowth"))
-async def cmd_setgrowth(message: Message):
-    """Set package growth - owner only."""
-    telegram_id = message.from_user.id
-    
-    if not is_owner(telegram_id):
-        await message.answer("❌ This command is only for the bot owner.", parse_mode=None)
-        return
-    
-    args = message.text.split()
-    if len(args) < 3:
-        packages = await get_all_packages()
-        pkg_list = "\n".join([
-            f"  {num}: {pkg['emoji']} +{pkg['growth']}cm = {pkg['price']:,} FAPCOIN"
-            for num, pkg in packages.items()
-        ])
-        await message.answer(
-            f"📝 <b>Usage:</b> /setgrowth [package] [cm]\n\n"
-            f"<b>Current Packages:</b>\n{pkg_list}\n\n"
-            f"<b>Example:</b>\n<code>/setgrowth 1 25</code>\n"
-            f"(Sets Package 1 to give +25cm)",
-            parse_mode=ParseMode.HTML
-        )
-        return
-    
-    try:
-        package_num = int(args[1])
-        new_growth = int(args[2])
-    except ValueError:
-        await message.answer("❌ Invalid numbers. Use: /setgrowth [package] [cm]", parse_mode=None)
-        return
-    
-    if package_num not in DEFAULT_PACKAGES:
-        await message.answer(f"❌ Invalid package number. Use 1-{len(DEFAULT_PACKAGES)}.", parse_mode=None)
-        return
-    
-    if new_growth < 1:
-        await message.answer("❌ Growth must be at least 1cm.", parse_mode=None)
-        return
-    
-    await db.set_package_growth(package_num, new_growth, telegram_id)
-    pkg = await get_package(package_num)
-    
-    await message.answer(
-        f"✅ <b>Package {package_num} Growth Updated!</b>\n\n"
-        f"{pkg['emoji']} New Growth: <b>+{new_growth}cm</b>\n"
-        f"💵 Price: {pkg['price']:,} FAPCOIN",
-        parse_mode=ParseMode.HTML
-    )
-
-
-@router.message(Command("prices"))
-async def cmd_prices(message: Message):
-    """Show current prices - owner only."""
-    telegram_id = message.from_user.id
-    
-    if not is_owner(telegram_id):
-        await message.answer("❌ This command is only for the bot owner.", parse_mode=None)
-        return
-    
-    packages = await get_all_packages()
-    pkg_list = "\n".join([
-        f"{pkg['emoji']} Package {num}: +{pkg['growth']}cm = <b>{pkg['price']:,}</b> FAPCOIN"
-        for num, pkg in packages.items()
-    ])
-    
-    await message.answer(
-        f"💰 <b>Current Package Prices</b>\n\n"
-        f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"{pkg_list}\n"
-        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"Use /setprice [package] [price] to change.",
         parse_mode=ParseMode.HTML
     )
 
@@ -772,12 +623,52 @@ async def cmd_buy(message: Message):
     await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
     await db.get_or_create_user_chat(telegram_id, chat_id)
     
+    # Check if custom amount specified: /buy 150
+    args = message.text.split()
+    if len(args) > 1:
+        try:
+            amount = int(args[1])
+            if amount < 1:
+                await message.answer("❌ Amount must be at least 1 cm", parse_mode=None)
+                return
+            if amount > MAX_BUY_AMOUNT:
+                await message.answer(f"❌ Maximum purchase is {MAX_BUY_AMOUNT} cm per transaction", parse_mode=None)
+                return
+            
+            await db.create_pending_transaction(telegram_id, chat_id, amount, amount)
+            team_wallet = await db.get_team_wallet() or os.environ.get('TEAM_WALLET_ADDRESS', 'Not configured')
+            
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="✅ I've Paid!", callback_data=f"paid_{amount}")],
+                [InlineKeyboardButton(text="◀️ Back", callback_data="action_buy")]
+            ])
+            
+            await message.answer(
+                f"💰 <b>BUY {amount} CM</b> 💰\n\n"
+                f"━━━━━━━━━━━━━━━━━━━━━\n"
+                f"🌱 <b>+{amount} cm Growth</b>\n"
+                f"💵 Price: <b>{amount:,} $FAPCOIN</b>\n"
+                f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                f"📤 <b>Send exactly {amount:,} FAPCOIN to:</b>\n\n"
+                f"<code>{team_wallet}</code>\n\n"
+                f"⬆️ <i>Tap to copy address</i>\n\n"
+                f"After sending, click <b>I've Paid!</b>",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
+            return
+        except ValueError:
+            pass
+    
+    # Show buy menu
     await message.answer(
-        "💰 <b>GROWTH PACKAGES</b> 💰\n\n"
+        "💰 <b>BUY GROWTH</b> 💰\n\n"
         "━━━━━━━━━━━━━━━━━━━━━\n"
-        "Buy growth with <b>$FAPCOIN</b>!\n"
-        "━━━━━━━━━━━━━━━━━━━━━",
-        reply_markup=await get_packages_keyboard(),
+        "💎 <b>1 FAPCOIN = 1 cm</b>\n"
+        "📦 Max per purchase: <b>1000 cm</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "Select amount or enter custom:",
+        reply_markup=get_buy_keyboard(),
         parse_mode=ParseMode.HTML
     )
 
@@ -967,46 +858,46 @@ async def callback_buy(callback: CallbackQuery):
     await db.get_or_create_user_chat(telegram_id, chat_id)
     
     await callback.message.edit_text(
-        "💰 <b>GROWTH PACKAGES</b> 💰\n\n"
+        "💰 <b>BUY GROWTH</b> 💰\n\n"
         "━━━━━━━━━━━━━━━━━━━━━\n"
-        "Buy growth with <b>$FAPCOIN</b>!\n"
-        "Select a package below:\n"
-        "━━━━━━━━━━━━━━━━━━━━━",
-        reply_markup=await get_packages_keyboard(),
+        "💎 <b>1 FAPCOIN = 1 cm</b>\n"
+        "📦 Max per purchase: <b>1000 cm</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "Select amount or enter custom:",
+        reply_markup=get_buy_keyboard(),
         parse_mode=ParseMode.HTML
     )
     await callback.answer()
 
 
-@router.callback_query(F.data.startswith("buy_package_"))
-async def callback_buy_package(callback: CallbackQuery):
+@router.callback_query(F.data.startswith("buy_amount_"))
+async def callback_buy_amount(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     chat_id = callback.message.chat.id
-    package_num = int(callback.data.split("_")[2])
+    amount = int(callback.data.split("_")[2])
     
-    pkg = await get_package(package_num)
-    if not pkg:
-        await callback.answer("Invalid package!", show_alert=True)
+    if amount < 1 or amount > MAX_BUY_AMOUNT:
+        await callback.answer(f"Invalid amount! Max is {MAX_BUY_AMOUNT} cm", show_alert=True)
         return
     
     await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
     await db.get_or_create_user_chat(telegram_id, chat_id)
-    await db.create_pending_transaction(telegram_id, chat_id, package_num, pkg['price'])
+    await db.create_pending_transaction(telegram_id, chat_id, amount, amount)  # 1:1 ratio
     
     team_wallet = await db.get_team_wallet() or os.environ.get('TEAM_WALLET_ADDRESS', 'Not configured')
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="✅ I've Paid!", callback_data=f"paid_{package_num}")],
-        [InlineKeyboardButton(text="◀️ Back to Packages", callback_data="action_buy")]
+        [InlineKeyboardButton(text="✅ I've Paid!", callback_data=f"paid_{amount}")],
+        [InlineKeyboardButton(text="◀️ Back", callback_data="action_buy")]
     ])
     
     await callback.message.edit_text(
-        f"💰 <b>PACKAGE {package_num}</b> 💰\n\n"
+        f"💰 <b>BUY {amount} CM</b> 💰\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"{pkg['emoji']} <b>+{pkg['growth']} cm Growth</b>\n"
-        f"💵 Price: <b>{pkg['price']:,} $FAPCOIN</b>\n"
+        f"🌱 <b>+{amount} cm Growth</b>\n"
+        f"💵 Price: <b>{amount:,} $FAPCOIN</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"📤 <b>Send exactly {pkg['price']:,} FAPCOIN to:</b>\n\n"
+        f"📤 <b>Send exactly {amount:,} FAPCOIN to:</b>\n\n"
         f"<code>{team_wallet}</code>\n\n"
         f"⬆️ <i>Tap to copy address</i>\n\n"
         f"After sending, click <b>I've Paid!</b>",
@@ -1016,20 +907,40 @@ async def callback_buy_package(callback: CallbackQuery):
     await callback.answer()
 
 
+@router.callback_query(F.data == "buy_custom")
+async def callback_buy_custom(callback: CallbackQuery):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="◀️ Back", callback_data="action_buy")]
+    ])
+    
+    await callback.message.edit_text(
+        "📝 <b>CUSTOM AMOUNT</b> 📝\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n"
+        "💎 <b>1 FAPCOIN = 1 cm</b>\n"
+        f"📦 Max: <b>{MAX_BUY_AMOUNT} cm</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "Type the amount you want to buy:\n\n"
+        "Example: <code>/buy 150</code>\n\n"
+        "<i>This will cost 150 FAPCOIN for +150 cm</i>",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
 @router.callback_query(F.data.startswith("paid_"))
 async def callback_paid(callback: CallbackQuery):
-    package_num = int(callback.data.split("_")[1])
-    pkg = await get_package(package_num) or {}
+    amount = int(callback.data.split("_")[1])
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="◀️ Back to Packages", callback_data="action_buy")]
+        [InlineKeyboardButton(text="◀️ Back", callback_data="action_buy")]
     ])
     
     await callback.message.edit_text(
         f"📝 <b>VERIFY YOUR PAYMENT</b> 📝\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"📦 Package: <b>+{pkg.get('growth', '?')} cm</b>\n"
-        f"💵 Amount: <b>{pkg.get('price', '?'):,} FAPCOIN</b>\n"
+        f"📦 Amount: <b>+{amount} cm</b>\n"
+        f"💵 Cost: <b>{amount:,} FAPCOIN</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
         f"📋 <b>Just paste your transaction hash below!</b>\n\n"
         f"💡 Find it in your wallet's transaction history\n"
@@ -1096,12 +1007,9 @@ async def cmd_verify(message: Message):
         return
     
     pending_tx = pending_txs[0]
-    pkg = await get_package(pending_tx.package_number)
-    logger.info(f"Verifying tx {tx_hash[:20]}... for package {pending_tx.package_number}")
-    
-    if not pkg:
-        await message.answer("❌ Invalid package.", parse_mode=None)
-        return
+    # package_number now stores the amount (1:1 ratio)
+    growth_amount = pending_tx.package_number
+    logger.info(f"Verifying tx {tx_hash[:20]}... for {growth_amount} cm")
     
     solana_rpc = os.environ.get('SOLANA_RPC_URL', '')
     team_wallet = await db.get_team_wallet() or os.environ.get('TEAM_WALLET_ADDRESS', '')
@@ -1123,12 +1031,12 @@ async def cmd_verify(message: Message):
         )
         
         if verification['verified']:
-            success = await db.confirm_transaction(pending_tx.transaction_id, tx_hash, pkg['growth'])
+            success = await db.confirm_transaction(pending_tx.transaction_id, tx_hash, growth_amount)
             if success:
                 await message.answer(
                     f"✅ <b>PAYMENT VERIFIED!</b> ✅\n\n"
                     f"━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"🎉 You received <b>+{pkg['growth']} cm</b>!\n"
+                    f"🎉 You received <b>+{growth_amount} cm</b>!\n"
                     f"━━━━━━━━━━━━━━━━━━━━━\n\n"
                     f"Thank you for your purchase!",
                     parse_mode=ParseMode.HTML
@@ -1727,11 +1635,8 @@ async def catch_tx_hash(message: Message):
             return
         
         pending_tx = pending_txs[0]
-        pkg = await get_package(pending_tx.package_number)
-        
-        if not pkg:
-            await message.answer("❌ Invalid package.", parse_mode=None)
-            return
+        # package_number now stores the amount (1:1 ratio)
+        growth_amount = pending_tx.package_number
         
         solana_rpc = os.environ.get('SOLANA_RPC_URL', '')
         team_wallet = await db.get_team_wallet() or os.environ.get('TEAM_WALLET_ADDRESS', '')
@@ -1751,16 +1656,16 @@ async def catch_tx_hash(message: Message):
             )
             
             if verification['verified']:
-                success = await db.confirm_transaction(pending_tx.transaction_id, tx_hash, pkg['growth'])
+                success = await db.confirm_transaction(pending_tx.transaction_id, tx_hash, growth_amount)
                 if success:
                     await message.answer(
                         f"✅ <b>PAYMENT VERIFIED!</b> ✅\n\n"
                         f"━━━━━━━━━━━━━━━━━━━━━\n"
                         f"✓ Transaction confirmed on Solana\n"
-                        f"✓ Payment received: <b>{pkg['price']:,} FAPCOIN</b>\n"
+                        f"✓ Payment received: <b>{growth_amount:,} FAPCOIN</b>\n"
                         f"✓ Growth added to your account\n"
                         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-                        f"🎉 <b>+{pkg['growth']} cm added!</b>\n\n"
+                        f"🎉 <b>+{growth_amount} cm added!</b>\n\n"
                         f"Go back to the group and use /top to see\n"
                         f"your new position on the leaderboard!",
                         parse_mode=ParseMode.HTML

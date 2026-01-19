@@ -5,8 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .models import User, UserChat, Transaction, DailyWinner, PvpChallenge, SupportRequest, BotSettings, create_async_session
 
 
-MAX_LENGTH = 1000  # Maximum length in cm
-
 SessionLocal = None
 
 
@@ -112,10 +110,6 @@ async def do_grow(telegram_id: int, chat_id: int, growth: float) -> tuple:
             actual_growth -= repayment
         
         user_chat.length += actual_growth
-        # Cap at max length
-        total = user_chat.length + user_chat.paid_length
-        if total > MAX_LENGTH:
-            user_chat.length = MAX_LENGTH - user_chat.paid_length
         
         user_chat.last_grow = datetime.utcnow()
         user_chat.last_active = datetime.utcnow()
@@ -280,10 +274,6 @@ async def confirm_transaction(transaction_id: str, on_chain_tx_id: str, growth: 
             session.add(user_chat)
         
         user_chat.paid_length += growth
-        # Cap at max length
-        total = user_chat.length + user_chat.paid_length
-        if total > MAX_LENGTH:
-            user_chat.paid_length = MAX_LENGTH - user_chat.length
         
         await session.commit()
         return True
@@ -303,10 +293,6 @@ async def add_paid_growth(telegram_id: int, chat_id: int, growth: float, transac
             session.add(user_chat)
         
         user_chat.paid_length += growth
-        # Cap at max length
-        total = user_chat.length + user_chat.paid_length
-        if total > MAX_LENGTH:
-            user_chat.paid_length = MAX_LENGTH - user_chat.length
         
         transaction = Transaction(
             transaction_id=transaction_id,
@@ -385,10 +371,6 @@ async def select_daily_winner(chat_id: int) -> dict:
         user_chat = uc_result.scalar_one_or_none()
         if user_chat:
             user_chat.length += bonus
-            # Cap at max length
-            total = user_chat.length + user_chat.paid_length
-            if total > MAX_LENGTH:
-                user_chat.length = MAX_LENGTH - user_chat.paid_length
         
         user_result = await session.execute(
             select(User).where(User.telegram_id == winner_chat.telegram_id)
@@ -547,10 +529,6 @@ async def accept_pvp_challenge(challenge_id: int) -> dict:
         
         if winner_chat:
             winner_chat.length += challenge.bet_amount
-            # Cap at max length
-            total = winner_chat.length + winner_chat.paid_length
-            if total > MAX_LENGTH:
-                winner_chat.length = MAX_LENGTH - winner_chat.paid_length
         if loser_chat:
             loser_chat.length -= challenge.bet_amount
         
@@ -618,10 +596,6 @@ async def resolve_pvp(challenge_id: int, winner_id: int) -> bool:
         
         if winner_chat:
             winner_chat.length += challenge.bet_amount
-            # Cap at max length
-            total = winner_chat.length + winner_chat.paid_length
-            if total > MAX_LENGTH:
-                winner_chat.length = MAX_LENGTH - winner_chat.paid_length
         if loser_chat:
             loser_chat.length -= challenge.bet_amount
         
