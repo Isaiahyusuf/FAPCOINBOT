@@ -662,21 +662,21 @@ async def callback_buy_package(callback: CallbackQuery):
 @router.callback_query(F.data.startswith("paid_"))
 async def callback_paid(callback: CallbackQuery):
     package_num = int(callback.data.split("_")[1])
+    pkg = PACKAGES.get(package_num, {})
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="◀️ Back to Packages", callback_data="action_buy")]
     ])
     
     await callback.message.edit_text(
-        "📝 <b>ENTER TRANSACTION HASH</b> 📝\n\n"
-        "━━━━━━━━━━━━━━━━━━━━━\n"
-        "Send your transaction hash using:\n\n"
-        "<code>/verify YOUR_TX_HASH</code>\n"
-        "━━━━━━━━━━━━━━━━━━━━━\n\n"
-        "💡 <b>Example:</b>\n"
-        "<code>/verify 3mYk9yAq...</code>\n\n"
-        "📋 Copy your tx hash from your wallet,\n"
-        "then type /verify and paste it!",
+        f"📝 <b>VERIFY YOUR PAYMENT</b> 📝\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"📦 Package: <b>+{pkg.get('growth', '?')} cm</b>\n"
+        f"💵 Amount: <b>{pkg.get('price', '?'):,} FAPCOIN</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"📋 <b>Just paste your transaction hash below!</b>\n\n"
+        f"💡 Find it in your wallet's transaction history\n"
+        f"and send it here. I'll verify it automatically!",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
@@ -1213,7 +1213,11 @@ async def catch_tx_hash(message: Message):
             telegram_id = message.from_user.id
             chat_id = message.chat.id
             
-            await message.answer("🔍 <b>Detected transaction hash! Verifying...</b>", parse_mode=ParseMode.HTML)
+            await message.answer(
+                "🔍 <b>Transaction hash detected!</b>\n\n"
+                "⏳ Checking Solana blockchain...",
+                parse_mode=ParseMode.HTML
+            )
             
             await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
             
@@ -1265,9 +1269,13 @@ async def catch_tx_hash(message: Message):
                         await message.answer(
                             f"✅ <b>PAYMENT VERIFIED!</b> ✅\n\n"
                             f"━━━━━━━━━━━━━━━━━━━━━\n"
-                            f"🎉 You received <b>+{pkg['growth']} cm</b>!\n"
+                            f"✓ Transaction confirmed on Solana\n"
+                            f"✓ Payment received: <b>{pkg['price']:,} FAPCOIN</b>\n"
+                            f"✓ Growth added to your account\n"
                             f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-                            f"Thank you for your purchase!",
+                            f"🎉 <b>+{pkg['growth']} cm added!</b>\n\n"
+                            f"Go back to the group and use /top to see\n"
+                            f"your new position on the leaderboard!",
                             parse_mode=ParseMode.HTML
                         )
                     else:
