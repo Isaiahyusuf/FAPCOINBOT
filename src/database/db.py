@@ -144,12 +144,25 @@ async def get_leaderboard(chat_id: int, limit: int = 10) -> list:
             select(UserChat)
             .where(UserChat.chat_id == chat_id)
             .order_by((UserChat.length + UserChat.paid_length).desc())
-            .limit(limit)
         )
         user_chats = result.scalars().all()
         
-        leaderboard = []
+        # Deduplicate by telegram_id, keeping highest total
+        seen_users = {}
         for uc in user_chats:
+            total = uc.length + uc.paid_length
+            if uc.telegram_id not in seen_users:
+                seen_users[uc.telegram_id] = uc
+            else:
+                existing_total = seen_users[uc.telegram_id].length + seen_users[uc.telegram_id].paid_length
+                if total > existing_total:
+                    seen_users[uc.telegram_id] = uc
+        
+        # Sort by total and limit
+        sorted_users = sorted(seen_users.values(), key=lambda x: x.length + x.paid_length, reverse=True)[:limit]
+        
+        leaderboard = []
+        for uc in sorted_users:
             user_result = await session.execute(
                 select(User).where(User.telegram_id == uc.telegram_id)
             )
