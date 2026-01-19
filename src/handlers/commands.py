@@ -1131,6 +1131,8 @@ async def cmd_verify(message: Message):
                     f"━━━━━━━━━━━━━━━━━━━━━\n"
                     f"🎉 You received <b>+{growth_amount} cm</b>!\n"
                     f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                    f"💎 Every purchase in $FAPCOIN is sent to our\n"
+                    f"treasury wallet to support the project! 💎\n\n"
                     f"Thank you for your purchase!",
                     parse_mode=ParseMode.HTML
                 )
@@ -1798,6 +1800,8 @@ async def catch_tx_hash(message: Message):
                         f"✓ Growth added to your account\n"
                         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
                         f"🎉 <b>+{growth_amount} cm added!</b>\n\n"
+                        f"💎 Every purchase in $FAPCOIN is sent to our\n"
+                        f"treasury wallet to support the project! 💎\n\n"
                         f"Go back to the group and use /top to see\n"
                         f"your new position on the leaderboard!",
                         parse_mode=ParseMode.HTML
