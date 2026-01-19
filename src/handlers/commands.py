@@ -614,18 +614,26 @@ async def callback_paid(callback: CallbackQuery):
     await callback.message.edit_text(
         "📝 <b>ENTER TRANSACTION HASH</b> 📝\n\n"
         "━━━━━━━━━━━━━━━━━━━━━\n"
-        "Send your Solana transaction hash:\n\n"
-        "<code>/verify YOUR_TX_HASH</code>\n\n"
+        "Just paste your Solana transaction hash here!\n"
         "━━━━━━━━━━━━━━━━━━━━━\n\n"
         "💡 <b>Where to find it:</b>\n"
         "• Open your wallet app\n"
         "• Find the transaction you just sent\n"
-        "• Copy the transaction signature/hash\n\n"
-        "🔍 We'll verify it on Solana blockchain!",
+        "• Copy the transaction signature/hash\n"
+        "• Paste it in this chat\n\n"
+        "🔍 We'll verify it automatically!",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
     await callback.answer()
+
+
+@router.message(F.text.regexp(r'^[1-9A-HJ-NP-Za-km-z]{43,100}$'))
+async def handle_tx_hash_message(message: Message):
+    tx_hash = message.text.strip()
+    if validate_solana_tx_hash(tx_hash):
+        message.text = f"/verify {tx_hash}"
+        await cmd_verify(message)
 
 
 @router.message(Command("verify"))
@@ -635,7 +643,11 @@ async def cmd_verify(message: Message):
     
     telegram_id = message.from_user.id
     chat_id = message.chat.id
-    args = message.text.split()
+    
+    if message.text.startswith("/verify"):
+        args = message.text.split()
+    else:
+        args = ["/verify", message.text.strip()]
     
     logger.info(f"Verify command from user {telegram_id} in chat {chat_id}")
     
