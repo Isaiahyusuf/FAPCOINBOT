@@ -43,6 +43,16 @@ async def get_user_by_telegram_id(telegram_id: int) -> User:
         return result.scalar_one_or_none()
 
 
+async def get_user_by_username(username: str) -> User:
+    """Find user by their Telegram username (case insensitive)."""
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(User).where(func.lower(User.username) == username.lower())
+        )
+        return result.scalar_one_or_none()
+
+
 async def get_or_create_user_chat(telegram_id: int, chat_id: int) -> UserChat:
     Session = get_session()
     async with Session() as session:

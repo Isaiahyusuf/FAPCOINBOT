@@ -1275,39 +1275,85 @@ async def callback_pvp_info(callback: CallbackQuery):
 async def cmd_pvp(message: Message):
     telegram_id = message.from_user.id
     chat_id = message.chat.id
-    args = message.text.split()
     
     await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
     await db.get_or_create_user_chat(telegram_id, chat_id)
     
-    if not message.reply_to_message:
+    # Parse the command - support both reply and @mention formats
+    # Format 1: Reply to message + /pvp [bet]
+    # Format 2: @username /pvp [bet] or /pvp @username [bet]
+    
+    text = message.text or ""
+    opponent = None
+    bet = None
+    
+    # Check for mentions in the message
+    if message.entities:
+        for entity in message.entities:
+            if entity.type == "mention":
+                # Extract @username from text
+                mention_text = text[entity.offset:entity.offset + entity.length]
+                username = mention_text.lstrip("@")
+                # Find user by username in database
+                opponent_user = await db.get_user_by_username(username)
+                if opponent_user:
+                    opponent = opponent_user
+                break
+            elif entity.type == "text_mention" and entity.user:
+                # Direct user mention (when user has no username)
+                opponent = entity.user
+                break
+    
+    # If no mention found, check for reply
+    if not opponent and message.reply_to_message:
+        opponent = message.reply_to_message.from_user
+    
+    # Parse bet amount from arguments
+    args = text.split()
+    for arg in args:
+        if arg.startswith("/") or arg.startswith("@"):
+            continue
+        try:
+            bet = float(arg)
+            if bet > 0:
+                break
+        except ValueError:
+            continue
+    
+    # Show help if no opponent or bet
+    if not opponent:
         await message.answer(
             "⚔️ <b>PVP BATTLE</b>\n\n"
-            "Reply to someone's message and use:\n"
-            "<code>/pvp [bet]</code>\n\n"
-            "Example: Reply to a message, then send <code>/pvp 10</code>",
+            "Challenge someone to battle!\n\n"
+            "<b>Option 1:</b> Tag opponent\n"
+            "<code>@username /pvp 5</code>\n\n"
+            "<b>Option 2:</b> Reply to their message\n"
+            "Reply + <code>/pvp 5</code>",
             parse_mode=ParseMode.HTML
         )
         return
     
-    if len(args) < 2:
-        await message.answer("Usage: Reply to a message + /pvp [bet_amount]", parse_mode=None)
+    if not bet or bet <= 0:
+        await message.answer("❌ Please specify a bet amount. Example: <code>@user /pvp 5</code>", parse_mode=ParseMode.HTML)
         return
     
-    try:
-        bet = float(args[1])
-        if bet <= 0:
-            raise ValueError()
-    except ValueError:
-        await message.answer("❌ Invalid bet. Use a positive number.", parse_mode=None)
-        return
+    # Handle opponent as either User object or database user
+    if hasattr(opponent, 'id'):
+        opponent_id = opponent.id
+        opponent_username = getattr(opponent, 'username', None)
+        opponent_first_name = getattr(opponent, 'first_name', None) or "Player"
+        is_bot = getattr(opponent, 'is_bot', False)
+    else:
+        opponent_id = opponent.telegram_id
+        opponent_username = opponent.username
+        opponent_first_name = opponent.first_name or "Player"
+        is_bot = False
     
-    opponent = message.reply_to_message.from_user
-    if opponent.id == telegram_id:
+    if opponent_id == telegram_id:
         await message.answer("❌ You can't battle yourself!", parse_mode=None)
         return
     
-    if opponent.is_bot:
+    if is_bot:
         await message.answer("❌ You can't battle bots!", parse_mode=None)
         return
     
@@ -1321,17 +1367,17 @@ async def cmd_pvp(message: Message):
         )
         return
     
-    await db.get_or_create_user(opponent.id, opponent.username, opponent.first_name)
-    await db.get_or_create_user_chat(opponent.id, chat_id)
+    await db.get_or_create_user(opponent_id, opponent_username, opponent_first_name)
+    await db.get_or_create_user_chat(opponent_id, chat_id)
     
-    challenge = await db.create_pvp_challenge(chat_id, telegram_id, opponent.id, bet)
+    challenge = await db.create_pvp_challenge(chat_id, telegram_id, opponent_id, bet)
     
     if not challenge:
         await message.answer("❌ Could not create challenge. You may have a pending challenge.", parse_mode=None)
         return
     
     challenger_name = message.from_user.first_name or "Player"
-    opponent_name = opponent.first_name or "Player"
+    opponent_name = opponent_first_name
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
