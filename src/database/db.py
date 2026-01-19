@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
-from sqlalchemy import select, update, and_, func
+import random
+from sqlalchemy import select, update, and_, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from .models import User, UserChat, Transaction, DailyWinner, PvpChallenge, SupportRequest, create_async_session
 
@@ -24,7 +25,20 @@ async def get_or_create_user(telegram_id: int, username: str = None, first_name:
             session.add(user)
             await session.commit()
             await session.refresh(user)
+        else:
+            if username and user.username != username:
+                user.username = username
+            if first_name and user.first_name != first_name:
+                user.first_name = first_name
+            await session.commit()
         return user
+
+
+async def get_user_by_telegram_id(telegram_id: int) -> User:
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(select(User).where(User.telegram_id == telegram_id))
+        return result.scalar_one_or_none()
 
 
 async def get_or_create_user_chat(telegram_id: int, chat_id: int) -> UserChat:
@@ -116,7 +130,23 @@ async def get_leaderboard(chat_id: int, limit: int = 10) -> list:
             .order_by((UserChat.length + UserChat.paid_length).desc())
             .limit(limit)
         )
-        return result.scalars().all()
+        user_chats = result.scalars().all()
+        
+        leaderboard = []
+        for uc in user_chats:
+            user_result = await session.execute(
+                select(User).where(User.telegram_id == uc.telegram_id)
+            )
+            user = user_result.scalar_one_or_none()
+            leaderboard.append({
+                'telegram_id': uc.telegram_id,
+                'username': user.username if user else None,
+                'first_name': user.first_name if user else None,
+                'length': uc.length,
+                'paid_length': uc.paid_length,
+                'total': uc.length + uc.paid_length
+            })
+        return leaderboard
 
 
 async def apply_loan(telegram_id: int, chat_id: int) -> tuple:
@@ -160,6 +190,68 @@ async def get_wallet(telegram_id: int) -> str:
         result = await session.execute(select(User).where(User.telegram_id == telegram_id))
         user = result.scalar_one_or_none()
         return user.wallet_address if user else None
+
+
+async def create_pending_transaction(telegram_id: int, chat_id: int, package_number: int, expected_amount: float) -> Transaction:
+    Session = get_session()
+    async with Session() as session:
+        import uuid
+        tx_id = f"pending_{uuid.uuid4().hex[:16]}"
+        transaction = Transaction(
+            transaction_id=tx_id,
+            telegram_id=telegram_id,
+            chat_id=chat_id,
+            amount_paid=expected_amount,
+            package_number=package_number,
+            status='pending'
+        )
+        session.add(transaction)
+        await session.commit()
+        await session.refresh(transaction)
+        return transaction
+
+
+async def get_pending_transactions(telegram_id: int) -> list:
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(Transaction).where(
+                and_(
+                    Transaction.telegram_id == telegram_id,
+                    Transaction.status == 'pending'
+                )
+            ).order_by(Transaction.created_at.desc())
+        )
+        return result.scalars().all()
+
+
+async def confirm_transaction(transaction_id: str, on_chain_tx_id: str, growth: float) -> bool:
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(Transaction).where(Transaction.transaction_id == transaction_id)
+        )
+        tx = result.scalar_one_or_none()
+        if not tx or tx.status != 'pending':
+            return False
+        
+        tx.status = 'confirmed'
+        tx.transaction_id = on_chain_tx_id
+        
+        uc_result = await session.execute(
+            select(UserChat).where(
+                and_(UserChat.telegram_id == tx.telegram_id, UserChat.chat_id == tx.chat_id)
+            )
+        )
+        user_chat = uc_result.scalar_one_or_none()
+        if not user_chat:
+            user_chat = UserChat(telegram_id=tx.telegram_id, chat_id=tx.chat_id)
+            session.add(user_chat)
+        
+        user_chat.paid_length += growth
+        
+        await session.commit()
+        return True
 
 
 async def add_paid_growth(telegram_id: int, chat_id: int, growth: float, transaction_id: str, package_number: int) -> bool:
@@ -207,6 +299,69 @@ async def get_eligible_users_for_daily(chat_id: int) -> list:
         return result.scalars().all()
 
 
+async def has_daily_winner_today(chat_id: int) -> bool:
+    Session = get_session()
+    async with Session() as session:
+        today = datetime.utcnow().date()
+        result = await session.execute(
+            select(DailyWinner).where(
+                and_(
+                    DailyWinner.chat_id == chat_id,
+                    func.date(DailyWinner.date) == today
+                )
+            )
+        )
+        return result.scalar_one_or_none() is not None
+
+
+async def select_daily_winner(chat_id: int) -> dict:
+    Session = get_session()
+    async with Session() as session:
+        if await has_daily_winner_today(chat_id):
+            return None
+        
+        eligible = await get_eligible_users_for_daily(chat_id)
+        if not eligible:
+            return None
+        
+        winner_chat = random.choice(eligible)
+        bonus = random.randint(5, 15)
+        
+        winner = DailyWinner(
+            chat_id=chat_id,
+            telegram_id=winner_chat.telegram_id,
+            date=datetime.utcnow(),
+            bonus_growth=bonus
+        )
+        session.add(winner)
+        
+        uc_result = await session.execute(
+            select(UserChat).where(
+                and_(
+                    UserChat.telegram_id == winner_chat.telegram_id,
+                    UserChat.chat_id == chat_id
+                )
+            )
+        )
+        user_chat = uc_result.scalar_one_or_none()
+        if user_chat:
+            user_chat.length += bonus
+        
+        user_result = await session.execute(
+            select(User).where(User.telegram_id == winner_chat.telegram_id)
+        )
+        user = user_result.scalar_one_or_none()
+        
+        await session.commit()
+        
+        return {
+            'telegram_id': winner_chat.telegram_id,
+            'username': user.username if user else None,
+            'first_name': user.first_name if user else None,
+            'bonus': bonus
+        }
+
+
 async def record_daily_winner(chat_id: int, telegram_id: int, bonus: float):
     Session = get_session()
     async with Session() as session:
@@ -230,6 +385,18 @@ async def record_daily_winner(chat_id: int, telegram_id: int, bonus: float):
         await session.commit()
 
 
+async def get_active_chats() -> list:
+    Session = get_session()
+    async with Session() as session:
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        result = await session.execute(
+            select(UserChat.chat_id)
+            .where(UserChat.last_active >= week_ago)
+            .distinct()
+        )
+        return [row[0] for row in result.all()]
+
+
 async def create_pvp_challenge(chat_id: int, challenger_id: int, opponent_id: int, bet: float) -> PvpChallenge:
     Session = get_session()
     async with Session() as session:
@@ -242,6 +409,18 @@ async def create_pvp_challenge(chat_id: int, challenger_id: int, opponent_id: in
         if not challenger or (challenger.length + challenger.paid_length) < bet:
             return None
         
+        existing = await session.execute(
+            select(PvpChallenge).where(
+                and_(
+                    PvpChallenge.chat_id == chat_id,
+                    PvpChallenge.challenger_id == challenger_id,
+                    PvpChallenge.status == 'pending'
+                )
+            )
+        )
+        if existing.scalar_one_or_none():
+            return None
+        
         challenge = PvpChallenge(
             chat_id=chat_id,
             challenger_id=challenger_id,
@@ -252,6 +431,116 @@ async def create_pvp_challenge(chat_id: int, challenger_id: int, opponent_id: in
         await session.commit()
         await session.refresh(challenge)
         return challenge
+
+
+async def get_pending_pvp_challenge(challenge_id: int) -> PvpChallenge:
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(PvpChallenge).where(
+                and_(
+                    PvpChallenge.id == challenge_id,
+                    PvpChallenge.status == 'pending'
+                )
+            )
+        )
+        return result.scalar_one_or_none()
+
+
+async def accept_pvp_challenge(challenge_id: int) -> dict:
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(PvpChallenge).where(
+                and_(
+                    PvpChallenge.id == challenge_id,
+                    PvpChallenge.status == 'pending'
+                )
+            )
+        )
+        challenge = result.scalar_one_or_none()
+        if not challenge:
+            return None
+        
+        opponent_result = await session.execute(
+            select(UserChat).where(
+                and_(
+                    UserChat.telegram_id == challenge.opponent_id,
+                    UserChat.chat_id == challenge.chat_id
+                )
+            )
+        )
+        opponent = opponent_result.scalar_one_or_none()
+        if not opponent or (opponent.length + opponent.paid_length) < challenge.bet_amount:
+            return {'error': 'insufficient_funds'}
+        
+        challenger_roll = random.randint(1, 100)
+        opponent_roll = random.randint(1, 100)
+        
+        if challenger_roll > opponent_roll:
+            winner_id = challenge.challenger_id
+            loser_id = challenge.opponent_id
+        elif opponent_roll > challenger_roll:
+            winner_id = challenge.opponent_id
+            loser_id = challenge.challenger_id
+        else:
+            challenge.status = 'draw'
+            await session.commit()
+            return {'draw': True, 'challenger_roll': challenger_roll, 'opponent_roll': opponent_roll}
+        
+        winner_result = await session.execute(
+            select(UserChat).where(
+                and_(UserChat.telegram_id == winner_id, UserChat.chat_id == challenge.chat_id)
+            )
+        )
+        winner_chat = winner_result.scalar_one_or_none()
+        
+        loser_result = await session.execute(
+            select(UserChat).where(
+                and_(UserChat.telegram_id == loser_id, UserChat.chat_id == challenge.chat_id)
+            )
+        )
+        loser_chat = loser_result.scalar_one_or_none()
+        
+        if winner_chat:
+            winner_chat.length += challenge.bet_amount
+        if loser_chat:
+            loser_chat.length -= challenge.bet_amount
+        
+        challenge.status = 'resolved'
+        challenge.winner_id = winner_id
+        
+        await session.commit()
+        
+        return {
+            'winner_id': winner_id,
+            'loser_id': loser_id,
+            'bet': challenge.bet_amount,
+            'challenger_id': challenge.challenger_id,
+            'opponent_id': challenge.opponent_id,
+            'challenger_roll': challenger_roll,
+            'opponent_roll': opponent_roll
+        }
+
+
+async def decline_pvp_challenge(challenge_id: int) -> bool:
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(PvpChallenge).where(
+                and_(
+                    PvpChallenge.id == challenge_id,
+                    PvpChallenge.status == 'pending'
+                )
+            )
+        )
+        challenge = result.scalar_one_or_none()
+        if not challenge:
+            return False
+        
+        challenge.status = 'declined'
+        await session.commit()
+        return True
 
 
 async def resolve_pvp(challenge_id: int, winner_id: int) -> bool:
