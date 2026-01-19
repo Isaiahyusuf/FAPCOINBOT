@@ -47,10 +47,13 @@ def get_main_menu_keyboard(bot_username: str = None, is_private: bool = False):
         ],
         [
             buy_button,
-            InlineKeyboardButton(text="📊 My Stats", callback_data="action_stats")
+            InlineKeyboardButton(text="💝 Gift", callback_data="action_gift_info")
         ],
         [
-            InlineKeyboardButton(text="💳 Loan", callback_data="action_loan"),
+            InlineKeyboardButton(text="📊 My Stats", callback_data="action_stats"),
+            InlineKeyboardButton(text="💳 Loan", callback_data="action_loan")
+        ],
+        [
             InlineKeyboardButton(text="❓ Help", callback_data="action_help")
         ],
         [
@@ -708,6 +711,27 @@ async def cmd_loan(message: Message):
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
+
+
+@router.callback_query(F.data == "action_gift_info")
+async def callback_gift_info(callback: CallbackQuery):
+    await callback.message.edit_text(
+        "💝 <b>GIFT CM</b> 💝\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n"
+        "Share your length with friends!\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "<b>How to gift:</b>\n"
+        "1. Go to the group chat\n"
+        "2. Reply to someone's message\n"
+        "3. Type: <code>/gift [amount]</code>\n\n"
+        "<b>Example:</b>\n"
+        "Reply to a message + <code>/gift 10</code>\n\n"
+        "⚠️ Minimum gift: 1 cm\n"
+        "⚠️ Gifts only work in groups!",
+        reply_markup=get_back_button(),
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
 
 
 @router.message(Command("gift"))
