@@ -422,7 +422,7 @@ async def get_active_chats() -> list:
         return [row[0] for row in result.all()]
 
 
-async def create_pvp_challenge(chat_id: int, challenger_id: int, opponent_id: int, bet: float) -> PvpChallenge:
+async def create_pvp_challenge(chat_id: int, challenger_id: int, opponent_id: int, bet: float, opponent_username: str = None) -> PvpChallenge:
     Session = get_session()
     async with Session() as session:
         challenger_result = await session.execute(
@@ -440,6 +440,7 @@ async def create_pvp_challenge(chat_id: int, challenger_id: int, opponent_id: in
             chat_id=chat_id,
             challenger_id=challenger_id,
             opponent_id=opponent_id,
+            opponent_username=opponent_username.lower() if opponent_username else None,
             bet_amount=bet
         )
         session.add(challenge)
@@ -460,6 +461,21 @@ async def get_pending_pvp_challenge(challenge_id: int) -> PvpChallenge:
             )
         )
         return result.scalar_one_or_none()
+
+
+async def update_pvp_opponent_id(challenge_id: int, new_opponent_id: int) -> bool:
+    """Update opponent_id when a user accepts via username match."""
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(PvpChallenge).where(PvpChallenge.id == challenge_id)
+        )
+        challenge = result.scalar_one_or_none()
+        if challenge:
+            challenge.opponent_id = new_opponent_id
+            await session.commit()
+            return True
+        return False
 
 
 async def accept_pvp_challenge(challenge_id: int) -> dict:

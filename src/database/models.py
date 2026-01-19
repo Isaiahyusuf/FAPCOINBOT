@@ -64,6 +64,7 @@ class PvpChallenge(Base):
     chat_id = Column(BigInteger, nullable=False)
     challenger_id = Column(BigInteger, nullable=False)
     opponent_id = Column(BigInteger, nullable=False)
+    opponent_username = Column(String(255), nullable=True)  # For @mention matching
     bet_amount = Column(Float, nullable=False)
     status = Column(String(50), default='pending')
     winner_id = Column(BigInteger, nullable=True)

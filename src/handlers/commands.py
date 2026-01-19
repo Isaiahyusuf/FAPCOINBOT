@@ -1371,7 +1371,7 @@ async def cmd_pvp(message: Message):
     await db.get_or_create_user(opponent_id, opponent_username, opponent_first_name)
     await db.get_or_create_user_chat(opponent_id, chat_id)
     
-    challenge = await db.create_pvp_challenge(chat_id, telegram_id, opponent_id, bet)
+    challenge = await db.create_pvp_challenge(chat_id, telegram_id, opponent_id, bet, opponent_username)
     
     if not challenge:
         await message.answer("❌ Could not create challenge. Not enough length for that bet!", parse_mode=None)
@@ -1405,6 +1405,7 @@ async def cmd_pvp(message: Message):
 async def pvp_accept_callback(callback: CallbackQuery):
     challenge_id = int(callback.data.split("_")[2])
     user_id = callback.from_user.id
+    user_username = callback.from_user.username
     
     challenge = await db.get_pending_pvp_challenge(challenge_id)
     
@@ -1412,9 +1413,21 @@ async def pvp_accept_callback(callback: CallbackQuery):
         await callback.answer("Challenge expired!", show_alert=True)
         return
     
-    if user_id != challenge.opponent_id:
+    # Allow accept if ID matches OR if username matches (for @mention challenges)
+    id_match = (user_id == challenge.opponent_id)
+    username_match = (
+        challenge.opponent_username and 
+        user_username and 
+        user_username.lower() == challenge.opponent_username.lower()
+    )
+    
+    if not id_match and not username_match:
         await callback.answer("This challenge is not for you!", show_alert=True)
         return
+    
+    # Update opponent_id to the actual user who accepted (in case it was wrong)
+    if not id_match and username_match:
+        await db.update_pvp_opponent_id(challenge_id, user_id)
     
     result = await db.accept_pvp_challenge(challenge_id)
     
@@ -1474,6 +1487,7 @@ async def pvp_accept_callback(callback: CallbackQuery):
 async def pvp_decline_callback(callback: CallbackQuery):
     challenge_id = int(callback.data.split("_")[2])
     user_id = callback.from_user.id
+    user_username = callback.from_user.username
     
     challenge = await db.get_pending_pvp_challenge(challenge_id)
     
@@ -1481,7 +1495,15 @@ async def pvp_decline_callback(callback: CallbackQuery):
         await callback.answer("Challenge expired!", show_alert=True)
         return
     
-    if user_id != challenge.opponent_id:
+    # Allow decline if ID matches OR if username matches (for @mention challenges)
+    id_match = (user_id == challenge.opponent_id)
+    username_match = (
+        challenge.opponent_username and 
+        user_username and 
+        user_username.lower() == challenge.opponent_username.lower()
+    )
+    
+    if not id_match and not username_match:
         await callback.answer("This challenge is not for you!", show_alert=True)
         return
     
