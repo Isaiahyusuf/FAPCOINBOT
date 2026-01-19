@@ -35,14 +35,13 @@ def get_main_menu_keyboard():
         ],
         [
             InlineKeyboardButton(text="💰 Buy Growth", callback_data="action_buy"),
-            InlineKeyboardButton(text="👛 My Wallet", callback_data="action_wallet")
+            InlineKeyboardButton(text="📊 My Stats", callback_data="action_stats")
         ],
         [
-            InlineKeyboardButton(text="📊 My Stats", callback_data="action_stats"),
-            InlineKeyboardButton(text="💳 Loan", callback_data="action_loan")
+            InlineKeyboardButton(text="💳 Loan", callback_data="action_loan"),
+            InlineKeyboardButton(text="❓ Help", callback_data="action_help")
         ],
         [
-            InlineKeyboardButton(text="❓ Help", callback_data="action_help"),
             InlineKeyboardButton(text="🆘 Support", callback_data="action_support")
         ]
     ])
@@ -362,19 +361,11 @@ async def cmd_buy(message: Message):
     await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
     await db.get_or_create_user_chat(telegram_id, chat_id)
     
-    wallet = await db.get_wallet(telegram_id)
-    if not wallet:
-        await message.answer(
-            "💰 <b>BUY GROWTH</b>\n\n"
-            "⚠️ Register your wallet first!\n"
-            "Use: /wallet YourSolanaAddress",
-            parse_mode=ParseMode.HTML
-        )
-        return
-    
     await message.answer(
         "💰 <b>GROWTH PACKAGES</b> 💰\n\n"
-        "Select a package to purchase:",
+        "━━━━━━━━━━━━━━━━━━━━━\n"
+        "Buy growth with <b>$FAPCOIN</b>!\n"
+        "━━━━━━━━━━━━━━━━━━━━━",
         reply_markup=get_packages_keyboard(),
         parse_mode=ParseMode.HTML
     )
@@ -424,21 +415,18 @@ async def callback_stats(callback: CallbackQuery):
     
     await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
     user_chat = await db.get_or_create_user_chat(telegram_id, chat_id)
-    wallet = await db.get_wallet(telegram_id)
     
     total = user_chat.length + user_chat.paid_length
-    
-    wallet_text = f"👛 Wallet: <code>{wallet[:8]}...{wallet[-8:]}</code>" if wallet else "👛 Wallet: Not registered"
     
     await callback.message.edit_text(
         f"📊 <b>YOUR STATS</b> 📊\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"📏 Free Growth: <b>{user_chat.length:.1f}</b> cm\n"
         f"💰 Paid Growth: <b>{user_chat.paid_length:.1f}</b> cm\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"📐 <b>TOTAL: {total:.1f} cm</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"💳 Debt: <b>{user_chat.debt:.1f}</b> cm\n"
-        f"{wallet_text}",
+        f"💳 Debt: <b>{user_chat.debt:.1f}</b> cm",
         reply_markup=get_back_button(),
         parse_mode=ParseMode.HTML
     )
@@ -557,108 +545,21 @@ async def callback_confirm_loan(callback: CallbackQuery):
         await callback.answer("Loan not needed - you have positive length!", show_alert=True)
 
 
-@router.callback_query(F.data == "action_wallet")
-async def callback_wallet(callback: CallbackQuery):
-    telegram_id = callback.from_user.id
-    
-    await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
-    wallet = await db.get_wallet(telegram_id)
-    
-    if wallet:
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="🔄 Update Wallet", callback_data="update_wallet")],
-            [InlineKeyboardButton(text="💰 Buy Growth", callback_data="action_buy")],
-            [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
-        ])
-        await callback.message.edit_text(
-            "👛 <b>YOUR WALLET</b> 👛\n\n"
-            f"<code>{wallet}</code>\n\n"
-            "✅ Wallet registered! You can now buy growth packages.",
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
-    else:
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="📝 Register Wallet", callback_data="update_wallet")],
-            [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
-        ])
-        await callback.message.edit_text(
-            "👛 <b>WALLET REGISTRATION</b> 👛\n\n"
-            "No wallet registered yet.\n\n"
-            "To buy growth packages with $FAPCOIN, you need to register your Solana wallet.\n\n"
-            "Send your wallet address using:\n"
-            "<code>/wallet YourSolanaAddress</code>",
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
-    await callback.answer()
-
-
-@router.message(Command("wallet"))
-async def cmd_wallet(message: Message):
-    telegram_id = message.from_user.id
-    args = message.text.split(maxsplit=1)
-    
-    await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
-    
-    if len(args) < 2:
-        wallet = await db.get_wallet(telegram_id)
-        if wallet:
-            await message.answer(
-                f"👛 <b>Your Wallet</b>\n\n<code>{wallet}</code>",
-                parse_mode=ParseMode.HTML
-            )
-        else:
-            await message.answer(
-                "👛 No wallet registered.\n\n"
-                "Usage: /wallet YourSolanaAddress",
-                parse_mode=None
-            )
-        return
-    
-    wallet_address = args[1].strip()
-    
-    if not validate_solana_address(wallet_address):
-        await message.answer(
-            "❌ <b>Invalid Wallet Address</b>\n\n"
-            "Please provide a valid Solana wallet address.",
-            parse_mode=ParseMode.HTML
-        )
-        return
-    
-    await db.set_wallet(telegram_id, wallet_address)
-    await message.answer(
-        f"✅ <b>Wallet Registered!</b>\n\n"
-        f"<code>{wallet_address}</code>\n\n"
-        f"You can now buy growth packages!",
-        parse_mode=ParseMode.HTML
-    )
 
 
 @router.callback_query(F.data == "action_buy")
 async def callback_buy(callback: CallbackQuery):
     telegram_id = callback.from_user.id
+    chat_id = callback.message.chat.id
     
-    wallet = await db.get_wallet(telegram_id)
-    if not wallet:
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="📝 Register Wallet First", callback_data="action_wallet")],
-            [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
-        ])
-        await callback.message.edit_text(
-            "💰 <b>BUY GROWTH</b> 💰\n\n"
-            "⚠️ You need to register your Solana wallet first!\n\n"
-            "Click below to register:",
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
-        await callback.answer("Register wallet first!", show_alert=True)
-        return
+    await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
+    await db.get_or_create_user_chat(telegram_id, chat_id)
     
     await callback.message.edit_text(
         "💰 <b>GROWTH PACKAGES</b> 💰\n\n"
         "━━━━━━━━━━━━━━━━━━━━━\n"
-        "Select a package to purchase:\n"
+        "Buy growth with <b>$FAPCOIN</b>!\n"
+        "Select a package below:\n"
         "━━━━━━━━━━━━━━━━━━━━━",
         reply_markup=get_packages_keyboard(),
         parse_mode=ParseMode.HTML
@@ -677,46 +578,53 @@ async def callback_buy_package(callback: CallbackQuery):
         await callback.answer("Invalid package!", show_alert=True)
         return
     
-    wallet = await db.get_wallet(telegram_id)
-    if not wallet:
-        await callback.answer("Register wallet first!", show_alert=True)
-        return
-    
+    await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
     await db.get_or_create_user_chat(telegram_id, chat_id)
     await db.create_pending_transaction(telegram_id, chat_id, package_num, pkg['price'])
     
     team_wallet = os.environ.get('TEAM_WALLET_ADDRESS', 'Not configured')
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="✅ I've Sent Payment", callback_data=f"verify_prompt_{package_num}")],
-        [InlineKeyboardButton(text="❌ Cancel", callback_data="action_buy")]
+        [InlineKeyboardButton(text="✅ I've Paid!", callback_data=f"paid_{package_num}")],
+        [InlineKeyboardButton(text="◀️ Back to Packages", callback_data="action_buy")]
     ])
     
     await callback.message.edit_text(
-        f"💰 <b>PURCHASE PACKAGE {package_num}</b> 💰\n\n"
+        f"💰 <b>PACKAGE {package_num}</b> 💰\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"{pkg['emoji']} <b>+{pkg['growth']} cm Growth</b>\n"
         f"💵 Price: <b>{pkg['price']:,} $FAPCOIN</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"📤 Send exactly <b>{pkg['price']:,}</b> FAPCOIN to:\n\n"
+        f"📤 <b>Send exactly {pkg['price']:,} FAPCOIN to:</b>\n\n"
         f"<code>{team_wallet}</code>\n\n"
-        f"After sending, click the button below!",
+        f"⬆️ <i>Tap to copy address</i>\n\n"
+        f"After sending, click <b>I've Paid!</b>",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
     await callback.answer()
 
 
-@router.callback_query(F.data.startswith("verify_prompt_"))
-async def callback_verify_prompt(callback: CallbackQuery):
-    package_num = int(callback.data.split("_")[2])
+@router.callback_query(F.data.startswith("paid_"))
+async def callback_paid(callback: CallbackQuery):
+    package_num = int(callback.data.split("_")[1])
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="◀️ Back to Packages", callback_data="action_buy")]
+    ])
     
     await callback.message.edit_text(
-        "📝 <b>VERIFY PAYMENT</b> 📝\n\n"
-        "Please send the Solana transaction hash:\n\n"
+        "📝 <b>ENTER TRANSACTION HASH</b> 📝\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n"
+        "Send your Solana transaction hash:\n\n"
         "<code>/verify YOUR_TX_HASH</code>\n\n"
-        "You can find this in your wallet's transaction history.",
-        reply_markup=get_back_button(),
+        "━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "💡 <b>Where to find it:</b>\n"
+        "• Open your wallet app\n"
+        "• Find the transaction you just sent\n"
+        "• Copy the transaction signature/hash\n\n"
+        "🔍 We'll verify it on Solana blockchain!",
+        reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
     await callback.answer()
@@ -777,7 +685,6 @@ async def cmd_verify(message: Message):
     
     solana_rpc = os.environ.get('SOLANA_RPC_URL', '')
     team_wallet = os.environ.get('TEAM_WALLET_ADDRESS', '')
-    user_wallet = await db.get_wallet(telegram_id)
     
     if not solana_rpc or not team_wallet:
         await message.answer(
@@ -788,11 +695,11 @@ async def cmd_verify(message: Message):
         )
         return
     
-    await message.answer("🔍 <b>Verifying transaction...</b>", parse_mode=ParseMode.HTML)
+    await message.answer("🔍 <b>Verifying transaction on Solana...</b>", parse_mode=ParseMode.HTML)
     
     try:
         verification = await verify_solana_transaction(
-            tx_hash, user_wallet, team_wallet, pending_tx.amount_paid, solana_rpc
+            tx_hash, team_wallet, pending_tx.amount_paid, solana_rpc
         )
         
         if verification['verified']:
@@ -828,7 +735,7 @@ async def cmd_verify(message: Message):
         await message.answer("❌ Error verifying. Try again later.", parse_mode=None)
 
 
-async def verify_solana_transaction(tx_hash: str, from_wallet: str, to_wallet: str, expected_amount: float, rpc_url: str) -> dict:
+async def verify_solana_transaction(tx_hash: str, to_wallet: str, expected_amount: float, rpc_url: str) -> dict:
     result = {'verified': False, 'error': None, 'found_amount': 0, 'found_to': None}
     
     try:
@@ -1117,8 +1024,7 @@ async def callback_help(callback: CallbackQuery):
         "/pvp - Challenge players\n"
         "/loan - Borrow to reset debt\n\n"
         "💰 <b>PURCHASES</b>\n"
-        "/wallet - Register Solana wallet\n"
-        "/buy - View packages\n"
+        "/buy - Buy growth with FAPCOIN\n"
         "/verify - Verify payment\n\n"
         "📱 <b>OTHER</b>\n"
         "/menu - Main menu\n"
@@ -1192,7 +1098,7 @@ async def cmd_help(message: Message):
         "/grow - Daily growth\n"
         "/top - Leaderboard\n"
         "/pvp - PvP battle\n"
-        "/wallet - Set wallet\n"
+        "/buy - Buy growth\n"
         "/verify - Verify payment\n"
         "/support - Get help",
         parse_mode=ParseMode.HTML

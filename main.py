@@ -87,8 +87,7 @@ async def main():
         BotCommand(command="top", description="🏆 View leaderboard"),
         BotCommand(command="pvp", description="⚔️ Challenge someone (reply to them)"),
         BotCommand(command="daily", description="🎲 Dick of the Day"),
-        BotCommand(command="wallet", description="👛 Register Solana wallet"),
-        BotCommand(command="buy", description="💰 Buy growth packages"),
+        BotCommand(command="buy", description="💰 Buy growth with FAPCOIN"),
         BotCommand(command="verify", description="✅ Verify payment"),
         BotCommand(command="loan", description="💳 Get a loan"),
         BotCommand(command="support", description="🆘 Contact support"),
@@ -98,7 +97,7 @@ async def main():
     private_commands = [
         BotCommand(command="start", description="🚀 Start the bot"),
         BotCommand(command="menu", description="🎮 Open main menu"),
-        BotCommand(command="wallet", description="👛 Register Solana wallet"),
+        BotCommand(command="buy", description="💰 Buy growth with FAPCOIN"),
         BotCommand(command="support", description="🆘 Contact support"),
         BotCommand(command="help", description="❓ Show help"),
     ]
