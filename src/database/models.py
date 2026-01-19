@@ -122,6 +122,19 @@ async def init_db():
         sync_url = get_sync_database_url()
         engine = create_engine(sync_url)
         Base.metadata.create_all(engine)
+        
+        # Run migrations for new columns
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            # Add opponent_username column if it doesn't exist
+            try:
+                conn.execute(text(
+                    "ALTER TABLE pvp_challenges ADD COLUMN IF NOT EXISTS opponent_username VARCHAR(255)"
+                ))
+                conn.commit()
+            except Exception:
+                pass  # Column might already exist or DB doesn't support IF NOT EXISTS
+        
         engine.dispose()
     except Exception as e:
         print(f"Database initialization error: {e}")

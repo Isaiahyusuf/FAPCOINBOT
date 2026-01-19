@@ -1415,11 +1415,16 @@ async def pvp_accept_callback(callback: CallbackQuery):
     
     # Allow accept if ID matches OR if username matches (for @mention challenges)
     id_match = (user_id == challenge.opponent_id)
-    username_match = (
-        challenge.opponent_username and 
-        user_username and 
-        user_username.lower() == challenge.opponent_username.lower()
-    )
+    username_match = False
+    try:
+        username_match = (
+            hasattr(challenge, 'opponent_username') and
+            challenge.opponent_username and 
+            user_username and 
+            user_username.lower() == challenge.opponent_username.lower()
+        )
+    except Exception:
+        pass
     
     if not id_match and not username_match:
         await callback.answer("This challenge is not for you!", show_alert=True)
@@ -1427,7 +1432,10 @@ async def pvp_accept_callback(callback: CallbackQuery):
     
     # Update opponent_id to the actual user who accepted (in case it was wrong)
     if not id_match and username_match:
-        await db.update_pvp_opponent_id(challenge_id, user_id)
+        try:
+            await db.update_pvp_opponent_id(challenge_id, user_id)
+        except Exception:
+            pass
     
     result = await db.accept_pvp_challenge(challenge_id)
     
@@ -1497,11 +1505,16 @@ async def pvp_decline_callback(callback: CallbackQuery):
     
     # Allow decline if ID matches OR if username matches (for @mention challenges)
     id_match = (user_id == challenge.opponent_id)
-    username_match = (
-        challenge.opponent_username and 
-        user_username and 
-        user_username.lower() == challenge.opponent_username.lower()
-    )
+    username_match = False
+    try:
+        username_match = (
+            hasattr(challenge, 'opponent_username') and
+            challenge.opponent_username and 
+            user_username and 
+            user_username.lower() == challenge.opponent_username.lower()
+        )
+    except Exception:
+        pass
     
     if not id_match and not username_match:
         await callback.answer("This challenge is not for you!", show_alert=True)
