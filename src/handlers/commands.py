@@ -7,7 +7,8 @@ from datetime import datetime
 from aiogram import Router, F, Bot
 from aiogram.types import Message, InlineQuery, InlineQueryResultArticle, InputTextMessageContent, CallbackQuery
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ChatMemberUpdated
-from aiogram.filters import Command, CommandStart, ChatMemberUpdatedFilter, IS_MEMBER, IS_NOT_MEMBER
+from aiogram.filters import Command, ChatMemberUpdatedFilter, IS_MEMBER, IS_NOT_MEMBER
+from aiogram.filters.command import CommandStart
 from aiogram.enums import ParseMode, ChatType
 
 from src.database import db
@@ -23,7 +24,12 @@ PACKAGES = {
 }
 
 
-def get_main_menu_keyboard():
+def get_main_menu_keyboard(bot_username: str = None, is_private: bool = False):
+    if is_private or not bot_username:
+        buy_button = InlineKeyboardButton(text="💰 Buy Growth", callback_data="action_buy")
+    else:
+        buy_button = InlineKeyboardButton(text="💰 Buy Growth", url=f"https://t.me/{bot_username}?start=buy")
+    
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="🌱 Grow", callback_data="action_grow"),
@@ -34,7 +40,7 @@ def get_main_menu_keyboard():
             InlineKeyboardButton(text="🎲 Daily Winner", callback_data="action_daily")
         ],
         [
-            InlineKeyboardButton(text="💰 Buy Growth", callback_data="action_buy"),
+            buy_button,
             InlineKeyboardButton(text="📊 My Stats", callback_data="action_stats")
         ],
         [
@@ -104,15 +110,32 @@ async def bot_added_to_chat(event: ChatMemberUpdated):
         )
 
 
-@router.message(CommandStart())
-async def cmd_start(message: Message):
+@router.message(CommandStart(deep_link=True))
+async def cmd_start_with_param(message: Message, bot: Bot):
+    args = message.text.split()
+    param = args[1] if len(args) > 1 else None
+    
     await db.get_or_create_user(
         message.from_user.id,
         message.from_user.username,
         message.from_user.first_name
     )
     
+    if param == "buy":
+        await message.answer(
+            "💰 <b>GROWTH PACKAGES</b> 💰\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━\n"
+            "Buy growth with <b>$FAPCOIN</b>!\n"
+            "Select a package below:\n"
+            "━━━━━━━━━━━━━━━━━━━━━",
+            reply_markup=get_packages_keyboard(),
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
     name = message.from_user.first_name or "Player"
+    bot_info = await bot.get_me()
+    is_private = message.chat.type == ChatType.PRIVATE
     
     await message.answer(
         f"🍆 <b>Welcome, {name}!</b> 🍆\n\n"
@@ -124,27 +147,60 @@ async def cmd_start(message: Message):
         "⚔️ <b>Battle friends in PvP</b>\n"
         "💰 <b>Buy growth with $FAPCOIN</b>\n\n"
         "Select an option below to begin:",
-        reply_markup=get_main_menu_keyboard(),
+        reply_markup=get_main_menu_keyboard(bot_info.username, is_private),
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(CommandStart())
+async def cmd_start(message: Message, bot: Bot):
+    await db.get_or_create_user(
+        message.from_user.id,
+        message.from_user.username,
+        message.from_user.first_name
+    )
+    
+    name = message.from_user.first_name or "Player"
+    bot_info = await bot.get_me()
+    is_private = message.chat.type == ChatType.PRIVATE
+    
+    await message.answer(
+        f"🍆 <b>Welcome, {name}!</b> 🍆\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n"
+        "       <b>FAPCOIN DICK BOT</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "🎮 <b>Grow your length daily</b>\n"
+        "🏆 <b>Compete on leaderboards</b>\n"
+        "⚔️ <b>Battle friends in PvP</b>\n"
+        "💰 <b>Buy growth with $FAPCOIN</b>\n\n"
+        "Select an option below to begin:",
+        reply_markup=get_main_menu_keyboard(bot_info.username, is_private),
         parse_mode=ParseMode.HTML
     )
 
 
 @router.message(Command("menu"))
-async def cmd_menu(message: Message):
+async def cmd_menu(message: Message, bot: Bot):
+    bot_info = await bot.get_me()
+    is_private = message.chat.type == ChatType.PRIVATE
+    
     await message.answer(
         "🎮 <b>Main Menu</b>\n\n"
         "Select an option:",
-        reply_markup=get_main_menu_keyboard(),
+        reply_markup=get_main_menu_keyboard(bot_info.username, is_private),
         parse_mode=ParseMode.HTML
     )
 
 
 @router.callback_query(F.data == "action_menu")
-async def callback_menu(callback: CallbackQuery):
+async def callback_menu(callback: CallbackQuery, bot: Bot):
+    bot_info = await bot.get_me()
+    is_private = callback.message.chat.type == ChatType.PRIVATE
+    
     await callback.message.edit_text(
         "🎮 <b>Main Menu</b>\n\n"
         "Select an option:",
-        reply_markup=get_main_menu_keyboard(),
+        reply_markup=get_main_menu_keyboard(bot_info.username, is_private),
         parse_mode=ParseMode.HTML
     )
     await callback.answer()
