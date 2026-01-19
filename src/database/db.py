@@ -61,7 +61,9 @@ async def get_or_create_user_chat(telegram_id: int, chat_id: int) -> UserChat:
         )
         user_chat = result.scalar_one_or_none()
         if not user_chat:
-            user_chat = UserChat(telegram_id=telegram_id, chat_id=chat_id)
+            # New players start with 10-20 cm
+            starting_length = random.randint(10, 20)
+            user_chat = UserChat(telegram_id=telegram_id, chat_id=chat_id, length=starting_length)
             session.add(user_chat)
             await session.commit()
             await session.refresh(user_chat)
