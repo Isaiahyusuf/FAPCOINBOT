@@ -180,6 +180,7 @@ async def main():
         BotCommand(command="verify", description="✅ Verify payment"),
         BotCommand(command="loan", description="💳 Get a loan"),
         BotCommand(command="support", description="🆘 Contact support"),
+        BotCommand(command="about", description="ℹ️ About this bot"),
         BotCommand(command="help", description="❓ Show help"),
     ]
     
@@ -187,6 +188,7 @@ async def main():
         BotCommand(command="start", description="🚀 Start the bot"),
         BotCommand(command="menu", description="🎮 Open main menu"),
         BotCommand(command="buy", description="💰 Buy growth with FAPCOIN"),
+        BotCommand(command="about", description="ℹ️ About this bot"),
         BotCommand(command="support", description="🆘 Contact support"),
         BotCommand(command="help", description="❓ Show help"),
     ]

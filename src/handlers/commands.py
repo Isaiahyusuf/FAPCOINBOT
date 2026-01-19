@@ -1572,7 +1572,45 @@ async def cmd_help(message: Message):
         "/pvp - PvP battle\n"
         "/buy - Buy growth\n"
         "/verify - Verify payment\n"
+        "/about - About this bot\n"
         "/support - Get help",
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(Command("about"))
+async def cmd_about(message: Message):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🎮 Start Playing!", callback_data="action_menu")]
+    ])
+    
+    await message.answer(
+        "🍆 <b>FAPCOIN DICK BOT</b> 🍆\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n"
+        "<b>The Ultimate Growth Game!</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "Welcome to the most fun and competitive\n"
+        "growth game on Telegram!\n\n"
+        "🌱 <b>DAILY GROWTH</b>\n"
+        "Grow every day! Will you gain or shrink?\n"
+        "It's a gamble every time! (-5 to +20 cm)\n\n"
+        "⚔️ <b>PVP BATTLES</b>\n"
+        "Challenge friends to battles!\n"
+        "Winner takes cm from the loser!\n"
+        "Tag someone: <code>@user /pvp 5</code>\n\n"
+        "🏆 <b>LEADERBOARDS</b>\n"
+        "Compete to be the biggest in your group!\n"
+        "Check /top to see who's winning!\n\n"
+        "💰 <b>BUY GROWTH</b>\n"
+        "Skip the grind! Buy instant growth\n"
+        "with <b>$FAPCOIN</b> on Solana!\n\n"
+        "🎲 <b>DICK OF THE DAY</b>\n"
+        "Daily lottery! Random player gets\n"
+        "bonus growth every day at 12:00 UTC!\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n"
+        "💎 Powered by <b>$FAPCOIN</b> on Solana\n"
+        "━━━━━━━━━━━━━━━━━━━━━",
+        reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
 
