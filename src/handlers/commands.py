@@ -67,13 +67,11 @@ def get_packages_keyboard():
 
 
 def validate_solana_tx_hash(tx_hash: str) -> bool:
-    if len(tx_hash) < 86 or len(tx_hash) > 90:
+    if len(tx_hash) < 43 or len(tx_hash) > 100:
         return False
     try:
         decoded = base58.b58decode(tx_hash)
-        if len(decoded) != 64:
-            return False
-        return True
+        return len(decoded) >= 32
     except:
         return False
 
@@ -632,9 +630,14 @@ async def callback_paid(callback: CallbackQuery):
 
 @router.message(Command("verify"))
 async def cmd_verify(message: Message):
+    import logging
+    logger = logging.getLogger(__name__)
+    
     telegram_id = message.from_user.id
     chat_id = message.chat.id
     args = message.text.split()
+    
+    logger.info(f"Verify command from user {telegram_id} in chat {chat_id}")
     
     await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
     
@@ -668,16 +671,19 @@ async def cmd_verify(message: Message):
         return
     
     pending_txs = await db.get_pending_transactions(telegram_id)
+    logger.info(f"Found {len(pending_txs) if pending_txs else 0} pending transactions for user {telegram_id}")
+    
     if not pending_txs:
         await message.answer(
             "❌ <b>No Pending Purchase</b>\n\n"
-            "Use /menu to buy a package first.",
+            "Use /buy or /menu to buy a package first.",
             parse_mode=ParseMode.HTML
         )
         return
     
     pending_tx = pending_txs[0]
     pkg = PACKAGES.get(pending_tx.package_number)
+    logger.info(f"Verifying tx {tx_hash[:20]}... for package {pending_tx.package_number}")
     
     if not pkg:
         await message.answer("❌ Invalid package.", parse_mode=None)
@@ -732,7 +738,13 @@ async def cmd_verify(message: Message):
                 parse_mode=ParseMode.HTML
             )
     except Exception as e:
-        await message.answer("❌ Error verifying. Try again later.", parse_mode=None)
+        import logging
+        logging.error(f"Verification error: {e}")
+        await message.answer(
+            f"❌ <b>Error verifying transaction</b>\n\n"
+            f"Please try again later or contact support.",
+            parse_mode=ParseMode.HTML
+        )
 
 
 async def verify_solana_transaction(tx_hash: str, to_wallet: str, expected_amount: float, rpc_url: str) -> dict:
