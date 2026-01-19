@@ -1275,6 +1275,7 @@ async def callback_pvp_info(callback: CallbackQuery):
 
 
 @router.message(Command("pvp"))
+@router.message(F.text.regexp(r"@\w+\s+/pvp"))
 async def cmd_pvp(message: Message):
     telegram_id = message.from_user.id
     chat_id = message.chat.id
@@ -1389,6 +1390,12 @@ async def cmd_pvp(message: Message):
         ]
     ])
     
+    # Tag opponent directly if they have username
+    if opponent_username:
+        opponent_tag = f"@{opponent_username}"
+    else:
+        opponent_tag = f"<a href='tg://user?id={opponent_id}'>{opponent_name}</a>"
+    
     await message.answer(
         f"⚔️ <b>PVP CHALLENGE!</b> ⚔️\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
@@ -1397,7 +1404,7 @@ async def cmd_pvp(message: Message):
         f"🔴 <b>{opponent_name}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
         f"💰 Bet: <b>{bet:.1f} cm</b>\n\n"
-        f"<b>{opponent_name}</b>, do you accept?",
+        f"{opponent_tag}, do you accept?",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
