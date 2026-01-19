@@ -1446,14 +1446,24 @@ async def pvp_accept_callback(callback: CallbackQuery):
     winner_user = await db.get_user_by_telegram_id(result['winner_id'])
     winner_name = winner_user.first_name if winner_user else "Winner"
     
+    # Get current lengths for display
+    winner_length = await db.get_total_length(result['winner_id'], challenge.chat_id)
+    loser_length = await db.get_total_length(result['loser_id'], challenge.chat_id)
+    
+    loser_user = await db.get_user_by_telegram_id(result['loser_id'])
+    loser_name = loser_user.first_name if loser_user else "Loser"
+    
     await callback.message.edit_text(
         f"⚔️ <b>PVP RESULT</b> ⚔️\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"🎲 {challenger_name}: <b>{result['challenger_roll']}</b>\n"
-        f"🎲 {opponent_name}: <b>{result['opponent_roll']}</b>\n"
+        f"🎲 <b>DICE ROLLS:</b>\n"
+        f"{challenger_name}: {result['challenger_roll']}\n"
+        f"{opponent_name}: {result['opponent_roll']}\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
         f"🏆 <b>{winner_name} WINS!</b> 🏆\n\n"
-        f"💰 +{result['bet']:.1f} cm",
+        f"📊 <b>RESULTS:</b>\n"
+        f"✅ {winner_name}: +{result['bet']:.1f} cm → {winner_length:.1f} cm\n"
+        f"❌ {loser_name}: -{result['bet']:.1f} cm → {loser_length:.1f} cm",
         parse_mode=ParseMode.HTML
     )
     await callback.answer(f"🏆 {winner_name} wins!")
