@@ -1193,6 +1193,39 @@ async def inline_handler(inline_query: InlineQuery):
     await inline_query.answer(results, cache_time=60)
 
 
+def extract_tx_hash(text: str) -> str | None:
+    """Extract transaction hash from any format - URL, raw hash, or text containing hash."""
+    text = text.strip()
+    
+    # Common Solana explorer URL patterns
+    url_patterns = [
+        r'solscan\.io/tx/([A-Za-z0-9]{43,90})',
+        r'explorer\.solana\.com/tx/([A-Za-z0-9]{43,90})',
+        r'solana\.fm/tx/([A-Za-z0-9]{43,90})',
+        r'solanabeach\.io/transaction/([A-Za-z0-9]{43,90})',
+    ]
+    
+    for pattern in url_patterns:
+        match = re.search(pattern, text)
+        if match:
+            return match.group(1)
+    
+    # If it's a raw hash (direct paste)
+    if validate_solana_tx_hash(text):
+        return text
+    
+    # Try to find any base58 string that looks like a tx hash in the text
+    # Solana tx hashes are 64-88 chars of base58 (typically 87-88)
+    base58_pattern = r'\b([1-9A-HJ-NP-Za-km-z]{64,90})\b'
+    matches = re.findall(base58_pattern, text)
+    
+    for match in matches:
+        if validate_solana_tx_hash(match):
+            return match
+    
+    return None
+
+
 @router.message(F.text)
 async def catch_tx_hash(message: Message):
     import logging
@@ -1200,106 +1233,106 @@ async def catch_tx_hash(message: Message):
     
     text = message.text.strip() if message.text else ""
     
-    logger.info(f"Received message from {message.from_user.id}: '{text[:50]}...' (len={len(text)})")
+    if text.startswith("/"):
+        return
     
-    if len(text) >= 43 and len(text) <= 100 and not text.startswith("/"):
-        logger.info(f"Length check passed, validating as tx hash...")
-        is_valid = validate_solana_tx_hash(text)
-        logger.info(f"Validation result: {is_valid}")
+    logger.info(f"Received message from {message.from_user.id}: '{text[:50]}...'")
+    
+    # Try to extract tx hash from URL or raw text
+    tx_hash = extract_tx_hash(text)
+    
+    if tx_hash:
+        logger.info(f"Detected tx hash from user {message.from_user.id}: {tx_hash[:20]}...")
         
-        if is_valid:
-            logger.info(f"Detected tx hash from user {message.from_user.id}: {text[:20]}...")
-            
-            telegram_id = message.from_user.id
-            chat_id = message.chat.id
-            
+        telegram_id = message.from_user.id
+        
+        await message.answer(
+            "🔍 <b>Transaction hash detected!</b>\n\n"
+            "⏳ Checking Solana blockchain...",
+            parse_mode=ParseMode.HTML
+        )
+        
+        await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
+        
+        already_used = await db.is_transaction_already_used(tx_hash)
+        if already_used:
             await message.answer(
-                "🔍 <b>Transaction hash detected!</b>\n\n"
-                "⏳ Checking Solana blockchain...",
+                "❌ <b>Transaction Already Used</b>\n\n"
+                "This transaction has already been claimed.",
                 parse_mode=ParseMode.HTML
             )
+            return
+        
+        pending_txs = await db.get_pending_transactions(telegram_id)
+        if not pending_txs:
+            await message.answer(
+                "❌ <b>No Pending Purchase</b>\n\n"
+                "Use /buy or /menu to select a package first.",
+                parse_mode=ParseMode.HTML
+            )
+            return
+        
+        pending_tx = pending_txs[0]
+        pkg = PACKAGES.get(pending_tx.package_number)
+        
+        if not pkg:
+            await message.answer("❌ Invalid package.", parse_mode=None)
+            return
+        
+        solana_rpc = os.environ.get('SOLANA_RPC_URL', '')
+        team_wallet = os.environ.get('TEAM_WALLET_ADDRESS', '')
+        
+        if not solana_rpc or not team_wallet:
+            await message.answer(
+                "⚠️ <b>Verification Unavailable</b>\n\n"
+                "Payment verification is not configured.\n"
+                "Please contact support.",
+                parse_mode=ParseMode.HTML
+            )
+            return
+        
+        try:
+            verification = await verify_solana_transaction(
+                tx_hash, team_wallet, pending_tx.amount_paid, solana_rpc
+            )
             
-            await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
-            
-            already_used = await db.is_transaction_already_used(text)
-            if already_used:
-                await message.answer(
-                    "❌ <b>Transaction Already Used</b>\n\n"
-                    "This transaction has already been claimed.",
-                    parse_mode=ParseMode.HTML
-                )
-                return
-            
-            pending_txs = await db.get_pending_transactions(telegram_id)
-            if not pending_txs:
-                await message.answer(
-                    "❌ <b>No Pending Purchase</b>\n\n"
-                    "Use /buy or /menu to select a package first.",
-                    parse_mode=ParseMode.HTML
-                )
-                return
-            
-            pending_tx = pending_txs[0]
-            pkg = PACKAGES.get(pending_tx.package_number)
-            
-            if not pkg:
-                await message.answer("❌ Invalid package.", parse_mode=None)
-                return
-            
-            solana_rpc = os.environ.get('SOLANA_RPC_URL', '')
-            team_wallet = os.environ.get('TEAM_WALLET_ADDRESS', '')
-            
-            if not solana_rpc or not team_wallet:
-                await message.answer(
-                    "⚠️ <b>Verification Unavailable</b>\n\n"
-                    "Payment verification is not configured.\n"
-                    "Please contact support.",
-                    parse_mode=ParseMode.HTML
-                )
-                return
-            
-            try:
-                verification = await verify_solana_transaction(
-                    text, team_wallet, pending_tx.amount_paid, solana_rpc
-                )
-                
-                if verification['verified']:
-                    success = await db.confirm_transaction(pending_tx.transaction_id, text, pkg['growth'])
-                    if success:
-                        await message.answer(
-                            f"✅ <b>PAYMENT VERIFIED!</b> ✅\n\n"
-                            f"━━━━━━━━━━━━━━━━━━━━━\n"
-                            f"✓ Transaction confirmed on Solana\n"
-                            f"✓ Payment received: <b>{pkg['price']:,} FAPCOIN</b>\n"
-                            f"✓ Growth added to your account\n"
-                            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-                            f"🎉 <b>+{pkg['growth']} cm added!</b>\n\n"
-                            f"Go back to the group and use /top to see\n"
-                            f"your new position on the leaderboard!",
-                            parse_mode=ParseMode.HTML
-                        )
-                    else:
-                        await message.answer("❌ Error confirming. Contact support.", parse_mode=None)
-                else:
-                    error = verification.get('error', 'unknown')
-                    if error == 'tx_not_found':
-                        error_msg = "Transaction not found. Wait a few minutes and try again."
-                    elif error == 'tx_failed':
-                        error_msg = "Transaction failed on blockchain."
-                    elif error == 'transfer_not_found':
-                        error_msg = "Transfer to team wallet not found in transaction."
-                    else:
-                        error_msg = "Could not verify transaction."
-                    
+            if verification['verified']:
+                success = await db.confirm_transaction(pending_tx.transaction_id, tx_hash, pkg['growth'])
+                if success:
                     await message.answer(
-                        f"❌ <b>Verification Failed</b>\n\n{error_msg}\n\n"
-                        f"If you believe this is an error, contact support.",
+                        f"✅ <b>PAYMENT VERIFIED!</b> ✅\n\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"✓ Transaction confirmed on Solana\n"
+                        f"✓ Payment received: <b>{pkg['price']:,} FAPCOIN</b>\n"
+                        f"✓ Growth added to your account\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                        f"🎉 <b>+{pkg['growth']} cm added!</b>\n\n"
+                        f"Go back to the group and use /top to see\n"
+                        f"your new position on the leaderboard!",
                         parse_mode=ParseMode.HTML
                     )
-            except Exception as e:
-                logger.error(f"Verification error: {e}")
+                else:
+                    await message.answer("❌ Error confirming. Contact support.", parse_mode=None)
+            else:
+                error = verification.get('error', 'unknown')
+                if error == 'tx_not_found':
+                    error_msg = "Transaction not found. Wait a few minutes and try again."
+                elif error == 'tx_failed':
+                    error_msg = "Transaction failed on blockchain."
+                elif error == 'transfer_not_found':
+                    error_msg = "Transfer to team wallet not found in transaction."
+                else:
+                    error_msg = "Could not verify transaction."
+                
                 await message.answer(
-                    "❌ <b>Error verifying transaction</b>\n\n"
-                    "Please try again later or contact support.",
+                    f"❌ <b>Verification Failed</b>\n\n{error_msg}\n\n"
+                    f"If you believe this is an error, contact support.",
                     parse_mode=ParseMode.HTML
                 )
+        except Exception as e:
+            logger.error(f"Verification error: {e}")
+            await message.answer(
+                "❌ <b>Error verifying transaction</b>\n\n"
+                "Please try again later or contact support.",
+                parse_mode=ParseMode.HTML
+            )
