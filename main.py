@@ -79,7 +79,7 @@ PROMO_MESSAGES = [
 
 
 async def promo_message_task(bot: Bot):
-    """Send promotional messages to active groups every 5 minutes."""
+    """Send promotional messages to active groups every hour."""
     await asyncio.sleep(60)  # Wait 1 minute before first promo
     
     while True:
@@ -107,7 +107,7 @@ async def promo_message_task(bot: Bot):
                     
                     await asyncio.sleep(1)  # Small delay between chats
             
-            await asyncio.sleep(300)  # 5 minutes
+            await asyncio.sleep(3600)  # 1 hour
             
         except Exception as e:
             logger.error(f"Error in promo task: {e}")
@@ -209,7 +209,7 @@ async def main():
     
     logger.info("Starting FAPCOIN DICK BOT...")
     logger.info("Daily winner selection task started (runs at 12:00 UTC)")
-    logger.info("Promo message task started (runs every 5 minutes)")
+    logger.info("Promo message task started (runs every hour)")
     
     await dp.start_polling(bot)
 
