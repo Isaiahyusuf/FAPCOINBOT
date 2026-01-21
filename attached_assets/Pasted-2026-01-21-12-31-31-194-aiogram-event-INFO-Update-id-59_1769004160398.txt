@@ -1,0 +1,107 @@
+2026-01-21 12:31:31,194 - aiogram.event - INFO - Update id=590843629 is handled. Duration 3 ms by bot id=8407392392
+2026-01-21 12:32:54,799 - src.handlers.commands - INFO - Received message from 7732839476: 'I ain't got the longest but definitely the skinnie...'
+2026-01-21 12:32:54,799 - aiogram.event - INFO - Update id=590843630 is handled. Duration 3 ms by bot id=8407392392
+2026-01-21 12:34:56,062 - aiogram.event - INFO - Update id=590843631 is not handled. Duration 1 ms by bot id=8407392392
+😵‍💫😀😵‍💫😀😵‍💫😵‍💫😍😍😍😍😍😵‍💫
+👍😎😎😎😵‍💫😎...'
+2026-01-21 12:37:15,679 - aiogram.event - INFO - Update id=590843632 is handled. Duration 2 ms by bot id=8407392392
+2026-01-21 12:37:15,679 - src.handlers.commands - INFO - Received message from 8025513351: '👍🥸🤓👍😵‍💫😵‍💫😀😀😀😵‍💫👍
+2026-01-21 12:39:42,353 - aiogram.event - INFO - Update id=590843633 is not handled. Duration 1 ms by bot id=8407392392
+2026-01-21 12:39:45,344 - aiogram.event - INFO - Update id=590843634 is not handled. Duration 1 ms by bot id=8407392392
+2026-01-21 12:39:49,457 - aiogram.event - INFO - Update id=590843635 is not handled. Duration 1 ms by bot id=8407392392
+2026-01-21 12:39:49,953 - aiogram.event - INFO - Update id=590843636 is not handled. Duration 2 ms by bot id=8407392392
+2026-01-21 12:42:20,458 - src.handlers.commands - INFO - Received message from 8002237089: 'Hi...'
+2026-01-21 12:42:20,458 - aiogram.event - INFO - Update id=590843638 is handled. Duration 1 ms by bot id=8407392392
+2026-01-21 12:42:16,868 - aiogram.event - INFO - Update id=590843637 is not handled. Duration 2 ms by bot id=8407392392
+2026-01-21 12:43:04,838 - aiogram.event - INFO - Update id=590843639 is not handled. Duration 2 ms by bot id=8407392392
+2026-01-21 12:45:30,955 - aiogram.event - INFO - Update id=590843640 is handled. Duration 73 ms by bot id=8407392392
+2026-01-21 12:45:45,064 - aiogram.event - INFO - Update id=590843641 is handled. Duration 275 ms by bot id=8407392392
+2026-01-21 12:45:47,559 - aiogram.event - INFO - Update id=590843642 is handled. Duration 273 ms by bot id=8407392392
+2026-01-21 12:50:02,648 - src.handlers.commands - INFO - Received message from 8025513351: '👍🥸🤓👍😵‍💫😵‍💫😀😀😀😵‍💫👍
+2026-01-21 12:50:02,648 - aiogram.event - INFO - Update id=590843643 is handled. Duration 3 ms by bot id=8407392392
+😵‍💫😀😵‍💫😀😵‍💫😵‍💫😍😍😍😍😍😵‍💫
+👍😎😎😎😵‍💫😎...'
+2026-01-21 12:53:07,297 - aiogram.event - INFO - Update id=590843644 is not handled. Duration 1 ms by bot id=8407392392
+2026-01-21 12:53:10,336 - aiogram.event - INFO - Update id=590843645 is not handled. Duration 1 ms by bot id=8407392392
+2026-01-21 12:53:12,503 - aiogram.event - INFO - Update id=590843646 is not handled. Duration 1 ms by bot id=8407392392
+2026-01-21 13:06:36,690 - src.handlers.commands - INFO - Received message from 8025513351: '👍🥸🤓👍😵‍💫😵‍💫😀😀😀😵‍💫👍
+😵‍💫😀😵‍💫😀😵‍💫😵‍💫😍😍😍😍😍😵‍💫
+👍😎😎😎😵‍💫😎...'
+2026-01-21 13:06:36,690 - aiogram.event - INFO - Update id=590843647 is handled. Duration 1 ms by bot id=8407392392
+2026-01-21 13:07:55,284 - __main__ - INFO - Sent promo to chat 6712803280
+2026-01-21 13:07:56,301 - __main__ - WARNING - Could not send promo to chat 5658155695: Telegram server says - Forbidden: bot was blocked by the user
+2026-01-21 13:07:57,670 - __main__ - INFO - Sent promo to chat -1003006076902
+2026-01-21 13:07:58,747 - __main__ - INFO - Sent promo to chat 7732839476
+2026-01-21 13:07:59,789 - __main__ - INFO - Sent promo to chat 1647497603
+2026-01-21 13:08:00,869 - __main__ - INFO - Sent promo to chat -1002900583078
+2026-01-21 13:08:01,898 - __main__ - INFO - Sent promo to chat -5256315707
+2026-01-21 13:08:02,907 - __main__ - WARNING - Could not send promo to chat -1003137554300: Telegram server says - Forbidden: bot was kicked from the supergroup chat
+2026-01-21 13:08:03,974 - __main__ - INFO - Sent promo to chat 7704608601
+2026-01-21 13:08:05,021 - __main__ - INFO - Sent promo to chat 7446442925
+2026-01-21 13:08:06,199 - __main__ - INFO - Sent promo to chat 6081215503
+2026-01-21 13:08:07,371 - __main__ - INFO - Sent promo to chat -1003561480100
+2026-01-21 13:08:08,493 - __main__ - INFO - Sent promo to chat 7191268741
+2026-01-21 13:08:09,518 - __main__ - INFO - Sent promo to chat 8435563121
+2026-01-21 13:08:20,538 - aiogram.event - INFO - Update id=590843648 is handled. Duration 268 ms by bot id=8407392392
+2026-01-21 13:08:23,482 - aiogram.event - INFO - Update id=590843649 is handled. Duration 268 ms by bot id=8407392392
+2026-01-21 13:08:53,103 - src.handlers.commands - INFO - Received message from 7732839476: '@centurion_100 I still didn't receive the last 1k ...'
+2026-01-21 13:08:53,103 - aiogram.event - INFO - Update id=590843650 is handled. Duration 1 ms by bot id=8407392392
+2026-01-21 13:10:03,069 - aiogram.event - INFO - Update id=590843651 is not handled. Duration 2 ms by bot id=8407392392
+2026-01-21 13:14:19,778 - aiogram.event - INFO - Update id=590843652 is handled. Duration 109 ms by bot id=8407392392
+2026-01-21 13:18:27,316 - aiogram.event - INFO - Update id=590843653 is not handled. Duration 2 ms by bot id=8407392392
+2026-01-21 13:18:35,711 - src.handlers.commands - INFO - Received message from 5607471639: 'Hi there! I'm the AMA Coordinator at Crypto coin l...'
+2026-01-21 13:18:35,711 - aiogram.event - INFO - Update id=590843654 is handled. Duration 2 ms by bot id=8407392392
+2026-01-21 13:20:47,332 - aiogram.event - INFO - Update id=590843655 is handled. Duration 127 ms by bot id=8407392392
+2026-01-21 13:21:04,226 - aiogram.event - INFO - Update id=590843656 is handled. Duration 341 ms by bot id=8407392392
+2026-01-21 13:21:22,525 - src.handlers.commands - INFO - Received message from 1517496511: 'Omg how did you know...'
+2026-01-21 13:21:22,525 - aiogram.event - INFO - Update id=590843657 is handled. Duration 1 ms by bot id=8407392392
+2026-01-21 13:22:05,145 - aiogram.event - INFO - Update id=590843658 is handled. Duration 302 ms by bot id=8407392392
+2026-01-21 13:22:24,308 - src.handlers.commands - INFO - Received message from 8025513351: '👍🥸🤓👍😵‍💫😵‍💫😀😀😀😵‍💫👍
+😵‍💫😀😵‍💫😀😵‍💫😵‍💫😍😍😍😍😍😵‍💫
+👍😎😎😎😵‍💫😎...'
+2026-01-21 13:22:24,308 - aiogram.event - INFO - Update id=590843659 is handled. Duration 2 ms by bot id=8407392392
+2026-01-21 13:22:45,132 - aiogram.event - INFO - Update id=590843660 is handled. Duration 430 ms by bot id=8407392392
+2026-01-21 13:22:50,952 - src.handlers.commands - INFO - Received message from 1647497603: '@DiggyDab...'
+2026-01-21 13:22:50,952 - aiogram.event - INFO - Update id=590843661 is handled. Duration 2 ms by bot id=8407392392
+2026-01-21 13:23:24,535 - aiogram.event - INFO - Update id=590843662 is handled. Duration 393 ms by bot id=8407392392
+2026-01-21 13:23:27,452 - aiogram.event - INFO - Update id=590843663 is handled. Duration 304 ms by bot id=8407392392
+2026-01-21 13:24:00,384 - src.handlers.commands - INFO - Received message from 7236018050: 'Good morning!!!!🤗...'
+2026-01-21 13:24:00,384 - aiogram.event - INFO - Update id=590843665 is handled. Duration 1 ms by bot id=8407392392
+2026-01-21 13:23:53,507 - aiogram.event - INFO - Update id=590843664 is handled. Duration 499 ms by bot id=8407392392
+2026-01-21 13:25:08,123 - aiogram.event - INFO - Update id=590843666 is handled. Duration 317 ms by bot id=8407392392
+2026-01-21 13:25:19,084 - aiogram.event - INFO - Update id=590843667 is handled. Duration 277 ms by bot id=8407392392
+2026-01-21 13:25:26,067 - aiogram.event - INFO - Update id=590843668 is handled. Duration 275 ms by bot id=8407392392
+2026-01-21 13:25:27,995 - aiogram.event - INFO - Update id=590843669 is handled. Duration 260 ms by bot id=8407392392
+2026-01-21 13:25:51,972 - aiogram.event - INFO - Update id=590843670 is handled. Duration 280 ms by bot id=8407392392
+2026-01-21 13:30:27,112 - src.handlers.commands - INFO - Received message from 6056861753: 'OMG bro gave me a huuuuuuge dick...'
+2026-01-21 13:30:27,112 - aiogram.event - INFO - Update id=590843671 is handled. Duration 2 ms by bot id=8407392392
+2026-01-21 13:30:42,223 - aiogram.event - INFO - Update id=590843672 is handled. Duration 373 ms by bot id=8407392392
+2026-01-21 13:32:03,157 - aiogram.event - INFO - Update id=590843673 is not handled. Duration 5 ms by bot id=8407392392
+2026-01-21 13:32:14,342 - src.handlers.commands - INFO - Received message from 6056861753: 'Gmgm...'
+2026-01-21 13:32:14,342 - aiogram.event - INFO - Update id=590843674 is handled. Duration 4 ms by bot id=8407392392
+2026-01-21 13:35:51,485 - aiogram.event - INFO - Update id=590843675 is handled. Duration 81 ms by bot id=8407392392
+2026-01-21 13:37:02,635 - src.handlers.commands - INFO - Received message from 8025513351: '👍🥸🤓👍😵‍💫😵‍💫😀😀😀😵‍💫👍
+😵‍💫😀😵‍💫😀😵‍💫😵‍💫😍😍😍😍😍😵‍💫
+👍😎😎😎😵‍💫😎...'
+2026-01-21 13:37:02,636 - aiogram.event - INFO - Update id=590843676 is handled. Duration 1 ms by bot id=8407392392
+2026-01-21 13:37:46,967 - src.handlers.commands - INFO - Received message from 1647497603: 'Lot more things on our bot...'
+2026-01-21 13:37:46,967 - aiogram.event - INFO - Update id=590843677 is handled. Duration 1 ms by bot id=8407392392
+2026-01-21 13:38:25,876 - aiogram.event - INFO - Update id=590843678 is handled. Duration 275 ms by bot id=8407392392
+2026-01-21 13:39:01,503 - aiogram.event - INFO - Update id=590843679 is handled. Duration 396 ms by bot id=8407392392
+2026-01-21 13:39:23,414 - aiogram.event - INFO - Update id=590843680 is handled. Duration 414 ms by bot id=8407392392
+2026-01-21 13:39:59,652 - aiogram.event - INFO - Update id=590843681 is handled. Duration 401 ms by bot id=8407392392
+2026-01-21 13:40:11,433 - aiogram.event - INFO - Update id=590843682 is handled. Duration 310 ms by bot id=8407392392
+2026-01-21 13:41:09,940 - src.handlers.commands - INFO - Received message from 8185374445: 'Thanks buddy! Santa cock 🎅...'
+2026-01-21 13:41:09,940 - aiogram.event - INFO - Update id=590843683 is handled. Duration 1 ms by bot id=8407392392
+2026-01-21 13:41:59,648 - aiogram.event - INFO - Update id=590843684 is handled. Duration 490 ms by bot id=8407392392
+2026-01-21 13:46:06,586 - src.handlers.commands - INFO - Received message from 8308012140: 'H0LDERS C0NTACT ME FOR EXCLUSIVE INFO 🔔...'
+2026-01-21 13:46:06,586 - aiogram.event - INFO - Update id=590843685 is handled. Duration 1 ms by bot id=8407392392
+2026-01-21 13:47:52,500 - aiogram.event - INFO - Update id=590843686 is handled. Duration 335 ms by bot id=8407392392
+2026-01-21 13:51:53,608 - src.handlers.commands - INFO - Received message from 8308012140: 'H0LDERS C0NTACT ME FOR EXCLUSIVE INFO 🔔...'
+2026-01-21 13:51:53,608 - aiogram.event - INFO - Update id=590843687 is handled. Duration 1 ms by bot id=8407392392
+2026-01-21 13:52:29,541 - src.handlers.commands - INFO - Received message from 8025513351: '👍🥸🤓👍😵‍💫😵‍💫😀😀😀😵‍💫👍
+😵‍💫😀😵‍💫😀😵‍💫😵‍💫😍😍😍😍😍😵‍💫
+👍😎😎😎😵‍💫😎...'
+2026-01-21 13:52:29,542 - aiogram.event - INFO - Update id=590843688 is handled. Duration 1 ms by bot id=8407392392
+2026-01-21 13:52:49,250 - src.handlers.commands - INFO - Received message from 8435563121: 'Let me check the logs...'
+2026-01-21 13:52:49,250 - aiogram.event - INFO - Update id=590843689 is handled. Duration 1 ms by bot id=8407392392
