@@ -1499,6 +1499,10 @@ async def pvp_accept_callback(callback: CallbackQuery):
         await callback.answer("You don't have enough length!", show_alert=True)
         return
     
+    if result.get('error') == 'challenger_insufficient_funds':
+        await callback.answer("Challenger no longer has enough length!", show_alert=True)
+        return
+    
     challenger_user = await db.get_user_by_telegram_id(result['challenger_id'])
     opponent_user = await db.get_user_by_telegram_id(result['opponent_id'])
     

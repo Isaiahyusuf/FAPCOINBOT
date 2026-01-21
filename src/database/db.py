@@ -523,6 +523,20 @@ async def accept_pvp_challenge(challenge_id: int) -> dict:
         if not challenge:
             return None
         
+        # Check challenger still has enough (they may have lost since creating challenge)
+        challenger_check = await session.execute(
+            select(UserChat).where(
+                and_(
+                    UserChat.telegram_id == challenge.challenger_id,
+                    UserChat.chat_id == challenge.chat_id
+                )
+            )
+        )
+        challenger_uc = challenger_check.scalar_one_or_none()
+        if not challenger_uc or (challenger_uc.length + challenger_uc.paid_length) < challenge.bet_amount:
+            return {'error': 'challenger_insufficient_funds'}
+        
+        # Check opponent has enough
         opponent_result = await session.execute(
             select(UserChat).where(
                 and_(
