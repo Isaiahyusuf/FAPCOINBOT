@@ -668,7 +668,7 @@ async def cmd_buy(message: Message):
         "💰 <b>BUY GROWTH</b> 💰\n\n"
         "━━━━━━━━━━━━━━━━━━━━━\n"
         "💎 <b>1 FAPCOIN = 1 cm</b>\n"
-        "📦 Max per purchase: <b>1000 cm</b>\n"
+        "📦 Max per purchase: <b>10000 cm</b>\n"
         "━━━━━━━━━━━━━━━━━━━━━\n\n"
         "Select amount or enter custom:",
         reply_markup=get_buy_keyboard(),
