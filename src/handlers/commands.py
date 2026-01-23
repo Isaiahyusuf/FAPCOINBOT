@@ -15,8 +15,8 @@ from src.database import db
 
 router = Router()
 
-MAX_BUY_AMOUNT = 1000  # Max cm per purchase (1 FAPCOIN = 1 cm)
-QUICK_BUY_OPTIONS = [50, 100, 250, 500, 1000]  # Quick buy buttons
+MAX_BUY_AMOUNT = 10000  # Max cm per purchase (1 FAPCOIN = 1 cm)
+QUICK_BUY_OPTIONS = [500, 1000, 2500, 5000, 10000]  # Quick buy buttons
 
 
 def is_owner(telegram_id: int) -> bool:
