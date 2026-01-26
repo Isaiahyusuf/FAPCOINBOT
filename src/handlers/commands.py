@@ -2473,149 +2473,154 @@ async def callback_fapbet_info(callback: CallbackQuery):
 @router.message(Command("fapbet"))
 @router.message(F.text.regexp(r"@\w+\s+/fapbet"))
 async def cmd_fapbet(message: Message):
-    telegram_id = message.from_user.id
-    chat_id = message.chat.id
-    
-    logger.info(f"=== FAPBET COMMAND ===")
-    logger.info(f"User: {telegram_id}, Chat: {chat_id}")
-    logger.info(f"Message text: {message.text}")
-    
-    if message.chat.type == ChatType.PRIVATE:
-        await message.answer(
-            "⚔️ $FAPCOIN bets must be made in groups!\n\n"
-            "🚀 Powered by $FAPCOIN on Solana",
-            parse_mode=None
-        )
-        return
-    
-    args = message.text.split()
-    if len(args) < 2:
-        await message.answer(
-            "⚔️ <b>$FAPCOIN BET</b> ⚔️\n\n"
-            "Usage: /fapbet [amount] @username\n"
-            "Or reply to someone: /fapbet [amount]\n\n"
-            "Example: <code>/fapbet 100 @player</code>\n\n"
-            "📊 Min: 100 | Max: 10,000 $FAPCOIN\n\n"
-            "💰 98% goes to winner\n"
-            "💎 1% goes to team\n"
-            "👑 1% goes to group owner\n\n"
-            "🚀 Powered by $FAPCOIN on Solana",
-            parse_mode=ParseMode.HTML
-        )
-        return
-    
-    MIN_BET = 100
-    MAX_BET = 10000
-    
     try:
-        bet_amount = float(args[1])
-        if bet_amount < MIN_BET:
-            await message.answer(f"❌ Minimum bet is {MIN_BET} $FAPCOIN\n\n🚀 Powered by $FAPCOIN on Solana", parse_mode=None)
-            return
-        if bet_amount > MAX_BET:
-            await message.answer(f"❌ Maximum bet is {MAX_BET:,} $FAPCOIN\n\n🚀 Powered by $FAPCOIN on Solana", parse_mode=None)
-            return
-    except ValueError:
-        await message.answer("❌ Invalid bet amount. Use a positive number.", parse_mode=None)
-        return
-    
-    try:
-        await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
-        wallet = await db.get_or_create_user_wallet(telegram_id)
-        logger.info(f"User wallet retrieved: balance={wallet.balance}")
-    except Exception as e:
-        logger.error(f"FAPBET error getting wallet: {e}")
-        await message.answer(
-            f"❌ Database error. Please try again later.\n\n"
-            f"🚀 Powered by $FAPCOIN on Solana",
-            parse_mode=None
-        )
-        return
-    
-    if wallet.balance < bet_amount:
-        await message.answer(
-            f"❌ <b>Insufficient Balance</b>\n\n"
-            f"Your balance: {wallet.balance:,.2f} FAPCOIN\n"
-            f"Bet amount: {bet_amount:,.2f} FAPCOIN\n\n"
-            f"Use /wallet to deposit more FAPCOIN.",
-            parse_mode=ParseMode.HTML
-        )
-        return
-    
-    opponent_id = None
-    opponent_username = None
-    
-    if message.reply_to_message:
-        opponent_id = message.reply_to_message.from_user.id
-        opponent_username = message.reply_to_message.from_user.username
-        if opponent_id == telegram_id:
-            await message.answer("❌ You can't bet against yourself!", parse_mode=None)
-            return
-        await db.get_or_create_user(opponent_id, opponent_username, message.reply_to_message.from_user.first_name)
-    elif len(args) >= 3:
-        username_arg = args[2].lstrip('@')
-        opponent_username = username_arg
-        opponent_user = await db.get_user_by_username(username_arg)
-        if opponent_user:
-            opponent_id = opponent_user.telegram_id
-            if opponent_id == telegram_id:
-                await message.answer("❌ You can't bet against yourself!", parse_mode=None)
-                return
-        # Note: opponent_id can be None if user hasn't interacted with bot yet
-        # The bet will still be created with opponent_username, and when they click Accept,
-        # the bot will match them by username and create their wallet
-    else:
-        await message.answer(
-            "❌ Please specify an opponent.\n\n"
-            "Reply to their message or use @username",
-            parse_mode=None
-        )
-        return
-    
-    if opponent_id:
-        has_pending = await db.has_pending_bet_between(chat_id, telegram_id, opponent_id)
-        if has_pending:
+        telegram_id = message.from_user.id
+        chat_id = message.chat.id
+        
+        logger.info(f"=== FAPBET COMMAND ===")
+        logger.info(f"User: {telegram_id}, Chat: {chat_id}")
+        logger.info(f"Message text: {message.text}")
+        
+        if message.chat.type == ChatType.PRIVATE:
             await message.answer(
-                "❌ You already have a pending $FAPCOIN bet with this user!\n\n"
+                "⚔️ $FAPCOIN bets must be made in groups!\n\n"
                 "🚀 Powered by $FAPCOIN on Solana",
                 parse_mode=None
             )
             return
-    
-    bet = await db.create_fapcoin_bet(chat_id, telegram_id, opponent_id, bet_amount, opponent_username)
-    if not bet:
-        await message.answer("❌ Failed to create bet. Check your balance.", parse_mode=None)
-        return
-    
-    challenger_name = message.from_user.first_name or message.from_user.username or "Challenger"
-    
-    if opponent_username:
-        opponent_tag = f"@{opponent_username}"
-        opponent_name = opponent_username
-    else:
-        opponent_name = "Opponent"
-        opponent_tag = opponent_name
-    
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="⚔️ ACCEPT", callback_data=f"fapbet_accept_{bet.id}"),
-            InlineKeyboardButton(text="🏃 DECLINE", callback_data=f"fapbet_decline_{bet.id}")
-        ]
-    ])
-    
-    await message.answer(
-        f"⚔️ <b>$FAPCOIN BET!</b> ⚔️\n\n"
-        f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"🔵 <b>{challenger_name}</b>\n"
-        f"       ⚔️ VS ⚔️\n"
-        f"🔴 <b>{opponent_name}</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"💰 Bet: <b>{bet_amount:,.0f} $FAPCOIN</b>\n\n"
-        f"{opponent_tag}, do you accept?\n\n"
-        f"🚀 $FAPCOIN on Solana",
-        reply_markup=keyboard,
-        parse_mode=ParseMode.HTML
-    )
+        
+        args = message.text.split()
+        if len(args) < 2:
+            await message.answer(
+                "⚔️ <b>$FAPCOIN BET</b> ⚔️\n\n"
+                "Usage: /fapbet [amount] @username\n"
+                "Or reply to someone: /fapbet [amount]\n\n"
+                "Example: <code>/fapbet 100 @player</code>\n\n"
+                "📊 Min: 100 | Max: 10,000 $FAPCOIN\n\n"
+                "💰 98% goes to winner\n"
+                "💎 1% goes to team\n"
+                "👑 1% goes to group owner\n\n"
+                "🚀 Powered by $FAPCOIN on Solana",
+                parse_mode=ParseMode.HTML
+            )
+            return
+        
+        MIN_BET = 100
+        MAX_BET = 10000
+        
+        try:
+            bet_amount = float(args[1])
+            if bet_amount < MIN_BET:
+                await message.answer(f"❌ Minimum bet is {MIN_BET} $FAPCOIN\n\n🚀 Powered by $FAPCOIN on Solana", parse_mode=None)
+                return
+            if bet_amount > MAX_BET:
+                await message.answer(f"❌ Maximum bet is {MAX_BET:,} $FAPCOIN\n\n🚀 Powered by $FAPCOIN on Solana", parse_mode=None)
+                return
+        except ValueError:
+            await message.answer("❌ Invalid bet amount. Use a positive number.", parse_mode=None)
+            return
+        
+        try:
+            await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
+            wallet = await db.get_or_create_user_wallet(telegram_id)
+            logger.info(f"User wallet retrieved: balance={wallet.balance}")
+        except Exception as e:
+            logger.error(f"FAPBET error getting wallet: {e}")
+            await message.answer(
+                f"❌ Database error. Please try again later.\n\n"
+                f"🚀 Powered by $FAPCOIN on Solana",
+                parse_mode=None
+            )
+            return
+        
+        if wallet.balance < bet_amount:
+            await message.answer(
+                f"❌ <b>Insufficient Balance</b>\n\n"
+                f"Your balance: {wallet.balance:,.2f} FAPCOIN\n"
+                f"Bet amount: {bet_amount:,.2f} FAPCOIN\n\n"
+                f"Use /wallet to deposit more FAPCOIN.",
+                parse_mode=ParseMode.HTML
+            )
+            return
+        
+        opponent_id = None
+        opponent_username = None
+        
+        if message.reply_to_message:
+            opponent_id = message.reply_to_message.from_user.id
+            opponent_username = message.reply_to_message.from_user.username
+            if opponent_id == telegram_id:
+                await message.answer("❌ You can't bet against yourself!", parse_mode=None)
+                return
+            await db.get_or_create_user(opponent_id, opponent_username, message.reply_to_message.from_user.first_name)
+        elif len(args) >= 3:
+            username_arg = args[2].lstrip('@')
+            opponent_username = username_arg
+            opponent_user = await db.get_user_by_username(username_arg)
+            if opponent_user:
+                opponent_id = opponent_user.telegram_id
+                if opponent_id == telegram_id:
+                    await message.answer("❌ You can't bet against yourself!", parse_mode=None)
+                    return
+        else:
+            await message.answer(
+                "❌ Please specify an opponent.\n\n"
+                "Reply to their message or use @username",
+                parse_mode=None
+            )
+            return
+        
+        if opponent_id:
+            has_pending = await db.has_pending_bet_between(chat_id, telegram_id, opponent_id)
+            if has_pending:
+                await message.answer(
+                    "❌ You already have a pending $FAPCOIN bet with this user!\n\n"
+                    "🚀 Powered by $FAPCOIN on Solana",
+                    parse_mode=None
+                )
+                return
+        
+        bet = await db.create_fapcoin_bet(chat_id, telegram_id, opponent_id, bet_amount, opponent_username)
+        if not bet:
+            await message.answer("❌ Failed to create bet. Check your balance.", parse_mode=None)
+            return
+        
+        challenger_name = message.from_user.first_name or message.from_user.username or "Challenger"
+        
+        if opponent_username:
+            opponent_tag = f"@{opponent_username}"
+            opponent_name = opponent_username
+        else:
+            opponent_name = "Opponent"
+            opponent_tag = opponent_name
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="⚔️ ACCEPT", callback_data=f"fapbet_accept_{bet.id}"),
+                InlineKeyboardButton(text="🏃 DECLINE", callback_data=f"fapbet_decline_{bet.id}")
+            ]
+        ])
+        
+        await message.answer(
+            f"⚔️ <b>$FAPCOIN BET!</b> ⚔️\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔵 <b>{challenger_name}</b>\n"
+            f"       ⚔️ VS ⚔️\n"
+            f"🔴 <b>{opponent_name}</b>\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"💰 Bet: <b>{bet_amount:,.0f} $FAPCOIN</b>\n\n"
+            f"{opponent_tag}, do you accept?\n\n"
+            f"🚀 $FAPCOIN on Solana",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    except Exception as e:
+        logger.error(f"FAPBET UNHANDLED ERROR: {e}", exc_info=True)
+        await message.answer(
+            "❌ An error occurred. Please try again.\n\n"
+            "🚀 Powered by $FAPCOIN on Solana",
+            parse_mode=None
+        )
 
 
 @router.callback_query(F.data.startswith("fapbet_accept_"))
