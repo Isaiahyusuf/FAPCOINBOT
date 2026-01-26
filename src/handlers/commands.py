@@ -2432,27 +2432,31 @@ async def cmd_fapbet(message: Message):
         return
     
     challenger_name = message.from_user.first_name or message.from_user.username or "Challenger"
-    opponent_display = f"@{opponent_username}" if opponent_username else "Opponent"
+    
+    if opponent_username:
+        opponent_tag = f"@{opponent_username}"
+        opponent_name = opponent_username
+    else:
+        opponent_name = "Opponent"
+        opponent_tag = opponent_name
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="✅ Accept", callback_data=f"fapbet_accept_{bet.id}"),
-            InlineKeyboardButton(text="❌ Decline", callback_data=f"fapbet_decline_{bet.id}")
+            InlineKeyboardButton(text="⚔️ ACCEPT", callback_data=f"fapbet_accept_{bet.id}"),
+            InlineKeyboardButton(text="🏃 DECLINE", callback_data=f"fapbet_decline_{bet.id}")
         ]
     ])
     
     await message.answer(
-        f"⚔️ <b>$FAPCOIN BET CHALLENGE!</b> ⚔️\n\n"
+        f"⚔️ <b>$FAPCOIN BET!</b> ⚔️\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"👊 <b>Challenger:</b> {challenger_name}\n"
-        f"🎯 <b>Opponent:</b> {opponent_display}\n"
-        f"💰 <b>Bet:</b> {bet_amount:,.2f} $FAPCOIN each\n"
-        f"🏆 <b>Total Pot:</b> {bet_amount * 2:,.2f} $FAPCOIN\n"
+        f"🔵 <b>{challenger_name}</b>\n"
+        f"       ⚔️ VS ⚔️\n"
+        f"🔴 <b>{opponent_name}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"💎 Winner takes 98% ({bet_amount * 2 * 0.98:,.2f} $FAPCOIN)\n"
-        f"📊 1% team • 1% group owner\n\n"
-        f"{opponent_display}, do you accept?\n\n"
-        f"🚀 Powered by $FAPCOIN on Solana",
+        f"💰 Bet: <b>{bet_amount:,.0f} $FAPCOIN</b>\n\n"
+        f"{opponent_tag}, do you accept?\n\n"
+        f"🚀 $FAPCOIN on Solana",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
