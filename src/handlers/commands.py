@@ -1,10 +1,13 @@
 import os
 import random
 import re
+import logging
 import aiohttp
 import base58
 from datetime import datetime
 from aiogram import Router, F, Bot
+
+logger = logging.getLogger(__name__)
 from aiogram.types import Message, InlineQuery, InlineQueryResultArticle, InputTextMessageContent, CallbackQuery
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ChatMemberUpdated
 from aiogram.filters import Command, ChatMemberUpdatedFilter, IS_MEMBER, IS_NOT_MEMBER
@@ -48,6 +51,10 @@ def get_main_menu_keyboard(bot_username: str = None, is_private: bool = False):
         [
             buy_button,
             InlineKeyboardButton(text="💝 Gift", callback_data="action_gift_info")
+        ],
+        [
+            InlineKeyboardButton(text="💰 FAPCOIN Wallet", callback_data="action_wallet"),
+            InlineKeyboardButton(text="⚔️ FAPCOIN Bet", callback_data="action_fapbet_info")
         ],
         [
             InlineKeyboardButton(text="📊 My Stats", callback_data="action_stats"),
@@ -1872,3 +1879,343 @@ async def catch_tx_hash(message: Message):
                 "Please try again later or contact support.",
                 parse_mode=ParseMode.HTML
             )
+
+
+@router.message(Command("wallet"))
+async def cmd_wallet(message: Message):
+    telegram_id = message.from_user.id
+    
+    await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
+    wallet = await db.get_or_create_user_wallet(telegram_id)
+    
+    await message.answer(
+        f"💰 <b>YOUR FAPCOIN WALLET</b> 💰\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"📥 <b>Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
+        f"💵 <b>Balance:</b> {wallet.balance:,.2f} FAPCOIN\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"📲 Send FAPCOIN to your deposit address above.\n"
+        f"Use /deposit after sending to update your balance.\n\n"
+        f"⚔️ Use /fapbet [amount] @user to start a bet!",
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.callback_query(F.data == "action_wallet")
+async def callback_wallet(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    
+    await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
+    wallet = await db.get_or_create_user_wallet(telegram_id)
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📥 Check Deposit", callback_data="wallet_deposit")],
+        [InlineKeyboardButton(text="📤 Withdraw", callback_data="wallet_withdraw")],
+        [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+    ])
+    
+    await callback.message.edit_text(
+        f"💰 <b>YOUR FAPCOIN WALLET</b> 💰\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"📥 <b>Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
+        f"💵 <b>Balance:</b> {wallet.balance:,.2f} FAPCOIN\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"Send FAPCOIN to your deposit address,\n"
+        f"then click 'Check Deposit' to update balance.",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action_fapbet_info")
+async def callback_fapbet_info(callback: CallbackQuery):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💰 View Wallet", callback_data="action_wallet")],
+        [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+    ])
+    
+    await callback.message.edit_text(
+        "⚔️ <b>FAPCOIN BETTING</b> ⚔️\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n"
+        "Bet real FAPCOIN against other players!\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "📋 <b>How it works:</b>\n"
+        "1. Deposit FAPCOIN to your wallet\n"
+        "2. Use /fapbet [amount] @user to challenge\n"
+        "3. Opponent accepts or declines\n"
+        "4. Roll dice - highest wins!\n\n"
+        "💰 <b>Payout:</b>\n"
+        "- 98% to winner\n"
+        "- 1% to treasury\n"
+        "- 1% to group owner\n\n"
+        "📝 <b>Commands:</b>\n"
+        "/wallet - View your wallet\n"
+        "/fapbet [amount] @user - Start a bet\n"
+        "/setgroupwallet [address] - Set group wallet (admins)",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.message(Command("fapbet"))
+async def cmd_fapbet(message: Message):
+    telegram_id = message.from_user.id
+    chat_id = message.chat.id
+    
+    if message.chat.type == ChatType.PRIVATE:
+        await message.answer("⚔️ FAPCOIN bets must be made in groups!", parse_mode=None)
+        return
+    
+    args = message.text.split()
+    if len(args) < 2:
+        await message.answer(
+            "⚔️ <b>FAPCOIN BET</b> ⚔️\n\n"
+            "Usage: /fapbet [amount] @username\n"
+            "Or reply to someone: /fapbet [amount]\n\n"
+            "Example: <code>/fapbet 100 @player</code>\n\n"
+            "💰 98% goes to winner\n"
+            "💎 1% goes to treasury\n"
+            "👑 1% goes to group owner",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    try:
+        bet_amount = float(args[1])
+        if bet_amount <= 0:
+            raise ValueError("Bet must be positive")
+    except ValueError:
+        await message.answer("❌ Invalid bet amount. Use a positive number.", parse_mode=None)
+        return
+    
+    await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
+    wallet = await db.get_or_create_user_wallet(telegram_id)
+    
+    if wallet.balance < bet_amount:
+        await message.answer(
+            f"❌ <b>Insufficient Balance</b>\n\n"
+            f"Your balance: {wallet.balance:,.2f} FAPCOIN\n"
+            f"Bet amount: {bet_amount:,.2f} FAPCOIN\n\n"
+            f"Use /wallet to deposit more FAPCOIN.",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    opponent_id = None
+    opponent_username = None
+    
+    if message.reply_to_message:
+        opponent_id = message.reply_to_message.from_user.id
+        opponent_username = message.reply_to_message.from_user.username
+        if opponent_id == telegram_id:
+            await message.answer("❌ You can't bet against yourself!", parse_mode=None)
+            return
+        await db.get_or_create_user(opponent_id, opponent_username, message.reply_to_message.from_user.first_name)
+    elif len(args) >= 3:
+        username_arg = args[2].lstrip('@')
+        opponent_username = username_arg
+        opponent_user = await db.get_user_by_username(username_arg)
+        if opponent_user:
+            opponent_id = opponent_user.telegram_id
+            if opponent_id == telegram_id:
+                await message.answer("❌ You can't bet against yourself!", parse_mode=None)
+                return
+    else:
+        await message.answer(
+            "❌ Please specify an opponent.\n\n"
+            "Reply to their message or use @username",
+            parse_mode=None
+        )
+        return
+    
+    bet = await db.create_fapcoin_bet(chat_id, telegram_id, opponent_id, bet_amount, opponent_username)
+    if not bet:
+        await message.answer("❌ Failed to create bet. Check your balance.", parse_mode=None)
+        return
+    
+    challenger_name = message.from_user.first_name or message.from_user.username or "Challenger"
+    opponent_display = f"@{opponent_username}" if opponent_username else "Opponent"
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Accept", callback_data=f"fapbet_accept_{bet.id}"),
+            InlineKeyboardButton(text="❌ Decline", callback_data=f"fapbet_decline_{bet.id}")
+        ]
+    ])
+    
+    await message.answer(
+        f"⚔️ <b>FAPCOIN BET CHALLENGE!</b> ⚔️\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"👊 <b>Challenger:</b> {challenger_name}\n"
+        f"🎯 <b>Opponent:</b> {opponent_display}\n"
+        f"💰 <b>Bet Amount:</b> {bet_amount:,.2f} FAPCOIN each\n"
+        f"🏆 <b>Total Pot:</b> {bet_amount * 2:,.2f} FAPCOIN\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"💎 Winner takes 98% ({bet_amount * 2 * 0.98:,.2f})\n"
+        f"📊 1% treasury • 1% group owner\n\n"
+        f"{opponent_display}, do you accept?",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.callback_query(F.data.startswith("fapbet_accept_"))
+async def callback_fapbet_accept(callback: CallbackQuery, bot: Bot):
+    bet_id = int(callback.data.split("_")[2])
+    telegram_id = callback.from_user.id
+    
+    bet = await db.get_pending_fapcoin_bet(bet_id)
+    if not bet:
+        await callback.answer("❌ Bet not found or already resolved!", show_alert=True)
+        return
+    
+    is_target = False
+    if bet.opponent_id and bet.opponent_id == telegram_id:
+        is_target = True
+    elif bet.opponent_username and callback.from_user.username:
+        if bet.opponent_username.lower() == callback.from_user.username.lower():
+            is_target = True
+            await db.update_pvp_opponent_id(bet_id, telegram_id)
+    
+    if not is_target:
+        await callback.answer("❌ This bet isn't for you!", show_alert=True)
+        return
+    
+    await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
+    wallet = await db.get_or_create_user_wallet(telegram_id)
+    
+    if wallet.balance < bet.bet_amount:
+        await callback.answer(f"❌ Insufficient balance! Need {bet.bet_amount:,.2f} FAPCOIN", show_alert=True)
+        return
+    
+    treasury_wallet = await db.get_team_wallet() or os.environ.get('TREASURY_WALLET', '')
+    dev_wallet = os.environ.get('DEV_WALLET', '')
+    group_owner_wallet = await db.get_group_owner_wallet(bet.chat_id)
+    
+    result = await db.accept_fapcoin_bet(bet_id, treasury_wallet, dev_wallet, group_owner_wallet)
+    
+    if "error" in result:
+        error = result["error"]
+        if error == "challenger_insufficient_balance":
+            await callback.message.edit_text("❌ Challenger no longer has enough FAPCOIN!", parse_mode=None)
+        elif error == "opponent_insufficient_balance":
+            await callback.answer("❌ You don't have enough FAPCOIN!", show_alert=True)
+        else:
+            await callback.answer(f"❌ Error: {error}", show_alert=True)
+        return
+    
+    if result.get("draw"):
+        await callback.message.edit_text(
+            f"⚔️ <b>IT'S A DRAW!</b> ⚔️\n\n"
+            f"🎲 Both rolled: {result['challenger_roll']}\n\n"
+            f"FAPCOIN returned to both players!",
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer("It's a draw!")
+        return
+    
+    challenger_user = await db.get_user_by_telegram_id(bet.challenger_id)
+    opponent_user = await db.get_user_by_telegram_id(telegram_id)
+    
+    challenger_name = challenger_user.first_name or challenger_user.username or "Challenger" if challenger_user else "Challenger"
+    opponent_name = opponent_user.first_name or opponent_user.username or "Opponent" if opponent_user else "Opponent"
+    
+    winner_name = challenger_name if result['winner_id'] == bet.challenger_id else opponent_name
+    loser_name = opponent_name if result['winner_id'] == bet.challenger_id else challenger_name
+    
+    await callback.message.edit_text(
+        f"⚔️ <b>FAPCOIN BET RESULT!</b> ⚔️\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"🎲 {challenger_name}: <b>{result['challenger_roll']}</b>\n"
+        f"🎲 {opponent_name}: <b>{result['opponent_roll']}</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"🏆 <b>WINNER: {winner_name}!</b>\n\n"
+        f"💰 Payout: <b>{result['winner_payout']:,.2f} FAPCOIN</b>\n"
+        f"💎 Treasury: {result['treasury_fee']:,.2f}\n"
+        f"👑 Group Owner: {result['group_owner_fee']:,.2f}\n\n"
+        f"😢 {loser_name} lost {bet.bet_amount:,.2f} FAPCOIN",
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer(f"🏆 {winner_name} wins!")
+
+
+@router.callback_query(F.data.startswith("fapbet_decline_"))
+async def callback_fapbet_decline(callback: CallbackQuery):
+    bet_id = int(callback.data.split("_")[2])
+    telegram_id = callback.from_user.id
+    
+    bet = await db.get_pending_fapcoin_bet(bet_id)
+    if not bet:
+        await callback.answer("❌ Bet not found or already resolved!", show_alert=True)
+        return
+    
+    is_target = False
+    if bet.opponent_id and bet.opponent_id == telegram_id:
+        is_target = True
+    elif bet.opponent_username and callback.from_user.username:
+        if bet.opponent_username.lower() == callback.from_user.username.lower():
+            is_target = True
+    
+    if telegram_id == bet.challenger_id:
+        is_target = True
+    
+    if not is_target:
+        await callback.answer("❌ You can't decline this bet!", show_alert=True)
+        return
+    
+    success = await db.decline_fapcoin_bet(bet_id)
+    if success:
+        decliner = "Challenger" if telegram_id == bet.challenger_id else "Opponent"
+        await callback.message.edit_text(
+            f"❌ <b>BET DECLINED</b>\n\n{decliner} declined the FAPCOIN bet.",
+            parse_mode=ParseMode.HTML
+        )
+    await callback.answer("Bet declined")
+
+
+@router.message(Command("setgroupwallet"))
+async def cmd_setgroupwallet(message: Message, bot: Bot):
+    chat_id = message.chat.id
+    telegram_id = message.from_user.id
+    
+    if message.chat.type == ChatType.PRIVATE:
+        await message.answer("❌ This command must be used in a group.", parse_mode=None)
+        return
+    
+    try:
+        chat_member = await bot.get_chat_member(chat_id, telegram_id)
+        is_admin = chat_member.status in ['creator', 'administrator']
+    except:
+        is_admin = False
+    
+    if not is_admin and not is_owner(telegram_id):
+        await message.answer("❌ Only group admins can set the group wallet.", parse_mode=None)
+        return
+    
+    args = message.text.split(maxsplit=1)
+    if len(args) < 2:
+        await message.answer(
+            "📝 <b>Set Group Owner Wallet</b>\n\n"
+            "Usage: /setgroupwallet [solana_address]\n\n"
+            "This wallet will receive 1% of all FAPCOIN bets in this group!",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    wallet_address = args[1].strip()
+    from src.utils.wallet import validate_solana_address
+    
+    if not validate_solana_address(wallet_address):
+        await message.answer("❌ Invalid Solana wallet address.", parse_mode=None)
+        return
+    
+    await db.get_or_set_group_owner_wallet(chat_id, telegram_id, wallet_address)
+    
+    await message.answer(
+        f"✅ <b>Group Wallet Set!</b>\n\n"
+        f"Wallet: <code>{wallet_address}</code>\n\n"
+        f"You will receive 1% of all FAPCOIN bets in this group!",
+        parse_mode=ParseMode.HTML
+    )
