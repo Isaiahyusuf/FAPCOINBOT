@@ -35,7 +35,9 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 |----------|-------------|----------|
 | `BOT_TOKEN` | Telegram bot token from @BotFather | Yes |
 | `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `TEAM_WALLET_ADDRESS` | Solana wallet for receiving FAPCOIN | Yes |
+| `MAIN_WALLET_ADDRESS` | Main Solana wallet for all bet transactions | Yes |
+| `MAIN_WALLET_PRIVATE_KEY` | Private key (base58) for signing transactions | Yes |
+| `MAIN_FAPCOIN_GROUP` | Group ID where all fees go to team (no group owner cut) | Yes |
 | `SOLANA_RPC_URL` | Solana RPC endpoint | Yes |
 | `TREASURY_WALLET` | Treasury wallet for betting fees (1%) | Yes |
 | `DEV_WALLET` | Developer wallet for fees (0%) | No |
@@ -108,6 +110,10 @@ A competitive Telegram game bot where users can grow their "length," compete on 
   - 98% goes to winner
   - 1% goes to team wallet (TREASURY_WALLET)
   - 1% goes to group owner wallet (incentivizes groups to use the bot)
+- **Main FAPCOIN Group:**
+  - Group ID set in MAIN_FAPCOIN_GROUP env var
+  - All 2% fees go to team wallet (no group owner cut)
+  - No admin wallet setup required
 - **Security Features:**
   - Row-level database locking prevents race conditions
   - Decimal precision for fee calculations (no floating-point drift)

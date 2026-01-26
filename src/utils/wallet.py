@@ -75,30 +75,36 @@ def is_main_fapcoin_group(chat_id: int) -> bool:
     return chat_id == MAIN_FAPCOIN_GROUP
 
 
-def get_bot_treasury_wallet() -> Optional[Tuple[str, Keypair]]:
-    """Get the bot's treasury wallet from environment.
+def get_main_wallet() -> Optional[Tuple[str, Keypair]]:
+    """Get the main wallet from environment for signing transactions.
     Returns (public_key, keypair) or None if not configured."""
-    private_key_base64 = os.environ.get('BOT_TREASURY_PRIVATE_KEY')
-    if not private_key_base64:
+    address = os.environ.get('MAIN_WALLET_ADDRESS')
+    private_key = os.environ.get('MAIN_WALLET_PRIVATE_KEY')
+    
+    if not address or not private_key:
+        logger.warning("MAIN_WALLET not configured - on-chain transfers disabled")
         return None
     
     try:
-        private_key_bytes = base64.b64decode(private_key_base64)
+        import base58
+        private_key_bytes = base58.b58decode(private_key)
         keypair = Keypair.from_bytes(private_key_bytes)
-        public_key = str(keypair.pubkey())
-        return (public_key, keypair)
+        loaded_address = str(keypair.pubkey())
+        
+        if loaded_address != address:
+            logger.error(f"Main wallet address mismatch! Expected {address}, got {loaded_address}")
+            return None
+        
+        logger.info(f"Main wallet loaded: {address[:8]}...{address[-4:]}")
+        return (address, keypair)
     except Exception as e:
-        logger.error(f"Failed to load bot treasury wallet: {e}")
+        logger.error(f"Failed to load main wallet: {e}")
         return None
 
 
-def generate_bot_treasury_wallet() -> Tuple[str, str]:
-    """Generate a new bot treasury wallet.
-    Returns (public_key, base64_private_key) for storage in environment."""
-    keypair = Keypair()
-    public_key = str(keypair.pubkey())
-    private_key_base64 = base64.b64encode(bytes(keypair)).decode()
-    return public_key, private_key_base64
+def get_main_wallet_address() -> Optional[str]:
+    """Get just the main wallet address without loading private key."""
+    return os.environ.get('MAIN_WALLET_ADDRESS')
 
 
 def calculate_bet_distribution(total_pot: float, is_main_group: bool = False) -> dict:
