@@ -2193,7 +2193,9 @@ async def cmd_fapbet(message: Message):
     telegram_id = message.from_user.id
     chat_id = message.chat.id
     
-    logger.info(f"FAPBET command received from user {telegram_id} in chat {chat_id}")
+    logger.info(f"=== FAPBET COMMAND ===")
+    logger.info(f"User: {telegram_id}, Chat: {chat_id}")
+    logger.info(f"Message text: {message.text}")
     
     if message.chat.type == ChatType.PRIVATE:
         await message.answer(

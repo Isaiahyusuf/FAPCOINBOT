@@ -1,0 +1,38 @@
+Starting Container
+2026-01-26 17:48:58,045 - __main__ - INFO - Initializing database...
+2026-01-26 17:48:58,293 - __main__ - INFO - Database initialized successfully!
+2026-01-26 17:48:58,645 - __main__ - INFO - Bot commands registered for groups and private chats
+2026-01-26 17:48:58,645 - __main__ - INFO - Starting FAPCOIN DICK BOT...
+2026-01-26 17:48:58,645 - __main__ - INFO - Daily winner selection task started (runs at 12:00 UTC)
+2026-01-26 17:48:58,645 - __main__ - INFO - Promo message task started (runs every hour)
+2026-01-26 17:48:58,645 - aiogram.dispatcher - INFO - Start polling
+/app/main.py:120: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  now = datetime.utcnow()
+2026-01-26 17:48:58,672 - aiogram.dispatcher - INFO - Run polling for bot @Fapcoindickbot id=8407392392 - 'FAPCOIN DICK GROWER'
+2026-01-26 17:49:02,712 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2026-01-26 17:49:02,712 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8407392392)
+2026-01-26 17:49:12,196 - aiogram.dispatcher - INFO - Connection established (tryings = 1, bot id = 8407392392)
+2026-01-26 17:49:12,198 - aiogram.event - INFO - Update id=590850796 is handled. Duration 1 ms by bot id=8407392392
+2026-01-26 17:49:37,249 - aiogram.event - INFO - Update id=590850797 is handled. Duration 0 ms by bot id=8407392392
+2026-01-26 17:49:59,082 - __main__ - INFO - Sent promo to chat 6712803280
+2026-01-26 17:50:00,136 - __main__ - WARNING - Could not send promo to chat 5658155695: Telegram server says - Forbidden: bot was blocked by the user
+2026-01-26 17:50:01,595 - __main__ - INFO - Sent promo to chat -1003006076902
+2026-01-26 17:50:02,632 - __main__ - INFO - Sent promo to chat 7732839476
+2026-01-26 17:50:03,759 - __main__ - INFO - Sent promo to chat -1002900583078
+2026-01-26 17:50:04,785 - __main__ - WARNING - Could not send promo to chat -1003137554300: Telegram server says - Bad Request: chat not found
+2026-01-26 17:50:05,824 - __main__ - INFO - Sent promo to chat 7704608601
+2026-01-26 17:50:06,869 - __main__ - INFO - Sent promo to chat 7137720419
+2026-01-26 17:50:07,927 - __main__ - INFO - Sent promo to chat 7446442925
+2026-01-26 17:50:08,973 - __main__ - INFO - Sent promo to chat 6081215503
+2026-01-26 17:50:10,013 - __main__ - INFO - Sent promo to chat 8263182791
+2026-01-26 17:50:11,103 - __main__ - INFO - Sent promo to chat 8082843753
+2026-01-26 17:50:11,886 - aiogram.event - INFO - Update id=590850798 is handled. Duration 284 ms by bot id=8407392392
+2026-01-26 17:50:12,364 - __main__ - INFO - Sent promo to chat -1003561480100
+2026-01-26 17:50:13,437 - __main__ - INFO - Sent promo to chat 7191268741
+2026-01-26 17:50:14,553 - __main__ - INFO - Sent promo to chat 6404916056
+2026-01-26 17:50:15,459 - aiogram.event - INFO - Update id=590850799 is handled. Duration 490 ms by bot id=8407392392
+2026-01-26 17:50:15,681 - __main__ - INFO - Sent promo to chat 7411377840
+2026-01-26 17:50:51,200 - aiogram.event - INFO - Update id=590850800 is handled. Duration 1 ms by bot id=8407392392
+2026-01-26 17:51:41,961 - aiogram.event - INFO - Update id=590850801 is handled. Duration 0 ms by bot id=8407392392
+2026-01-26 17:52:02,156 - aiogram.event - INFO - Update id=590850802 is handled. Duration 0 ms by bot id=8407392392
+2026-01-26 17:52:12,384 - aiogram.event - INFO - Update id=590850803 is handled. Duration 0 ms by bot id=8407392392
