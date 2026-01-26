@@ -1692,77 +1692,72 @@ async def callback_support(callback: CallbackQuery):
 async def callback_deposit(callback: CallbackQuery):
     """Check for deposits via button"""
     telegram_id = callback.from_user.id
-    wallet = await db.get_user_wallet(telegram_id)
     
-    keyboard = get_back_button()
-    
-    if not wallet:
+    try:
+        await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
+        wallet = await db.get_or_create_user_wallet(telegram_id)
+        
+        keyboard = get_back_button()
+        
         await callback.message.edit_text(
-            "❌ You don't have a wallet yet!\n\n"
-            "Use the 💳 Wallet button to create one first.",
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
-        await callback.answer()
-        return
-    
-    from src.utils.wallet import check_fapcoin_balance
-    current_balance = await check_fapcoin_balance(wallet['address'])
-    
-    if current_balance > wallet['balance']:
-        deposit_amount = current_balance - wallet['balance']
-        await db.update_wallet_balance(telegram_id, current_balance)
-        await callback.message.edit_text(
-            f"✅ <b>DEPOSIT FOUND!</b>\n\n"
-            f"➕ Deposited: <b>{deposit_amount:,.2f} $FAPCOIN</b>\n"
-            f"💰 New Balance: <b>{current_balance:,.2f} $FAPCOIN</b>\n\n"
+            f"📥 <b>DEPOSIT CHECK</b>\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"📬 <b>Your Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
+            f"💵 <b>Current Balance:</b> {wallet.balance:,.2f} $FAPCOIN\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"📲 Send FAPCOIN tokens to your deposit address.\n"
+            f"Balance updates may take a few minutes.\n\n"
             f"🚀 Powered by $FAPCOIN on Solana",
             reply_markup=keyboard,
             parse_mode=ParseMode.HTML
         )
-    else:
-        await callback.message.edit_text(
-            f"📥 <b>DEPOSIT CHECK</b>\n\n"
-            f"💰 Current Balance: <b>{wallet['balance']:,.2f} $FAPCOIN</b>\n\n"
-            f"No new deposits found.\n\n"
-            f"Send FAPCOIN to:\n<code>{wallet['address']}</code>",
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
-    await callback.answer()
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"DEPOSIT callback error: {e}")
+        await callback.answer("Error checking deposits", show_alert=True)
 
 
 @router.callback_query(F.data == "action_withdraw")
 async def callback_withdraw(callback: CallbackQuery):
     """Withdraw info via button"""
     telegram_id = callback.from_user.id
-    wallet = await db.get_user_wallet(telegram_id)
     
-    keyboard = get_back_button()
-    
-    if not wallet:
-        await callback.message.edit_text(
-            "❌ You don't have a wallet yet!\n\n"
-            "Use the 💳 Wallet button to create one first.",
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
+    try:
+        await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
+        wallet = await db.get_or_create_user_wallet(telegram_id)
+        
+        keyboard = get_back_button()
+        
+        if wallet.balance < 500:
+            await callback.message.edit_text(
+                f"📤 <b>WITHDRAWAL CENTER</b>\n\n"
+                f"┌─────────────────────┐\n"
+                f"│ 💰 Balance: <b>{wallet.balance:,.2f}</b> │\n"
+                f"│ 📉 Min Withdraw: 500 │\n"
+                f"│ ❌ Status: <b>Too Low</b>  │\n"
+                f"└─────────────────────┘\n\n"
+                f"💡 You need at least 500 $FAPCOIN to withdraw.\n"
+                f"Win some bets or deposit more!",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            await callback.message.edit_text(
+                f"📤 <b>WITHDRAW FAPCOIN</b>\n\n"
+                f"💰 Your Balance: <b>{wallet.balance:,.2f} $FAPCOIN</b>\n\n"
+                f"To withdraw, use:\n"
+                f"<code>/withdraw [amount] [solana_address]</code>\n\n"
+                f"Example:\n"
+                f"<code>/withdraw 1000 ABC123...</code>\n\n"
+                f"⚠️ Min: 500 FAPCOIN\n"
+                f"⚠️ Requires SOL for gas fees",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
         await callback.answer()
-        return
-    
-    await callback.message.edit_text(
-        f"📤 <b>WITHDRAW FAPCOIN</b>\n\n"
-        f"💰 Your Balance: <b>{wallet['balance']:,.2f} $FAPCOIN</b>\n\n"
-        f"To withdraw, use:\n"
-        f"<code>/withdraw [amount] [solana_address]</code>\n\n"
-        f"Example:\n"
-        f"<code>/withdraw 1000 ABC123...</code>\n\n"
-        f"⚠️ Min: 500 FAPCOIN\n"
-        f"⚠️ Requires SOL for gas fees",
-        reply_markup=keyboard,
-        parse_mode=ParseMode.HTML
-    )
-    await callback.answer()
+    except Exception as e:
+        logger.error(f"WITHDRAW callback error: {e}")
+        await callback.answer("Error loading withdrawal info", show_alert=True)
 
 
 @router.callback_query(F.data == "action_newwallet")
@@ -1774,10 +1769,10 @@ async def callback_newwallet(callback: CallbackQuery):
     keyboard = get_back_button()
     
     if wallet:
-        if wallet['balance'] > 0:
+        if wallet.balance > 0:
             await callback.message.edit_text(
                 f"⚠️ <b>WARNING!</b>\n\n"
-                f"Your wallet has <b>{wallet['balance']:,.2f} $FAPCOIN</b>\n\n"
+                f"Your wallet has <b>{wallet.balance:,.2f} $FAPCOIN</b>\n\n"
                 f"To create a new wallet, first withdraw your balance or use:\n"
                 f"<code>/newwallet</code>\n\n"
                 f"This will delete your current wallet!",
