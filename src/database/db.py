@@ -1074,6 +1074,21 @@ async def get_group_owner_wallet(chat_id: int) -> str | None:
         return group_wallet.wallet_address if group_wallet else None
 
 
+async def delete_group_owner_wallet(chat_id: int) -> bool:
+    """Delete group owner wallet for a chat. Returns True if deleted."""
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(GroupOwnerWallet).where(GroupOwnerWallet.chat_id == chat_id)
+        )
+        group_wallet = result.scalar_one_or_none()
+        if group_wallet:
+            await session.delete(group_wallet)
+            await session.commit()
+            return True
+        return False
+
+
 async def get_bet_stats(chat_id: int) -> dict:
     Session = get_session()
     async with Session() as session:

@@ -3209,14 +3209,35 @@ async def cmd_setgroupwallet(message: Message, bot: Bot):
         await message.answer("❌ Only group admins can set the group wallet.", parse_mode=None)
         return
     
+    current_wallet = await db.get_group_owner_wallet(chat_id)
     args = message.text.split(maxsplit=1)
+    
     if len(args) < 2:
-        await message.answer(
-            "📝 <b>Set Group Owner Wallet</b>\n\n"
-            "Usage: /setgroupwallet [solana_address]\n\n"
-            "This wallet will receive 1% of all FAPCOIN bets in this group!",
-            parse_mode=ParseMode.HTML
-        )
+        if current_wallet:
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🗑️ Delete Wallet", callback_data=f"delete_group_wallet_{chat_id}")],
+                [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+            ])
+            await message.answer(
+                f"👑 <b>Group Owner Wallet</b>\n\n"
+                f"━━━━━━━━━━━━━━━━━━━━━\n"
+                f"📍 <b>Current Wallet:</b>\n<code>{current_wallet}</code>\n"
+                f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                f"<b>Options:</b>\n"
+                f"• To change: /setgroupwallet [new_address]\n"
+                f"• To delete: Click the button below\n\n"
+                f"💰 This wallet receives 1% of all bets!\n\n"
+                f"🚀 Powered by $FAPCOIN on Solana",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            await message.answer(
+                "📝 <b>Set Group Owner Wallet</b>\n\n"
+                "Usage: /setgroupwallet [solana_address]\n\n"
+                "This wallet will receive 1% of all FAPCOIN bets in this group!",
+                parse_mode=ParseMode.HTML
+            )
         return
     
     wallet_address = args[1].strip()
@@ -3228,13 +3249,46 @@ async def cmd_setgroupwallet(message: Message, bot: Bot):
     
     await db.get_or_set_group_owner_wallet(chat_id, telegram_id, wallet_address)
     
+    action = "updated" if current_wallet else "set"
     await message.answer(
-        f"✅ <b>Group Wallet Set!</b>\n\n"
+        f"✅ <b>Group Wallet {action.title()}!</b>\n\n"
         f"Wallet: <code>{wallet_address}</code>\n\n"
         f"You will receive 1% of all $FAPCOIN bets in this group!\n\n"
         f"🚀 Powered by $FAPCOIN on Solana",
         parse_mode=ParseMode.HTML
     )
+
+
+@router.callback_query(F.data.startswith("delete_group_wallet_"))
+async def callback_delete_group_wallet(callback: CallbackQuery, bot: Bot):
+    """Handle group wallet deletion"""
+    telegram_id = callback.from_user.id
+    chat_id = int(callback.data.split("_")[-1])
+    
+    try:
+        chat_member = await bot.get_chat_member(chat_id, telegram_id)
+        is_admin = chat_member.status in ['creator', 'administrator']
+    except:
+        is_admin = False
+    
+    if not is_admin and not is_owner(telegram_id):
+        await callback.answer("Only group admins can delete the wallet!", show_alert=True)
+        return
+    
+    deleted = await db.delete_group_owner_wallet(chat_id)
+    
+    if deleted:
+        await callback.message.edit_text(
+            f"🗑️ <b>Group Wallet Deleted!</b>\n\n"
+            f"The group owner wallet has been removed.\n"
+            f"The 1% group owner fee will no longer be distributed.\n\n"
+            f"To set a new wallet: /setgroupwallet [address]\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer("Wallet deleted successfully!")
+    else:
+        await callback.answer("No wallet found to delete.", show_alert=True)
 
 
 @router.callback_query(F.data.startswith("delete_wallet_"))
