@@ -32,7 +32,7 @@ def get_betting_database_url():
     elif not url.startswith('postgresql+asyncpg://'):
         url = 'postgresql+asyncpg://' + url.split('://', 1)[-1] if '://' in url else url
     
-    url = re.sub(r':(/[^/])', r'\1', url)
+    url = re.sub(r'@([^/:]+):/', r'@\1/', url)
     
     return url
 
