@@ -91,8 +91,8 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 ### FAPCOIN Betting System
 - `/wallet` - View your burner wallet (auto-generated) with deposit address and balance
 - `/deposit` - Check for new deposits and view current balance
-- `/withdraw [amount] [address]` - Withdraw FAPCOIN to a Solana address
-- `/fapbet [amount] @user` - Challenge another user to a FAPCOIN bet
+- `/withdraw [amount] [address]` - Withdraw FAPCOIN to a Solana address (min: 500 FAPCOIN)
+- `/fapbet [amount] @user` - Challenge another user to a FAPCOIN bet (min: 100, max: 10,000 FAPCOIN)
 - `/setgroupwallet [address]` - Group admins only can set wallet to receive 1% of bets
 - `/betstats` - View betting statistics for group and global
 - Inline buttons: Check Deposit, Withdraw, Back to Wallet
@@ -101,6 +101,8 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 - Duplicate pending bet prevention
 - **Wallet deletion prompt after bets** - users can delete burner wallets after each bet
 - **Purchases require group context** - /buy must be used in groups (adds length to group leaderboard)
+- **Betting Limits:** Min 100, Max 10,000 FAPCOIN per bet
+- **Withdrawal Limit:** Min 500 FAPCOIN
 - **Fee Distribution:**
   - 98% goes to winner
   - 1% goes to team wallet (TREASURY_WALLET)

@@ -2035,7 +2035,7 @@ async def callback_wallet_withdraw(callback: CallbackQuery):
             f"<code>/withdraw [amount] [solana_address]</code>\n\n"
             f"Example:\n"
             f"<code>/withdraw 100 ABC123...XYZ</code>\n\n"
-            f"⚠️ Minimum withdrawal: 10 FAPCOIN\n"
+            f"⚠️ Minimum withdrawal: 500 FAPCOIN\n"
             f"📊 Network fee: ~0.1 FAPCOIN\n\n"
             f"🚀 Powered by $FAPCOIN on Solana",
             reply_markup=keyboard,
@@ -2111,8 +2111,8 @@ async def cmd_withdraw(message: Message):
         amount = float(args[1])
         destination = args[2]
         
-        if amount < 10:
-            await message.answer("❌ Minimum withdrawal is 10 FAPCOIN", parse_mode=None)
+        if amount < 500:
+            await message.answer("❌ Minimum withdrawal is 500 FAPCOIN\n\n🚀 Powered by $FAPCOIN on Solana", parse_mode=None)
             return
         
         if amount > float(wallet.balance):
@@ -2155,6 +2155,10 @@ async def callback_fapbet_info(callback: CallbackQuery):
         "━━━━━━━━━━━━━━━━━━━━━\n"
         "Bet real FAPCOIN against other players!\n"
         "━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "📊 <b>Limits:</b>\n"
+        "- Min bet: 100 $FAPCOIN\n"
+        "- Max bet: 10,000 $FAPCOIN\n"
+        "- Min withdrawal: 500 $FAPCOIN\n\n"
         "📋 <b>How it works:</b>\n"
         "1. Deposit FAPCOIN to your wallet\n"
         "2. Use /fapbet [amount] @user to challenge\n"
@@ -2196,6 +2200,7 @@ async def cmd_fapbet(message: Message):
             "Usage: /fapbet [amount] @username\n"
             "Or reply to someone: /fapbet [amount]\n\n"
             "Example: <code>/fapbet 100 @player</code>\n\n"
+            "📊 Min: 100 | Max: 10,000 $FAPCOIN\n\n"
             "💰 98% goes to winner\n"
             "💎 1% goes to team\n"
             "👑 1% goes to group owner\n\n"
@@ -2204,10 +2209,17 @@ async def cmd_fapbet(message: Message):
         )
         return
     
+    MIN_BET = 100
+    MAX_BET = 10000
+    
     try:
         bet_amount = float(args[1])
-        if bet_amount <= 0:
-            raise ValueError("Bet must be positive")
+        if bet_amount < MIN_BET:
+            await message.answer(f"❌ Minimum bet is {MIN_BET} $FAPCOIN\n\n🚀 Powered by $FAPCOIN on Solana", parse_mode=None)
+            return
+        if bet_amount > MAX_BET:
+            await message.answer(f"❌ Maximum bet is {MAX_BET:,} $FAPCOIN\n\n🚀 Powered by $FAPCOIN on Solana", parse_mode=None)
+            return
     except ValueError:
         await message.answer("❌ Invalid bet amount. Use a positive number.", parse_mode=None)
         return
