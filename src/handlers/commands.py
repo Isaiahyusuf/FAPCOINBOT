@@ -2189,6 +2189,7 @@ async def callback_fapbet_info(callback: CallbackQuery):
 
 
 @router.message(Command("fapbet"))
+@router.message(F.text.regexp(r"@\w+\s+/fapbet"))
 async def cmd_fapbet(message: Message):
     telegram_id = message.from_user.id
     chat_id = message.chat.id
