@@ -304,10 +304,17 @@ async def send_fapcoin_with_retry(to_address: str, amount: float, max_retries: i
 async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[str], Optional[str]]:
     """Send FAPCOIN tokens from main wallet to destination.
     
+    Professional-grade SPL token transfer with:
+    - Compute budget for priority fees
+    - Fresh blockhash for each attempt
+    - Proper ATA creation
+    - Transaction confirmation waiting
+    
     Returns: (success, tx_signature, error_message)
     """
     import aiohttp
     import struct
+    import asyncio
     
     main_wallet = get_main_wallet()
     if not main_wallet:
@@ -323,8 +330,8 @@ async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[s
         return False, None, "Invalid destination address"
     
     sol_balance = await get_sol_balance(main_address)
-    if sol_balance < 0.01:
-        return False, None, f"Insufficient SOL for gas fees (have {sol_balance:.4f} SOL, need 0.01)"
+    if sol_balance < 0.005:
+        return False, None, f"Insufficient SOL for gas fees (have {sol_balance:.4f} SOL, need 0.005)"
     
     token_balance = await get_token_balance(main_address)
     if token_balance < amount:
@@ -346,6 +353,7 @@ async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[s
         TOKEN_PROGRAM_ID = SoldersPubkey.from_string(TOKEN_PROGRAM_ID_STR)
         ASSOCIATED_TOKEN_PROGRAM_ID = SoldersPubkey.from_string(ASSOCIATED_TOKEN_PROGRAM_ID_STR)
         SYSTEM_PROGRAM = SoldersPubkey.from_string(SYSTEM_PROGRAM_ID)
+        COMPUTE_BUDGET_PROGRAM = SoldersPubkey.from_string("ComputeBudget111111111111111111111111111111")
         
         def get_associated_token_address(owner: SoldersPubkey, mint: SoldersPubkey) -> SoldersPubkey:
             seeds = [bytes(owner), bytes(TOKEN_PROGRAM_ID), bytes(mint)]
@@ -360,13 +368,14 @@ async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[s
                 "jsonrpc": "2.0",
                 "id": 1,
                 "method": "getLatestBlockhash",
-                "params": [{"commitment": "finalized"}]
+                "params": [{"commitment": "confirmed"}]
             }
             async with session.post(rpc_url, json=blockhash_payload) as resp:
                 result = await resp.json()
                 if "error" in result:
                     return False, None, f"RPC error getting blockhash: {result['error']}"
                 blockhash_str = result["result"]["value"]["blockhash"]
+                last_valid_block = result["result"]["value"]["lastValidBlockHeight"]
             
             check_ata_payload = {
                 "jsonrpc": "2.0",
@@ -379,6 +388,14 @@ async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[s
                 dest_ata_exists = ata_result.get("result", {}).get("value") is not None
         
         instructions = []
+        
+        set_compute_limit_data = bytes([2]) + struct.pack('<I', 200000)
+        set_compute_limit_ix = Instruction(COMPUTE_BUDGET_PROGRAM, set_compute_limit_data, [])
+        instructions.append(set_compute_limit_ix)
+        
+        set_priority_fee_data = bytes([3]) + struct.pack('<Q', 50000)
+        set_priority_fee_ix = Instruction(COMPUTE_BUDGET_PROGRAM, set_priority_fee_data, [])
+        instructions.append(set_priority_fee_ix)
         
         if not dest_ata_exists:
             create_ata_accounts = [
@@ -411,11 +428,30 @@ async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[s
         tx_base64 = base64.b64encode(tx_bytes).decode('utf-8')
         
         async with aiohttp.ClientSession() as session:
+            sim_payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "simulateTransaction",
+                "params": [tx_base64, {"encoding": "base64", "commitment": "confirmed"}]
+            }
+            async with session.post(rpc_url, json=sim_payload) as resp:
+                sim_result = await resp.json()
+                if "error" in sim_result:
+                    return False, None, f"Simulation error: {sim_result['error']}"
+                sim_value = sim_result.get("result", {}).get("value", {})
+                if sim_value.get("err"):
+                    return False, None, f"Simulation failed: {sim_value['err']}"
+            
             send_payload = {
                 "jsonrpc": "2.0",
                 "id": 1,
                 "method": "sendTransaction",
-                "params": [tx_base64, {"encoding": "base64", "skipPreflight": False, "preflightCommitment": "confirmed"}]
+                "params": [tx_base64, {
+                    "encoding": "base64",
+                    "skipPreflight": True,
+                    "preflightCommitment": "confirmed",
+                    "maxRetries": 3
+                }]
             }
             async with session.post(rpc_url, json=send_payload) as resp:
                 send_result = await resp.json()
@@ -424,8 +460,45 @@ async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[s
                     logger.error(f"Transaction send error: {error_msg}")
                     return False, None, f"Transaction failed: {error_msg}"
                 tx_signature = send_result["result"]
-                logger.info(f"FAPCOIN transfer successful: {tx_signature} - {amount} FAPCOIN to {to_address}")
-                return True, tx_signature, None
+            
+            logger.info(f"Transaction sent: {tx_signature}, waiting for confirmation...")
+            
+            for i in range(30):
+                await asyncio.sleep(2)
+                
+                status_payload = {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "getSignatureStatuses",
+                    "params": [[tx_signature], {"searchTransactionHistory": True}]
+                }
+                async with session.post(rpc_url, json=status_payload) as resp:
+                    status_result = await resp.json()
+                    statuses = status_result.get("result", {}).get("value", [])
+                    
+                    if statuses and statuses[0]:
+                        status = statuses[0]
+                        if status.get("err"):
+                            return False, tx_signature, f"Transaction failed on-chain: {status['err']}"
+                        
+                        confirmation = status.get("confirmationStatus", "")
+                        if confirmation in ["confirmed", "finalized"]:
+                            logger.info(f"FAPCOIN transfer confirmed: {tx_signature} - {amount} FAPCOIN to {to_address}")
+                            return True, tx_signature, None
+                
+                block_payload = {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "getBlockHeight",
+                    "params": []
+                }
+                async with session.post(rpc_url, json=block_payload) as resp:
+                    block_result = await resp.json()
+                    current_block = block_result.get("result", 0)
+                    if current_block > last_valid_block:
+                        return False, None, "Transaction expired (blockhash too old)"
+            
+            return False, tx_signature, "Transaction sent but confirmation timed out"
                 
     except Exception as e:
         logger.error(f"FAPCOIN transfer error: {e}")
