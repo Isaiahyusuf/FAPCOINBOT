@@ -2276,6 +2276,9 @@ async def cmd_fapbet(message: Message):
             if opponent_id == telegram_id:
                 await message.answer("❌ You can't bet against yourself!", parse_mode=None)
                 return
+        # Note: opponent_id can be None if user hasn't interacted with bot yet
+        # The bet will still be created with opponent_username, and when they click Accept,
+        # the bot will match them by username and create their wallet
     else:
         await message.answer(
             "❌ Please specify an opponent.\n\n"

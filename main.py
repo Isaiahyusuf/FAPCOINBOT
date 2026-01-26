@@ -181,21 +181,23 @@ async def main():
         BotCommand(command="menu", description="🎮 Open main menu"),
         BotCommand(command="grow", description="🌱 Daily growth"),
         BotCommand(command="top", description="🏆 View leaderboard"),
-        BotCommand(command="pvp", description="⚔️ Challenge someone (reply to them)"),
+        BotCommand(command="pvp", description="⚔️ Challenge someone"),
+        BotCommand(command="fapbet", description="⚔️ Bet FAPCOIN (reply or @user)"),
+        BotCommand(command="wallet", description="💰 View your FAPCOIN wallet"),
         BotCommand(command="daily", description="🎲 Dick of the Day"),
         BotCommand(command="buy", description="💰 Buy growth with FAPCOIN"),
         BotCommand(command="verify", description="✅ Verify payment"),
         BotCommand(command="loan", description="💳 Get a loan"),
         BotCommand(command="support", description="🆘 Contact support"),
-        BotCommand(command="about", description="ℹ️ About this bot"),
         BotCommand(command="help", description="❓ Show help"),
     ]
     
     private_commands = [
         BotCommand(command="start", description="🚀 Start the bot"),
         BotCommand(command="menu", description="🎮 Open main menu"),
-        BotCommand(command="buy", description="💰 Buy growth with FAPCOIN"),
-        BotCommand(command="about", description="ℹ️ About this bot"),
+        BotCommand(command="wallet", description="💰 View your FAPCOIN wallet"),
+        BotCommand(command="deposit", description="📥 Check deposits"),
+        BotCommand(command="withdraw", description="📤 Withdraw FAPCOIN"),
         BotCommand(command="support", description="🆘 Contact support"),
         BotCommand(command="help", description="❓ Show help"),
     ]
