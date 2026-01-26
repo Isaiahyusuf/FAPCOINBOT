@@ -630,6 +630,17 @@ async def cmd_buy(message: Message):
     telegram_id = message.from_user.id
     chat_id = message.chat.id
     
+    # Purchases must be made in groups so length goes to group leaderboard
+    if message.chat.type == ChatType.PRIVATE:
+        await message.answer(
+            "📦 <b>PURCHASE LENGTH</b>\n\n"
+            "⚠️ Please use /buy in a group chat!\n\n"
+            "Purchased length is added to your group leaderboard.\n"
+            "Use this command in the group where you want the length added.",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
     await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
     await db.get_or_create_user_chat(telegram_id, chat_id)
     
@@ -997,6 +1008,11 @@ async def callback_buy(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     chat_id = callback.message.chat.id
     
+    # Purchases must be made in groups
+    if callback.message.chat.type == ChatType.PRIVATE:
+        await callback.answer("⚠️ Please use /buy in a group chat to add length to your group leaderboard!", show_alert=True)
+        return
+    
     await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
     await db.get_or_create_user_chat(telegram_id, chat_id)
     
@@ -1017,6 +1033,12 @@ async def callback_buy(callback: CallbackQuery):
 async def callback_buy_amount(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     chat_id = callback.message.chat.id
+    
+    # Purchases must be made in groups
+    if callback.message.chat.type == ChatType.PRIVATE:
+        await callback.answer("⚠️ Please use /buy in a group chat!", show_alert=True)
+        return
+    
     amount = int(callback.data.split("_")[2])
     
     if amount < 1 or amount > MAX_BUY_AMOUNT:
@@ -1052,6 +1074,11 @@ async def callback_buy_amount(callback: CallbackQuery):
 
 @router.callback_query(F.data == "buy_custom")
 async def callback_buy_custom(callback: CallbackQuery):
+    # Purchases must be made in groups
+    if callback.message.chat.type == ChatType.PRIVATE:
+        await callback.answer("⚠️ Please use /buy in a group chat!", show_alert=True)
+        return
+    
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="◀️ Back", callback_data="action_buy")]
     ])
@@ -1073,6 +1100,11 @@ async def callback_buy_custom(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("paid_"))
 async def callback_paid(callback: CallbackQuery):
+    # Purchases must be made in groups
+    if callback.message.chat.type == ChatType.PRIVATE:
+        await callback.answer("⚠️ Please use /buy in a group chat!", show_alert=True)
+        return
+    
     amount = int(callback.data.split("_")[1])
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -2337,6 +2369,11 @@ async def callback_fapbet_accept(callback: CallbackQuery, bot: Bot):
     winner_name = challenger_name if result['winner_id'] == bet.challenger_id else opponent_name
     loser_name = opponent_name if result['winner_id'] == bet.challenger_id else challenger_name
     
+    # Add buttons for both players to optionally delete their wallets
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🗑️ Delete My Wallet", callback_data=f"delete_wallet_{bet.challenger_id}_{telegram_id}")]
+    ])
+    
     await callback.message.edit_text(
         f"⚔️ <b>$FAPCOIN BET RESULT!</b> ⚔️\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
@@ -2348,7 +2385,9 @@ async def callback_fapbet_accept(callback: CallbackQuery, bot: Bot):
         f"💎 Team fee: {result['treasury_fee']:,.2f} $FAPCOIN\n"
         f"👑 Group owner: {result['group_owner_fee']:,.2f} $FAPCOIN\n\n"
         f"😢 {loser_name} lost {bet.bet_amount:,.2f} $FAPCOIN\n\n"
-        f"🚀 Powered by $FAPCOIN on Solana",
+        f"🚀 Powered by $FAPCOIN on Solana\n\n"
+        f"⚠️ Want to delete your burner wallet? Click below:",
+        reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
     await callback.answer(f"🏆 {winner_name} wins!")
@@ -2435,6 +2474,73 @@ async def cmd_setgroupwallet(message: Message, bot: Bot):
         f"🚀 Powered by $FAPCOIN on Solana",
         parse_mode=ParseMode.HTML
     )
+
+
+@router.callback_query(F.data.startswith("delete_wallet_"))
+async def callback_delete_wallet(callback: CallbackQuery):
+    """Handle wallet deletion request after bet"""
+    telegram_id = callback.from_user.id
+    
+    logger.info(f"DELETE_WALLET callback from user {telegram_id}")
+    
+    # Check if user has balance
+    wallet = await db.get_user_wallet(telegram_id)
+    if not wallet:
+        await callback.answer("You don't have a wallet to delete!", show_alert=True)
+        return
+    
+    if float(wallet.balance) > 0:
+        await callback.answer(
+            f"❌ Can't delete - you have {wallet.balance:,.2f} FAPCOIN!\n"
+            f"Withdraw first using /withdraw",
+            show_alert=True
+        )
+        return
+    
+    # Confirm deletion
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Yes, Delete", callback_data=f"confirm_delete_wallet_{telegram_id}"),
+            InlineKeyboardButton(text="❌ Keep Wallet", callback_data="cancel_delete_wallet")
+        ]
+    ])
+    
+    await callback.message.edit_reply_markup(reply_markup=keyboard)
+    await callback.answer("Are you sure? This cannot be undone!")
+
+
+@router.callback_query(F.data.startswith("confirm_delete_wallet_"))
+async def callback_confirm_delete_wallet(callback: CallbackQuery):
+    """Confirm and execute wallet deletion"""
+    parts = callback.data.split("_")
+    wallet_owner_id = int(parts[3])
+    telegram_id = callback.from_user.id
+    
+    # Only the wallet owner can delete their wallet
+    if telegram_id != wallet_owner_id:
+        await callback.answer("❌ You can only delete your own wallet!", show_alert=True)
+        return
+    
+    success = await db.delete_user_wallet(telegram_id)
+    if success:
+        await callback.answer("✅ Wallet deleted successfully!", show_alert=True)
+        # Update the message to remove buttons
+        try:
+            await callback.message.edit_reply_markup(reply_markup=None)
+        except:
+            pass
+    else:
+        await callback.answer("❌ Could not delete wallet. Make sure balance is 0.", show_alert=True)
+
+
+@router.callback_query(F.data == "cancel_delete_wallet")
+async def callback_cancel_delete_wallet(callback: CallbackQuery):
+    """Cancel wallet deletion"""
+    await callback.answer("Wallet kept!")
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except:
+        pass
 
 
 @router.message(Command("betstats"))

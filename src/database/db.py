@@ -831,6 +831,24 @@ async def get_user_wallet(telegram_id: int) -> UserWallet | None:
         return result.scalar_one_or_none()
 
 
+async def delete_user_wallet(telegram_id: int) -> bool:
+    """Delete a user's burner wallet. Returns True if deleted, False if not found."""
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(UserWallet).where(UserWallet.telegram_id == telegram_id)
+        )
+        wallet = result.scalar_one_or_none()
+        if wallet:
+            # Only delete if balance is 0
+            if wallet.balance > 0:
+                return False
+            await session.delete(wallet)
+            await session.commit()
+            return True
+        return False
+
+
 async def update_wallet_balance(telegram_id: int, new_balance: float) -> bool:
     Session = get_session()
     async with Session() as session:
