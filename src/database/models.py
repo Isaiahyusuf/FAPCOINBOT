@@ -94,6 +94,49 @@ class BotSettings(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+class UserWallet(Base):
+    __tablename__ = 'user_wallets'
+    
+    id = Column(Integer, primary_key=True)
+    telegram_id = Column(BigInteger, unique=True, nullable=False)
+    public_key = Column(String(64), unique=True, nullable=False)
+    encrypted_private_key = Column(String(512), nullable=False)
+    balance = Column(Float, default=0.0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class FapcoinBet(Base):
+    __tablename__ = 'fapcoin_bets'
+    
+    id = Column(Integer, primary_key=True)
+    chat_id = Column(BigInteger, nullable=False)
+    challenger_id = Column(BigInteger, nullable=False)
+    opponent_id = Column(BigInteger, nullable=True)
+    opponent_username = Column(String(255), nullable=True)
+    bet_amount = Column(Float, nullable=False)
+    status = Column(String(50), default='pending')
+    winner_id = Column(BigInteger, nullable=True)
+    winner_payout = Column(Float, nullable=True)
+    treasury_fee = Column(Float, nullable=True)
+    group_owner_fee = Column(Float, nullable=True)
+    dev_fee = Column(Float, nullable=True)
+    tx_signature = Column(String(128), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    resolved_at = Column(DateTime, nullable=True)
+
+
+class GroupOwnerWallet(Base):
+    __tablename__ = 'group_owner_wallets'
+    
+    id = Column(Integer, primary_key=True)
+    chat_id = Column(BigInteger, unique=True, nullable=False)
+    owner_telegram_id = Column(BigInteger, nullable=False)
+    wallet_address = Column(String(64), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 def get_database_url():
     url = os.environ.get('DATABASE_URL', '')
     if not url:

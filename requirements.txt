@@ -12,3 +12,5 @@ base58
 psycopg2-binary
 python-dotenv
 sqlalchemy
+solana
+solders
