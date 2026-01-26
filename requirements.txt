@@ -5,3 +5,10 @@ aiohttp>=3.9.0
 psycopg2-binary>=2.9.0
 python-dotenv>=1.0.0
 base58>=2.1.0
+aiogram
+aiohttp
+asyncpg
+base58
+psycopg2-binary
+python-dotenv
+sqlalchemy
