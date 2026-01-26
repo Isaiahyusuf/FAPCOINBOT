@@ -1885,18 +1885,31 @@ async def catch_tx_hash(message: Message):
 async def cmd_wallet(message: Message):
     telegram_id = message.from_user.id
     
-    await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
-    wallet = await db.get_or_create_user_wallet(telegram_id)
+    logger.info(f"WALLET command received from user {telegram_id}")
+    
+    try:
+        await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
+        wallet = await db.get_or_create_user_wallet(telegram_id)
+        logger.info(f"Wallet created/retrieved for user {telegram_id}: {wallet.public_key[:20]}...")
+    except Exception as e:
+        logger.error(f"WALLET error: {e}")
+        await message.answer(
+            f"❌ Database error creating wallet. The database tables may need to be created.\n\n"
+            f"Error: {str(e)[:100]}",
+            parse_mode=None
+        )
+        return
     
     await message.answer(
-        f"💰 <b>YOUR FAPCOIN WALLET</b> 💰\n\n"
+        f"💰 <b>YOUR $FAPCOIN WALLET</b> 💰\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"📥 <b>Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
-        f"💵 <b>Balance:</b> {wallet.balance:,.2f} FAPCOIN\n"
+        f"💵 <b>Balance:</b> {wallet.balance:,.2f} $FAPCOIN\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
         f"📲 Send FAPCOIN to your deposit address above.\n"
         f"Use /deposit after sending to update your balance.\n\n"
-        f"⚔️ Use /fapbet [amount] @user to start a bet!",
+        f"⚔️ Use /fapbet [amount] @user to start a bet!\n\n"
+        f"🚀 Powered by $FAPCOIN on Solana",
         parse_mode=ParseMode.HTML
     )
 
@@ -1964,6 +1977,8 @@ async def cmd_fapbet(message: Message):
     telegram_id = message.from_user.id
     chat_id = message.chat.id
     
+    logger.info(f"FAPBET command received from user {telegram_id} in chat {chat_id}")
+    
     if message.chat.type == ChatType.PRIVATE:
         await message.answer(
             "⚔️ $FAPCOIN bets must be made in groups!\n\n"
@@ -1995,8 +2010,18 @@ async def cmd_fapbet(message: Message):
         await message.answer("❌ Invalid bet amount. Use a positive number.", parse_mode=None)
         return
     
-    await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
-    wallet = await db.get_or_create_user_wallet(telegram_id)
+    try:
+        await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
+        wallet = await db.get_or_create_user_wallet(telegram_id)
+        logger.info(f"User wallet retrieved: balance={wallet.balance}")
+    except Exception as e:
+        logger.error(f"FAPBET error getting wallet: {e}")
+        await message.answer(
+            f"❌ Database error. Please try again later.\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
+            parse_mode=None
+        )
+        return
     
     if wallet.balance < bet_amount:
         await message.answer(
