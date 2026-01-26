@@ -208,8 +208,9 @@ async def main():
         BotCommand(command="gift", description="🎁 Gift cm to someone"),
         BotCommand(command="loan", description="💳 Reset negative length"),
         BotCommand(command="verify", description="✅ Verify payment"),
-        BotCommand(command="setgroupwallet", description="👑 Set group owner wallet"),
+        BotCommand(command="setgroupwallet", description="👑 Set group wallet (admins)"),
         BotCommand(command="betstats", description="📊 View betting stats"),
+        BotCommand(command="about", description="ℹ️ About this bot"),
         BotCommand(command="support", description="🆘 Contact support"),
         BotCommand(command="help", description="❓ Show all commands"),
     ]

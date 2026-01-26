@@ -54,6 +54,10 @@ def get_main_menu_keyboard(bot_username: str = None, is_private: bool = False):
             InlineKeyboardButton(text="⚔️ FAPCOIN Bet", callback_data="action_fapbet_info")
         ],
         [
+            InlineKeyboardButton(text="📊 Bet Stats", callback_data="action_betstats"),
+            InlineKeyboardButton(text="👑 Set Group Wallet", callback_data="action_setgroupwallet")
+        ],
+        [
             InlineKeyboardButton(text="📊 My Stats", callback_data="action_stats"),
             InlineKeyboardButton(text="💳 Loan", callback_data="action_loan")
         ],
@@ -3050,6 +3054,121 @@ async def callback_cancel_delete_wallet(callback: CallbackQuery):
         await callback.message.edit_reply_markup(reply_markup=None)
     except:
         pass
+
+
+@router.callback_query(F.data == "action_betstats")
+async def callback_betstats(callback: CallbackQuery):
+    """Show bet stats via button"""
+    chat_id = callback.message.chat.id
+    
+    if callback.message.chat.type == ChatType.PRIVATE:
+        global_stats = await db.get_global_bet_stats()
+        keyboard = get_back_button()
+        await callback.message.edit_text(
+            f"📊 <b>$FAPCOIN GLOBAL BET STATS</b> 📊\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🎲 <b>Total Bets:</b> {global_stats['total_bets']:,}\n"
+            f"💰 <b>Total Volume:</b> {global_stats['total_volume']:,.2f} $FAPCOIN\n"
+            f"💎 <b>Team Fees Earned:</b> {global_stats['total_treasury_fees']:,.2f} $FAPCOIN\n"
+            f"🌐 <b>Active Groups:</b> {global_stats['total_groups']}\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"Want to earn 1% of all bets in your group?\n"
+            f"Add the bot and use /setgroupwallet!\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer()
+        return
+    
+    stats = await db.get_bet_stats(chat_id)
+    global_stats = await db.get_global_bet_stats()
+    group_wallet = await db.get_group_owner_wallet(chat_id)
+    
+    wallet_status = f"✅ Set: <code>{group_wallet[:8]}...{group_wallet[-4:]}</code>" if group_wallet else "❌ Not set - use /setgroupwallet"
+    
+    keyboard = get_back_button()
+    await callback.message.edit_text(
+        f"📊 <b>$FAPCOIN BET STATS</b> 📊\n\n"
+        f"━━━ THIS GROUP ━━━\n"
+        f"🎲 <b>Total Bets:</b> {stats['total_bets']:,}\n"
+        f"💰 <b>Total Volume:</b> {stats['total_volume']:,.2f} $FAPCOIN\n"
+        f"💎 <b>Group Fees Earned:</b> {stats['total_group_fees']:,.2f} $FAPCOIN\n"
+        f"👑 <b>Group Wallet:</b> {wallet_status}\n\n"
+        f"━━━ GLOBAL ━━━\n"
+        f"🎲 <b>Total Bets:</b> {global_stats['total_bets']:,}\n"
+        f"💰 <b>Total Volume:</b> {global_stats['total_volume']:,.2f} $FAPCOIN\n"
+        f"🌐 <b>Active Groups:</b> {global_stats['total_groups']}\n\n"
+        f"🚀 Powered by $FAPCOIN on Solana",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action_setgroupwallet")
+async def callback_setgroupwallet(callback: CallbackQuery, bot: Bot):
+    """Show set group wallet info via button"""
+    chat_id = callback.message.chat.id
+    telegram_id = callback.from_user.id
+    
+    if callback.message.chat.type == ChatType.PRIVATE:
+        keyboard = get_back_button()
+        await callback.message.edit_text(
+            "❌ <b>Group Command Only</b>\n\n"
+            "This command must be used in a group.\n\n"
+            "Add the bot to your group and use /setgroupwallet there!",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer()
+        return
+    
+    try:
+        chat_member = await bot.get_chat_member(chat_id, telegram_id)
+        is_admin = chat_member.status in ['creator', 'administrator']
+    except:
+        is_admin = False
+    
+    group_wallet = await db.get_group_owner_wallet(chat_id)
+    
+    keyboard = get_back_button()
+    
+    if group_wallet:
+        await callback.message.edit_text(
+            f"👑 <b>GROUP WALLET</b>\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"Current wallet:\n<code>{group_wallet}</code>\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"This wallet receives 1% of all FAPCOIN bets!\n\n"
+            f"To change, admins can use:\n"
+            f"<code>/setgroupwallet [new_address]</code>",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    else:
+        if is_admin:
+            await callback.message.edit_text(
+                f"👑 <b>SET GROUP WALLET</b>\n\n"
+                f"No group wallet is set yet!\n\n"
+                f"As a group admin, you can set one:\n"
+                f"<code>/setgroupwallet [solana_address]</code>\n\n"
+                f"Your wallet will receive 1% of all FAPCOIN bets in this group!",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            await callback.message.edit_text(
+                f"👑 <b>GROUP WALLET</b>\n\n"
+                f"No group wallet is set yet.\n\n"
+                f"Ask a group admin to set one using:\n"
+                f"<code>/setgroupwallet [solana_address]</code>\n\n"
+                f"The group owner receives 1% of all FAPCOIN bets!",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
+    
+    await callback.answer()
 
 
 @router.message(Command("betstats"))
