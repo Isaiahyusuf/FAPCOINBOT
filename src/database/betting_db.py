@@ -18,16 +18,22 @@ _betting_engine = None
 _betting_session = None
 
 def get_betting_database_url():
-    """Use the exact same URL parsing as the main database (which works on Railway)"""
+    """Parse DATABASE_URL and handle Railway's empty port issue"""
+    import re
+    
     url = os.environ.get('BETTING_DATABASE_URL') or os.environ.get('DATABASE_URL', '')
     if not url:
         return None
+    
     if url.startswith('postgres://'):
         url = url.replace('postgres://', 'postgresql+asyncpg://', 1)
     elif url.startswith('postgresql://'):
         url = url.replace('postgresql://', 'postgresql+asyncpg://', 1)
     elif not url.startswith('postgresql+asyncpg://'):
         url = 'postgresql+asyncpg://' + url.split('://', 1)[-1] if '://' in url else url
+    
+    url = re.sub(r':(/[^/])', r'\1', url)
+    
     return url
 
 def get_betting_engine():
