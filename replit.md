@@ -103,6 +103,7 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 - **Purchases require group context** - /buy must be used in groups (adds length to group leaderboard)
 - **Betting Limits:** Min 100, Max 10,000 FAPCOIN per bet
 - **Withdrawal Limit:** Min 500 FAPCOIN
+- **Gas Fees:** Users must deposit ~$1 SOL to cover Solana network fees for withdrawals
 - **Fee Distribution:**
   - 98% goes to winner
   - 1% goes to team wallet (TREASURY_WALLET)

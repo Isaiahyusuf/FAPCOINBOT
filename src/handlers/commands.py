@@ -1965,8 +1965,10 @@ async def callback_wallet(callback: CallbackQuery):
         f"📥 <b>Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
         f"💵 <b>Balance:</b> {wallet.balance:,.2f} FAPCOIN\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"Send FAPCOIN to your deposit address,\n"
-        f"then click 'Check Deposit' to update balance.",
+        f"📲 Send FAPCOIN to your deposit address,\n"
+        f"then click 'Check Deposit' to update balance.\n\n"
+        f"⛽ <b>For withdrawals:</b> Also send ~$1 SOL\n"
+        f"to cover network gas fees.",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
@@ -2034,9 +2036,11 @@ async def callback_wallet_withdraw(callback: CallbackQuery):
             f"To withdraw, use:\n"
             f"<code>/withdraw [amount] [solana_address]</code>\n\n"
             f"Example:\n"
-            f"<code>/withdraw 100 ABC123...XYZ</code>\n\n"
-            f"⚠️ Minimum withdrawal: 500 FAPCOIN\n"
-            f"📊 Network fee: ~0.1 FAPCOIN\n\n"
+            f"<code>/withdraw 500 ABC123...XYZ</code>\n\n"
+            f"⚠️ Minimum withdrawal: 500 FAPCOIN\n\n"
+            f"⛽ <b>Gas Fee Required:</b>\n"
+            f"Send at least $1 worth of SOL to your wallet\n"
+            f"address above to cover network fees.\n\n"
             f"🚀 Powered by $FAPCOIN on Solana",
             reply_markup=keyboard,
             parse_mode=ParseMode.HTML
