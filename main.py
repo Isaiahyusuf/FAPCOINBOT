@@ -194,29 +194,33 @@ async def main():
     logger.info(f"Router included with {len(router.message.handlers)} message handlers")
     
     group_commands = [
-        BotCommand(command="ping", description="🏓 Test bot"),
         BotCommand(command="menu", description="🎮 Open main menu"),
         BotCommand(command="grow", description="🌱 Daily growth"),
         BotCommand(command="top", description="🏆 View leaderboard"),
-        BotCommand(command="pvp", description="⚔️ Challenge someone"),
-        BotCommand(command="fapbet", description="⚔️ Bet FAPCOIN (reply or @user)"),
-        BotCommand(command="wallet", description="💰 View your FAPCOIN wallet"),
+        BotCommand(command="pvp", description="⚔️ PvP battle (bet cm)"),
+        BotCommand(command="fapbet", description="💰 Bet FAPCOIN tokens"),
+        BotCommand(command="wallet", description="💳 Your FAPCOIN wallet"),
+        BotCommand(command="deposit", description="📥 Check for deposits"),
+        BotCommand(command="withdraw", description="📤 Withdraw FAPCOIN"),
         BotCommand(command="daily", description="🎲 Dick of the Day"),
-        BotCommand(command="buy", description="💰 Buy growth with FAPCOIN"),
+        BotCommand(command="buy", description="🛒 Buy growth with FAPCOIN"),
+        BotCommand(command="gift", description="🎁 Gift cm to someone"),
+        BotCommand(command="loan", description="💳 Reset negative length"),
         BotCommand(command="verify", description="✅ Verify payment"),
-        BotCommand(command="loan", description="💳 Get a loan"),
+        BotCommand(command="setgroupwallet", description="👑 Set group owner wallet"),
+        BotCommand(command="betstats", description="📊 View betting stats"),
         BotCommand(command="support", description="🆘 Contact support"),
-        BotCommand(command="help", description="❓ Show help"),
+        BotCommand(command="help", description="❓ Show all commands"),
     ]
     
     private_commands = [
         BotCommand(command="start", description="🚀 Start the bot"),
         BotCommand(command="menu", description="🎮 Open main menu"),
-        BotCommand(command="wallet", description="💰 View your FAPCOIN wallet"),
-        BotCommand(command="deposit", description="📥 Check deposits"),
+        BotCommand(command="wallet", description="💳 Your FAPCOIN wallet"),
+        BotCommand(command="deposit", description="📥 Check for deposits"),
         BotCommand(command="withdraw", description="📤 Withdraw FAPCOIN"),
         BotCommand(command="support", description="🆘 Contact support"),
-        BotCommand(command="help", description="❓ Show help"),
+        BotCommand(command="help", description="❓ Show all commands"),
     ]
     
     await bot.set_my_commands(group_commands, scope=BotCommandScopeAllGroupChats())
