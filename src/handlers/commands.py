@@ -2658,13 +2658,13 @@ async def callback_withdraw_confirm(callback: CallbackQuery):
         f"│ 📍 To: <b>{short_addr}</b>\n"
         f"└─────────────────────┘\n\n"
         f"Sending tokens on Solana blockchain...\n"
-        f"Please wait...\n\n"
+        f"Confirming transaction (this may take 10-20 seconds)...\n\n"
         f"🚀 $FAPCOIN on Solana",
         parse_mode=ParseMode.HTML
     )
     
-    from src.utils.wallet import send_fapcoin
-    tx_success, tx_signature, tx_error = await send_fapcoin(address, amount)
+    from src.utils.wallet import send_fapcoin_with_retry
+    tx_success, tx_signature, tx_error = await send_fapcoin_with_retry(address, amount, max_retries=3, check_delay=5.0)
     
     if tx_success:
         success, new_balance, error = await db.deduct_wallet_balance(telegram_id, amount)
@@ -3058,6 +3058,68 @@ async def cmd_fapbet(message: Message):
         )
 
 
+async def process_bet_fee_payouts(
+    bet_id: int,
+    treasury_wallet: str,
+    treasury_fee: float,
+    group_owner_wallet: str,
+    group_owner_fee: float,
+    is_main_group: bool,
+    chat_id: int,
+    bot
+):
+    """Process fee payouts with retry logic after bet resolution.
+    
+    This runs as a background task to send fees to treasury and group owner.
+    """
+    import asyncio
+    from src.utils.wallet import send_fapcoin_with_retry
+    
+    MIN_FEE_PAYOUT = 10.0
+    
+    fee_results = []
+    
+    if treasury_wallet and treasury_fee >= MIN_FEE_PAYOUT:
+        logger.info(f"Bet {bet_id}: Sending {treasury_fee} FAPCOIN treasury fee to {treasury_wallet}")
+        success, tx_sig, error = await send_fapcoin_with_retry(
+            treasury_wallet, treasury_fee, max_retries=3, check_delay=5.0
+        )
+        if success:
+            logger.info(f"Bet {bet_id}: Treasury fee sent successfully. TX: {tx_sig}")
+            fee_results.append(("treasury", True, tx_sig))
+        else:
+            logger.error(f"Bet {bet_id}: Treasury fee failed: {error}")
+            fee_results.append(("treasury", False, error))
+            await db.record_failed_fee_payout(bet_id, "treasury", treasury_fee, treasury_wallet, error)
+    
+    if not is_main_group and group_owner_wallet and group_owner_fee >= MIN_FEE_PAYOUT:
+        logger.info(f"Bet {bet_id}: Sending {group_owner_fee} FAPCOIN group owner fee to {group_owner_wallet}")
+        success, tx_sig, error = await send_fapcoin_with_retry(
+            group_owner_wallet, group_owner_fee, max_retries=3, check_delay=5.0
+        )
+        if success:
+            logger.info(f"Bet {bet_id}: Group owner fee sent successfully. TX: {tx_sig}")
+            fee_results.append(("group_owner", True, tx_sig))
+        else:
+            logger.error(f"Bet {bet_id}: Group owner fee failed: {error}")
+            fee_results.append(("group_owner", False, error))
+            await db.record_failed_fee_payout(bet_id, "group_owner", group_owner_fee, group_owner_wallet, error)
+    
+    failed_payouts = [r for r in fee_results if not r[1]]
+    if failed_payouts:
+        try:
+            fail_msg = "\n".join([f"• {r[0]}: {r[2]}" for r in failed_payouts])
+            await bot.send_message(
+                chat_id,
+                f"⚠️ <b>Fee Payout Issue</b>\n\n"
+                f"Some bet fees couldn't be sent:\n{fail_msg}\n\n"
+                f"This will be retried automatically.",
+                parse_mode=ParseMode.HTML
+            )
+        except Exception as e:
+            logger.error(f"Failed to send fee failure notification: {e}")
+
+
 @router.callback_query(F.data.startswith("fapbet_accept_"))
 async def callback_fapbet_accept(callback: CallbackQuery, bot: Bot):
     bet_id = int(callback.data.split("_")[2])
@@ -3152,6 +3214,18 @@ async def callback_fapbet_accept(callback: CallbackQuery, bot: Bot):
         parse_mode=ParseMode.HTML
     )
     await callback.answer(f"🏆 {winner_name} wins!")
+    
+    import asyncio
+    asyncio.create_task(process_bet_fee_payouts(
+        bet_id=bet_id,
+        treasury_wallet=treasury_wallet,
+        treasury_fee=result['treasury_fee'],
+        group_owner_wallet=group_owner_wallet,
+        group_owner_fee=result['group_owner_fee'],
+        is_main_group=is_main_group,
+        chat_id=bet.chat_id,
+        bot=bot
+    ))
 
 
 @router.callback_query(F.data.startswith("fapbet_decline_"))

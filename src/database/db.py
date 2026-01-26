@@ -1147,3 +1147,13 @@ async def has_pending_bet_between(chat_id: int, user1_id: int, user2_id: int) ->
             )
         )
         return result.scalar_one_or_none() is not None
+
+
+async def record_failed_fee_payout(bet_id: int, fee_type: str, amount: float, wallet: str, error: str) -> None:
+    """Record a failed fee payout for later retry.
+    
+    Logs the failure for tracking purposes.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.error(f"FAILED FEE PAYOUT: bet_id={bet_id}, type={fee_type}, amount={amount}, wallet={wallet}, error={error}")

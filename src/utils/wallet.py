@@ -205,6 +205,102 @@ async def get_sol_balance(wallet_address: str) -> float:
         return 0.0
 
 
+async def check_transaction_status(tx_signature: str) -> Tuple[str, Optional[str]]:
+    """Check transaction status on Solana.
+    
+    Returns: (status, error_message)
+    status can be: 'confirmed', 'finalized', 'pending', 'failed'
+    """
+    import aiohttp
+    import asyncio
+    
+    rpc_url = os.environ.get('SOLANA_RPC_URL', 'https://api.mainnet-beta.solana.com')
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "getSignatureStatuses",
+                "params": [[tx_signature], {"searchTransactionHistory": True}]
+            }
+            async with session.post(rpc_url, json=payload) as resp:
+                result = await resp.json()
+                
+                if "error" in result:
+                    return "failed", f"RPC error: {result['error']}"
+                
+                statuses = result.get("result", {}).get("value", [])
+                if not statuses or statuses[0] is None:
+                    return "pending", None
+                
+                status = statuses[0]
+                if status.get("err"):
+                    return "failed", f"Transaction error: {status['err']}"
+                
+                confirmation_status = status.get("confirmationStatus", "")
+                if confirmation_status in ["confirmed", "finalized"]:
+                    return confirmation_status, None
+                
+                return "pending", None
+    except Exception as e:
+        logger.error(f"Error checking tx status: {e}")
+        return "failed", str(e)
+
+
+async def send_fapcoin_with_retry(to_address: str, amount: float, max_retries: int = 3, check_delay: float = 5.0) -> Tuple[bool, Optional[str], Optional[str]]:
+    """Send FAPCOIN with automatic retry and confirmation checking.
+    
+    Returns: (success, tx_signature, error_message)
+    """
+    import asyncio
+    
+    last_error = None
+    
+    for attempt in range(max_retries):
+        if attempt > 0:
+            logger.info(f"Retry attempt {attempt + 1}/{max_retries} for FAPCOIN transfer to {to_address}")
+        
+        success, tx_signature, error = await send_fapcoin(to_address, amount)
+        
+        if not success:
+            last_error = error
+            if "Insufficient" in (error or ""):
+                return False, None, error
+            await asyncio.sleep(2)
+            continue
+        
+        await asyncio.sleep(check_delay)
+        
+        status, status_error = await check_transaction_status(tx_signature)
+        
+        if status in ["confirmed", "finalized"]:
+            logger.info(f"Transaction {tx_signature} confirmed on attempt {attempt + 1}")
+            return True, tx_signature, None
+        elif status == "failed":
+            last_error = status_error or "Transaction failed on-chain"
+            logger.warning(f"Transaction {tx_signature} failed: {last_error}")
+            continue
+        else:
+            for _ in range(3):
+                await asyncio.sleep(3)
+                status, status_error = await check_transaction_status(tx_signature)
+                if status in ["confirmed", "finalized"]:
+                    logger.info(f"Transaction {tx_signature} confirmed after additional wait")
+                    return True, tx_signature, None
+                elif status == "failed":
+                    break
+            
+            if status in ["confirmed", "finalized"]:
+                return True, tx_signature, None
+            elif status == "failed":
+                last_error = status_error or "Transaction failed on-chain"
+            else:
+                return True, tx_signature, None
+    
+    return False, None, last_error or "Transaction failed after all retries"
+
+
 async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[str], Optional[str]]:
     """Send FAPCOIN tokens from main wallet to destination.
     
