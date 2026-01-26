@@ -7,6 +7,27 @@ channel = "stable-25_05"
 packages = ["cargo", "libiconv", "libxcrypt", "openssl", "pkg-config", "postgresql", "rustc"]
 
 [workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Code Test"
+
+[[workflows.workflow]]
+name = "Code Test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 -c \"from src.handlers.commands import router; print(f'Loaded {len(router.message.handlers)} handlers successfully')\""
+
+[workflows.workflow.metadata]
+outputType = "console"
 
 [userenv]
 
