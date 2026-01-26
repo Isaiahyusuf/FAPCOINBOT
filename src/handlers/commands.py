@@ -1941,6 +1941,176 @@ async def callback_wallet(callback: CallbackQuery):
     await callback.answer()
 
 
+@router.callback_query(F.data == "wallet_deposit")
+async def callback_wallet_deposit(callback: CallbackQuery):
+    """Check for new deposits and update balance"""
+    telegram_id = callback.from_user.id
+    
+    logger.info(f"WALLET_DEPOSIT callback from user {telegram_id}")
+    
+    try:
+        wallet = await db.get_or_create_user_wallet(telegram_id)
+        
+        # TODO: In a real implementation, you would check the Solana blockchain
+        # for new deposits to wallet.public_key and update the balance
+        # For now, we just show the current balance
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🔄 Refresh", callback_data="wallet_deposit")],
+            [InlineKeyboardButton(text="◀️ Back to Wallet", callback_data="action_wallet")]
+        ])
+        
+        await callback.message.edit_text(
+            f"📥 <b>DEPOSIT CHECK</b>\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"📬 <b>Your Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
+            f"💵 <b>Current Balance:</b> {wallet.balance:,.2f} $FAPCOIN\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"📲 Send FAPCOIN tokens to your deposit address.\n"
+            f"Balance updates may take a few minutes.\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    except Exception as e:
+        logger.error(f"WALLET_DEPOSIT error: {e}")
+        await callback.answer(f"Error checking deposits: {str(e)[:50]}", show_alert=True)
+        return
+    
+    await callback.answer("Deposit check complete!")
+
+
+@router.callback_query(F.data == "wallet_withdraw")
+async def callback_wallet_withdraw(callback: CallbackQuery):
+    """Show withdrawal instructions"""
+    telegram_id = callback.from_user.id
+    
+    logger.info(f"WALLET_WITHDRAW callback from user {telegram_id}")
+    
+    try:
+        wallet = await db.get_or_create_user_wallet(telegram_id)
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="◀️ Back to Wallet", callback_data="action_wallet")]
+        ])
+        
+        await callback.message.edit_text(
+            f"📤 <b>WITHDRAW $FAPCOIN</b>\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"💵 <b>Available Balance:</b> {wallet.balance:,.2f} $FAPCOIN\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"To withdraw, use:\n"
+            f"<code>/withdraw [amount] [solana_address]</code>\n\n"
+            f"Example:\n"
+            f"<code>/withdraw 100 ABC123...XYZ</code>\n\n"
+            f"⚠️ Minimum withdrawal: 10 FAPCOIN\n"
+            f"📊 Network fee: ~0.1 FAPCOIN\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    except Exception as e:
+        logger.error(f"WALLET_WITHDRAW error: {e}")
+        await callback.answer(f"Error: {str(e)[:50]}", show_alert=True)
+        return
+    
+    await callback.answer()
+
+
+@router.message(Command("deposit"))
+async def cmd_deposit(message: Message):
+    """Check for new deposits to user's wallet"""
+    telegram_id = message.from_user.id
+    
+    logger.info(f"DEPOSIT command from user {telegram_id}")
+    
+    try:
+        await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
+        wallet = await db.get_or_create_user_wallet(telegram_id)
+        
+        await message.answer(
+            f"📥 <b>DEPOSIT CHECK</b>\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"📬 <b>Your Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
+            f"💵 <b>Current Balance:</b> {wallet.balance:,.2f} $FAPCOIN\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"📲 Send FAPCOIN tokens to your deposit address.\n"
+            f"Balance updates may take a few minutes.\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
+            parse_mode=ParseMode.HTML
+        )
+    except Exception as e:
+        logger.error(f"DEPOSIT error: {e}")
+        await message.answer(f"❌ Error checking deposits: {str(e)[:100]}", parse_mode=None)
+
+
+@router.message(Command("withdraw"))
+async def cmd_withdraw(message: Message):
+    """Withdraw FAPCOIN from wallet"""
+    telegram_id = message.from_user.id
+    
+    logger.info(f"WITHDRAW command from user {telegram_id}")
+    
+    try:
+        await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
+        wallet = await db.get_or_create_user_wallet(telegram_id)
+    except Exception as e:
+        logger.error(f"WITHDRAW error getting wallet: {e}")
+        await message.answer(f"❌ Error: {str(e)[:100]}", parse_mode=None)
+        return
+    
+    args = message.text.split()
+    if len(args) < 3:
+        await message.answer(
+            f"📤 <b>WITHDRAW $FAPCOIN</b>\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"💵 <b>Available:</b> {wallet.balance:,.2f} $FAPCOIN\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"Usage: <code>/withdraw [amount] [solana_address]</code>\n\n"
+            f"Example:\n"
+            f"<code>/withdraw 100 ABC123...XYZ</code>\n\n"
+            f"⚠️ Min: 10 FAPCOIN | Fee: ~0.1 FAPCOIN\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    try:
+        amount = float(args[1])
+        destination = args[2]
+        
+        if amount < 10:
+            await message.answer("❌ Minimum withdrawal is 10 FAPCOIN", parse_mode=None)
+            return
+        
+        if amount > float(wallet.balance):
+            await message.answer(
+                f"❌ Insufficient balance!\n"
+                f"Available: {wallet.balance:,.2f} FAPCOIN\n"
+                f"Requested: {amount:,.2f} FAPCOIN",
+                parse_mode=None
+            )
+            return
+        
+        if len(destination) < 32 or len(destination) > 44:
+            await message.answer("❌ Invalid Solana address", parse_mode=None)
+            return
+        
+        # TODO: Implement actual Solana transfer
+        # For now, show pending message
+        await message.answer(
+            f"⏳ <b>WITHDRAWAL PENDING</b>\n\n"
+            f"Amount: {amount:,.2f} $FAPCOIN\n"
+            f"To: <code>{destination[:20]}...</code>\n\n"
+            f"⚠️ Withdrawals are processed manually.\n"
+            f"Please contact support for large withdrawals.\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
+            parse_mode=ParseMode.HTML
+        )
+    except ValueError:
+        await message.answer("❌ Invalid amount. Use a number.", parse_mode=None)
+
+
 @router.callback_query(F.data == "action_fapbet_info")
 async def callback_fapbet_info(callback: CallbackQuery):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
