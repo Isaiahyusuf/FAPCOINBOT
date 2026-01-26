@@ -1,0 +1,1337 @@
+2026-01-26T19:56:40.000000000Z [info] Starting Container
+2026-01-26T19:56:48.162599210Z [error] 2026-01-26 19:56:45,475 - __main__ - INFO - Initializing database...
+2026-01-26T19:56:48.162614578Z [error] 2026-01-26 19:56:45,681 - __main__ - INFO - Main database initialized successfully!
+2026-01-26T19:56:48.162625032Z [error] 2026-01-26 19:56:45,682 - __main__ - INFO - Initializing betting database...
+2026-01-26T19:56:48.162634407Z [error] Traceback (most recent call last):
+2026-01-26T19:56:48.162643650Z [error]   File "/app/main.py", line 225, in <module>
+2026-01-26T19:56:48.162653730Z [error]     asyncio.run(main())
+2026-01-26T19:56:48.162661866Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 194, in run
+2026-01-26T19:56:48.162670427Z [error]     return runner.run(main)
+2026-01-26T19:56:48.162680135Z [error]            ^^^^^^^^^^^^^^^^
+2026-01-26T19:56:48.162691787Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+2026-01-26T19:56:48.162705450Z [error]     return self._loop.run_until_complete(task)
+2026-01-26T19:56:48.162714373Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:48.162722997Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+2026-01-26T19:56:48.162731675Z [error]     return future.result()
+2026-01-26T19:56:48.162739976Z [error]            ^^^^^^^^^^^^^^^
+2026-01-26T19:56:48.162748852Z [error]   File "/app/main.py", line 174, in main
+2026-01-26T19:56:48.162759548Z [error]     await init_betting_db()
+2026-01-26T19:56:48.162768503Z [error]   File "/app/src/database/betting_db.py", line 71, in init_betting_db
+2026-01-26T19:56:48.162786568Z [error]     async with engine.begin() as conn:
+2026-01-26T19:56:49.216239495Z [error]                ^^^^^^^^^^^^^^
+2026-01-26T19:56:49.216245772Z [error]   File "/root/.nix-profile/lib/python3.12/contextlib.py", line 210, in __aenter__
+2026-01-26T19:56:49.216251155Z [error]     return await anext(self.gen)
+2026-01-26T19:56:49.216257072Z [error]            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:49.216263322Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 1068, in begin
+2026-01-26T19:56:49.216269777Z [error]     async with conn:
+2026-01-26T19:56:49.217906199Z [error]                ^^^^
+2026-01-26T19:56:49.217915407Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/base.py", line 121, in __aenter__
+2026-01-26T19:56:49.217920835Z [error]     return await self.start(is_ctxmanager=True)
+2026-01-26T19:56:49.217925863Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:49.217932359Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 275, in start
+2026-01-26T19:56:49.217938123Z [error]     await greenlet_spawn(self.sync_engine.connect)
+2026-01-26T19:56:49.217943868Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+2026-01-26T19:56:50.539496956Z [error]     self._dbapi_connection = engine.raw_connection()
+2026-01-26T19:56:50.539509063Z [error]                              ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:50.539518063Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3309, in raw_connection
+2026-01-26T19:56:50.539680503Z [error]     result = context.throw(*sys.exc_info())
+2026-01-26T19:56:50.539692354Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:50.539699987Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3285, in connect
+2026-01-26T19:56:50.539715697Z [error]     return self._connection_cls(self)
+2026-01-26T19:56:50.539722897Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:50.539729363Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+2026-01-26T19:56:50.545467124Z [error]     return self.pool.connect()
+2026-01-26T19:56:50.545481851Z [error]            ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:50.545491239Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 447, in connect
+2026-01-26T19:56:51.847073546Z [error]     return _ConnectionFairy._checkout(self)
+2026-01-26T19:56:51.847082622Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:51.847090442Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1264, in _checkout
+2026-01-26T19:56:51.847098696Z [error]     fairy = _ConnectionRecord.checkout(pool)
+2026-01-26T19:56:51.847105726Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:51.847113061Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 711, in checkout
+2026-01-26T19:56:51.847120495Z [error]     rec = pool._do_get()
+2026-01-26T19:56:51.847127507Z [error]           ^^^^^^^^^^^^^^
+2026-01-26T19:56:51.847133899Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+2026-01-26T19:56:51.847140978Z [error]     with util.safe_reraise():
+2026-01-26T19:56:51.847148221Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:51.847154895Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:56:51.847161659Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:56:52.760703664Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+2026-01-26T19:56:52.760711833Z [error]     return self._create_connection()
+2026-01-26T19:56:52.760726417Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.760735020Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 388, in _create_connection
+2026-01-26T19:56:52.760743317Z [error]     return _ConnectionRecord(self)
+2026-01-26T19:56:52.760752310Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.760760697Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 673, in __init__
+2026-01-26T19:56:52.760773765Z [error]     self.__connect()
+2026-01-26T19:56:52.760788858Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 899, in __connect
+2026-01-26T19:56:52.760797336Z [error]     with util.safe_reraise():
+2026-01-26T19:56:52.760806134Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.760815275Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:56:52.760823484Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:56:52.760833039Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 895, in __connect
+2026-01-26T19:56:52.760865163Z [error]     self.dbapi_connection = connection = pool._invoke_creator(self)
+2026-01-26T19:56:52.765943683Z [error]                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.765951648Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 661, in connect
+2026-01-26T19:56:52.765962121Z [error]     return dialect.connect(*cargs, **cparams)
+2026-01-26T19:56:52.765973152Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.765985460Z [error] ^^^^^
+2026-01-26T19:56:52.766003648Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+2026-01-26T19:56:52.766012214Z [error]     return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+2026-01-26T19:56:52.766020443Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.766030408Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+2026-01-26T19:56:52.766040581Z [error]     await_only(creator_fn(*arg, **kw)),
+2026-01-26T19:56:52.766048552Z [error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.766058536Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+2026-01-26T19:56:52.766066049Z [error]     return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+2026-01-26T19:56:52.766159546Z [error]     return await __connect_addr(params, True, *args)
+2026-01-26T19:56:52.766203986Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.766211397Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+2026-01-26T19:56:52.766221870Z [error]     value = await result
+2026-01-26T19:56:52.766232858Z [error]             ^^^^^^^^^^^^
+2026-01-26T19:56:52.766242941Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connection.py", line 2443, in connect
+2026-01-26T19:56:52.766250296Z [error]     return await connect_utils._connect(
+2026-01-26T19:56:52.766264349Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.766273026Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+2026-01-26T19:56:52.766288288Z [error]     raise last_error or exceptions.TargetServerAttributeNotMatched(
+2026-01-26T19:56:52.766298306Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+2026-01-26T19:56:52.766305907Z [error]     conn = await _connect_addr(
+2026-01-26T19:56:52.766306553Z [error]            ^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.766317774Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+2026-01-26T19:56:52.770920742Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.770940741Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 901, in getaddrinfo
+2026-01-26T19:56:52.770979129Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.770987558Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+2026-01-26T19:56:52.771007649Z [error]     tr, pr = await connector
+2026-01-26T19:56:52.771022604Z [error]              ^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.771025134Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.771043971Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1079, in create_connection
+2026-01-26T19:56:52.771044644Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.771061865Z [error]     infos = await self._ensure_resolved(
+2026-01-26T19:56:52.771062328Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1455, in _ensure_resolved
+2026-01-26T19:56:52.771069195Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+2026-01-26T19:56:52.771076517Z [error]     return await loop.getaddrinfo(host, port, family=family, type=type,
+2026-01-26T19:56:52.771085712Z [error]     tr, pr = await loop.create_connection(
+2026-01-26T19:56:52.779671827Z [error]     return await self.run_in_executor(
+2026-01-26T19:56:52.779679707Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.779687243Z [error]   File "/root/.nix-profile/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+2026-01-26T19:56:52.779700534Z [error]     result = self.fn(*self.args, **self.kwargs)
+2026-01-26T19:56:52.779706192Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.779999296Z [error]   File "/root/.nix-profile/lib/python3.12/socket.py", line 976, in getaddrinfo
+2026-01-26T19:56:52.780007647Z [error]     for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+2026-01-26T19:56:52.780020034Z [error]                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.784143031Z [error] ^
+2026-01-26T19:56:52.784155892Z [error] socket.gaierror: [Errno -2] Name or service not known
+2026-01-26T19:56:52.784163899Z [error] 2026-01-26 19:56:52,322 - __main__ - INFO - Initializing database...
+2026-01-26T19:56:52.786279553Z [error] 2026-01-26 19:56:52,434 - __main__ - INFO - Main database initialized successfully!
+2026-01-26T19:56:52.786287197Z [error] 2026-01-26 19:56:52,434 - __main__ - INFO - Initializing betting database...
+2026-01-26T19:56:52.798252801Z [error] Traceback (most recent call last):
+2026-01-26T19:56:52.798260650Z [error]   File "/app/main.py", line 225, in <module>
+2026-01-26T19:56:52.798268604Z [error]     asyncio.run(main())
+2026-01-26T19:56:52.798277560Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 194, in run
+2026-01-26T19:56:52.798287541Z [error]     return runner.run(main)
+2026-01-26T19:56:52.798295631Z [error]            ^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.798303514Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+2026-01-26T19:56:52.798317063Z [error]     return self._loop.run_until_complete(task)
+2026-01-26T19:56:52.798325543Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.798334900Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+2026-01-26T19:56:52.798343824Z [error]     return future.result()
+2026-01-26T19:56:52.798353369Z [error]            ^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.798361310Z [error]   File "/app/main.py", line 174, in main
+2026-01-26T19:56:52.798370208Z [error]     await init_betting_db()
+2026-01-26T19:56:52.798378249Z [error]   File "/app/src/database/betting_db.py", line 71, in init_betting_db
+2026-01-26T19:56:52.798385947Z [error]     async with engine.begin() as conn:
+2026-01-26T19:56:52.798394396Z [error]                ^^^^^^^^^^^^^^
+2026-01-26T19:56:52.798403705Z [error]   File "/root/.nix-profile/lib/python3.12/contextlib.py", line 210, in __aenter__
+2026-01-26T19:56:52.798411153Z [error]     return await anext(self.gen)
+2026-01-26T19:56:52.798419866Z [error]            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.798428483Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 1068, in begin
+2026-01-26T19:56:52.798436848Z [error]     async with conn:
+2026-01-26T19:56:52.802625374Z [error]                ^^^^
+2026-01-26T19:56:52.802636912Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/base.py", line 121, in __aenter__
+2026-01-26T19:56:52.802648214Z [error]     return await self.start(is_ctxmanager=True)
+2026-01-26T19:56:52.802658836Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.802666650Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 275, in start
+2026-01-26T19:56:52.802673042Z [error]     await greenlet_spawn(self.sync_engine.connect)
+2026-01-26T19:56:52.802679375Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+2026-01-26T19:56:52.802688639Z [error]     result = context.throw(*sys.exc_info())
+2026-01-26T19:56:52.802694462Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.802701025Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3285, in connect
+2026-01-26T19:56:52.802706988Z [error]     return self._connection_cls(self)
+2026-01-26T19:56:52.802712955Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.803597237Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1264, in _checkout
+2026-01-26T19:56:52.803607169Z [error]     fairy = _ConnectionRecord.checkout(pool)
+2026-01-26T19:56:52.803614509Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.803622701Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 711, in checkout
+2026-01-26T19:56:52.803631133Z [error]     rec = pool._do_get()
+2026-01-26T19:56:52.803685441Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3309, in raw_connection
+2026-01-26T19:56:52.803692102Z [error]     return self.pool.connect()
+2026-01-26T19:56:52.803701697Z [error]            ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.803709126Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 447, in connect
+2026-01-26T19:56:52.803716052Z [error]     return _ConnectionFairy._checkout(self)
+2026-01-26T19:56:52.803723976Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.803786527Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+2026-01-26T19:56:52.803796502Z [error]     self._dbapi_connection = engine.raw_connection()
+2026-01-26T19:56:52.803807367Z [error]                              ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.806736756Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.806766566Z [error]           ^^^^^^^^^^^^^^
+2026-01-26T19:56:52.806773658Z [error]     return self._create_connection()
+2026-01-26T19:56:52.806784219Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.806785356Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+2026-01-26T19:56:52.806794793Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 388, in _create_connection
+2026-01-26T19:56:52.806795951Z [error]     with util.safe_reraise():
+2026-01-26T19:56:52.806812949Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:56:52.806821157Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+2026-01-26T19:56:52.806828008Z [error]     return _ConnectionRecord(self)
+2026-01-26T19:56:52.806839104Z [error]     self.__connect()
+2026-01-26T19:56:52.806839252Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.806848370Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 673, in __init__
+2026-01-26T19:56:52.806891742Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:56:52.806936420Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 899, in __connect
+2026-01-26T19:56:52.806945518Z [error]     with util.safe_reraise():
+2026-01-26T19:56:52.807025607Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.807039328Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:56:52.823150222Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:56:52.823158956Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 895, in __connect
+2026-01-26T19:56:52.823167837Z [error]     self.dbapi_connection = connection = pool._invoke_creator(self)
+2026-01-26T19:56:52.823176279Z [error]                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.823184365Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 661, in connect
+2026-01-26T19:56:52.823192094Z [error]     return dialect.connect(*cargs, **cparams)
+2026-01-26T19:56:52.823200015Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.823209000Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+2026-01-26T19:56:52.823217465Z [error]     return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+2026-01-26T19:56:52.823226494Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.823234866Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+2026-01-26T19:56:52.823243493Z [error]     await_only(creator_fn(*arg, **kw)),
+2026-01-26T19:56:52.828089845Z [error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.828097105Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+2026-01-26T19:56:52.828103701Z [error]     return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+2026-01-26T19:56:52.828109754Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.828116212Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+2026-01-26T19:56:52.828124096Z [error]     value = await result
+2026-01-26T19:56:52.828131940Z [error]             ^^^^^^^^^^^^
+2026-01-26T19:56:52.828137920Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connection.py", line 2443, in connect
+2026-01-26T19:56:52.828143439Z [error]     return await connect_utils._connect(
+2026-01-26T19:56:52.828150092Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.828156744Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+2026-01-26T19:56:52.830205561Z [error]     raise last_error or exceptions.TargetServerAttributeNotMatched(
+2026-01-26T19:56:52.830212952Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+2026-01-26T19:56:52.830227891Z [error]     conn = await _connect_addr(
+2026-01-26T19:56:52.830235766Z [error]            ^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.830243678Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+2026-01-26T19:56:52.830250525Z [error]     return await __connect_addr(params, True, *args)
+2026-01-26T19:56:52.830257349Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.830265521Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+2026-01-26T19:56:52.830273037Z [error]     tr, pr = await connector
+2026-01-26T19:56:52.830280065Z [error]              ^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.830287401Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+2026-01-26T19:56:52.830294845Z [error]     tr, pr = await loop.create_connection(
+2026-01-26T19:56:52.830301674Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.830308711Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1079, in create_connection
+2026-01-26T19:56:52.840130466Z [error]     infos = await self._ensure_resolved(
+2026-01-26T19:56:52.840142729Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.840161993Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1455, in _ensure_resolved
+2026-01-26T19:56:52.840168854Z [error]     return await loop.getaddrinfo(host, port, family=family, type=type,
+2026-01-26T19:56:52.840188581Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.840206270Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 901, in getaddrinfo
+2026-01-26T19:56:52.840213113Z [error]     return await self.run_in_executor(
+2026-01-26T19:56:52.840230739Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.840238379Z [error]   File "/root/.nix-profile/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+2026-01-26T19:56:52.840245104Z [error]     result = self.fn(*self.args, **self.kwargs)
+2026-01-26T19:56:52.840259995Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.840273829Z [error]   File "/root/.nix-profile/lib/python3.12/socket.py", line 976, in getaddrinfo
+2026-01-26T19:56:52.840322284Z [error]     for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+2026-01-26T19:56:52.840336962Z [error]                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.842745083Z [error] ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:52.842752904Z [error] socket.gaierror: [Errno -2] Name or service not known
+2026-01-26T19:56:59.614922960Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+2026-01-26T19:56:59.614930903Z [error]     return self._loop.run_until_complete(task)
+2026-01-26T19:56:59.614934600Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 194, in run
+2026-01-26T19:56:59.614939499Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:59.614949794Z [error]     return runner.run(main)
+2026-01-26T19:56:59.614952425Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+2026-01-26T19:56:59.614959495Z [error]            ^^^^^^^^^^^^^^^^
+2026-01-26T19:56:59.614961388Z [error]     return future.result()
+2026-01-26T19:56:59.614972238Z [error]            ^^^^^^^^^^^^^^^
+2026-01-26T19:56:59.615040839Z [error] 2026-01-26 19:56:59,123 - __main__ - INFO - Initializing database...
+2026-01-26T19:56:59.615047659Z [error] 2026-01-26 19:56:59,229 - __main__ - INFO - Main database initialized successfully!
+2026-01-26T19:56:59.615057980Z [error] 2026-01-26 19:56:59,230 - __main__ - INFO - Initializing betting database...
+2026-01-26T19:56:59.615063951Z [error] Traceback (most recent call last):
+2026-01-26T19:56:59.615074483Z [error]   File "/app/main.py", line 225, in <module>
+2026-01-26T19:56:59.615082527Z [error]     asyncio.run(main())
+2026-01-26T19:56:59.615139875Z [error]     async with engine.begin() as conn:
+2026-01-26T19:56:59.615230348Z [error]   File "/app/main.py", line 174, in main
+2026-01-26T19:56:59.615230572Z [error]     await init_betting_db()
+2026-01-26T19:56:59.615252379Z [error]   File "/app/src/database/betting_db.py", line 71, in init_betting_db
+2026-01-26T19:56:59.625942081Z [error]                ^^^^^^^^^^^^^^
+2026-01-26T19:56:59.625951781Z [error]   File "/root/.nix-profile/lib/python3.12/contextlib.py", line 210, in __aenter__
+2026-01-26T19:56:59.625962352Z [error]     return await anext(self.gen)
+2026-01-26T19:56:59.625970821Z [error]            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:59.625978107Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 1068, in begin
+2026-01-26T19:56:59.625985031Z [error]     async with conn:
+2026-01-26T19:56:59.625992426Z [error]                ^^^^
+2026-01-26T19:56:59.626000798Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/base.py", line 121, in __aenter__
+2026-01-26T19:56:59.626008123Z [error]     return await self.start(is_ctxmanager=True)
+2026-01-26T19:56:59.626016490Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:59.626029078Z [error] ^
+2026-01-26T19:56:59.626038096Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 275, in start
+2026-01-26T19:56:59.626045345Z [error]     await greenlet_spawn(self.sync_engine.connect)
+2026-01-26T19:56:59.634817092Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+2026-01-26T19:56:59.634825549Z [error]     result = context.throw(*sys.exc_info())
+2026-01-26T19:56:59.634833304Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:59.634841646Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3285, in connect
+2026-01-26T19:56:59.634849179Z [error]     return self._connection_cls(self)
+2026-01-26T19:56:59.634865909Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:59.634873790Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+2026-01-26T19:56:59.634882924Z [error]     self._dbapi_connection = engine.raw_connection()
+2026-01-26T19:56:59.634892430Z [error]                              ^^^^^^^^^^^^^^^^^^
+2026-01-26T19:56:59.634900224Z [error] ^^^^^
+2026-01-26T19:56:59.634907884Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3309, in raw_connection
+2026-01-26T19:56:59.634918318Z [error]     return self.pool.connect()
+2026-01-26T19:57:01.202986809Z [error]            ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:01.202994273Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 447, in connect
+2026-01-26T19:57:01.203001948Z [error]     return _ConnectionFairy._checkout(self)
+2026-01-26T19:57:01.203008919Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:01.203016791Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1264, in _checkout
+2026-01-26T19:57:01.203029654Z [error]     fairy = _ConnectionRecord.checkout(pool)
+2026-01-26T19:57:01.203037215Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:01.203044672Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 711, in checkout
+2026-01-26T19:57:01.203052956Z [error]     rec = pool._do_get()
+2026-01-26T19:57:01.203060320Z [error]           ^^^^^^^^^^^^^^
+2026-01-26T19:57:01.203070350Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+2026-01-26T19:57:01.203078264Z [error]     with util.safe_reraise():
+2026-01-26T19:57:01.203085688Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:01.203096745Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:01.203104994Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:01.203112724Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+2026-01-26T19:57:01.203120205Z [error]     return self._create_connection()
+2026-01-26T19:57:02.833083186Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 388, in _create_connection
+2026-01-26T19:57:02.833098105Z [error]     return _ConnectionRecord(self)
+2026-01-26T19:57:02.833110108Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:02.833118402Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 673, in __init__
+2026-01-26T19:57:02.833126907Z [error]     self.__connect()
+2026-01-26T19:57:02.833137176Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 899, in __connect
+2026-01-26T19:57:02.833145267Z [error]     with util.safe_reraise():
+2026-01-26T19:57:02.833153969Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:02.833163435Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:02.833173547Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:02.833181141Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 895, in __connect
+2026-01-26T19:57:02.833188535Z [error]     self.dbapi_connection = connection = pool._invoke_creator(self)
+2026-01-26T19:57:02.833197614Z [error]                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:02.833206777Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 661, in connect
+2026-01-26T19:57:02.833218933Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:02.835775467Z [error]     return dialect.connect(*cargs, **cparams)
+2026-01-26T19:57:04.146252423Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:04.146258478Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+2026-01-26T19:57:04.146264550Z [error]     return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+2026-01-26T19:57:04.146270361Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:04.146276471Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+2026-01-26T19:57:04.146283682Z [error]     await_only(creator_fn(*arg, **kw)),
+2026-01-26T19:57:04.146291731Z [error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:04.146298235Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+2026-01-26T19:57:04.146304323Z [error]     return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+2026-01-26T19:57:04.146310089Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:04.146316018Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+2026-01-26T19:57:04.146324197Z [error]     value = await result
+2026-01-26T19:57:04.146330199Z [error]             ^^^^^^^^^^^^
+2026-01-26T19:57:04.146336385Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connection.py", line 2443, in connect
+2026-01-26T19:57:05.489071572Z [error]     return await connect_utils._connect(
+2026-01-26T19:57:05.489081497Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:05.489093407Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+2026-01-26T19:57:05.489105582Z [error]     raise last_error or exceptions.TargetServerAttributeNotMatched(
+2026-01-26T19:57:05.489143889Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+2026-01-26T19:57:05.489156251Z [error]     conn = await _connect_addr(
+2026-01-26T19:57:05.489168787Z [error]            ^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:05.489180363Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+2026-01-26T19:57:05.489197395Z [error]     return await __connect_addr(params, True, *args)
+2026-01-26T19:57:05.489209962Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:05.489222604Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+2026-01-26T19:57:05.489231842Z [error]     tr, pr = await connector
+2026-01-26T19:57:05.489251658Z [error]              ^^^^^^^^^^^^^^^
+2026-01-26T19:57:05.489279514Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+2026-01-26T19:57:06.767790878Z [error]     tr, pr = await loop.create_connection(
+2026-01-26T19:57:06.767800640Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:06.767809628Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1079, in create_connection
+2026-01-26T19:57:06.767822355Z [error]     infos = await self._ensure_resolved(
+2026-01-26T19:57:06.767831153Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:06.769456940Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1455, in _ensure_resolved
+2026-01-26T19:57:06.769498453Z [error]     return await loop.getaddrinfo(host, port, family=family, type=type,
+2026-01-26T19:57:06.769508020Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:06.769520274Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 901, in getaddrinfo
+2026-01-26T19:57:06.769528760Z [error]     return await self.run_in_executor(
+2026-01-26T19:57:06.769537567Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:06.769546000Z [error]   File "/root/.nix-profile/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+2026-01-26T19:57:06.769554209Z [error]     result = self.fn(*self.args, **self.kwargs)
+2026-01-26T19:57:07.897402153Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:07.897408857Z [error]   File "/root/.nix-profile/lib/python3.12/socket.py", line 976, in getaddrinfo
+2026-01-26T19:57:07.897417224Z [error]     for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+2026-01-26T19:57:07.897425085Z [error]                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:07.897434922Z [error] socket.gaierror: [Errno -2] Name or service not known
+2026-01-26T19:57:07.897443484Z [error] 2026-01-26 19:57:07,634 - __main__ - INFO - Initializing database...
+2026-01-26T19:57:07.897452045Z [error] 2026-01-26 19:57:07,745 - __main__ - INFO - Main database initialized successfully!
+2026-01-26T19:57:07.897457027Z [error] 2026-01-26 19:57:07,745 - __main__ - INFO - Initializing betting database...
+2026-01-26T19:57:08.994718881Z [error] Traceback (most recent call last):
+2026-01-26T19:57:08.994730594Z [error]   File "/app/main.py", line 225, in <module>
+2026-01-26T19:57:08.994738591Z [error]     asyncio.run(main())
+2026-01-26T19:57:08.994745354Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 194, in run
+2026-01-26T19:57:08.994752169Z [error]     return runner.run(main)
+2026-01-26T19:57:08.994757986Z [error]            ^^^^^^^^^^^^^^^^
+2026-01-26T19:57:08.994764766Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+2026-01-26T19:57:08.994771563Z [error]     return self._loop.run_until_complete(task)
+2026-01-26T19:57:08.994778000Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:08.994783216Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+2026-01-26T19:57:08.994789337Z [error]     return future.result()
+2026-01-26T19:57:08.994795884Z [error]            ^^^^^^^^^^^^^^^
+2026-01-26T19:57:08.994802120Z [error]   File "/app/main.py", line 174, in main
+2026-01-26T19:57:08.994808254Z [error]     await init_betting_db()
+2026-01-26T19:57:08.994823950Z [error]   File "/app/src/database/betting_db.py", line 71, in init_betting_db
+2026-01-26T19:57:08.994829916Z [error]     async with engine.begin() as conn:
+2026-01-26T19:57:08.994835809Z [error]                ^^^^^^^^^^^^^^
+2026-01-26T19:57:08.994842437Z [error]   File "/root/.nix-profile/lib/python3.12/contextlib.py", line 210, in __aenter__
+2026-01-26T19:57:08.994849220Z [error]     return await anext(self.gen)
+2026-01-26T19:57:08.994859816Z [error]            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:08.994867261Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 1068, in begin
+2026-01-26T19:57:08.994873184Z [error]     async with conn:
+2026-01-26T19:57:08.994879935Z [error]                ^^^^
+2026-01-26T19:57:10.183936015Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/base.py", line 121, in __aenter__
+2026-01-26T19:57:10.183943473Z [error]     return await self.start(is_ctxmanager=True)
+2026-01-26T19:57:10.183950112Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:10.183957093Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 275, in start
+2026-01-26T19:57:10.183964085Z [error]     await greenlet_spawn(self.sync_engine.connect)
+2026-01-26T19:57:10.183971721Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+2026-01-26T19:57:10.187495547Z [error]     result = context.throw(*sys.exc_info())
+2026-01-26T19:57:10.187559023Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:10.187567633Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3285, in connect
+2026-01-26T19:57:10.187574006Z [error]     return self._connection_cls(self)
+2026-01-26T19:57:10.187586349Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:10.187594170Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+2026-01-26T19:57:10.187601636Z [error]     self._dbapi_connection = engine.raw_connection()
+2026-01-26T19:57:10.187607845Z [error]                              ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:10.187614874Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3309, in raw_connection
+2026-01-26T19:57:10.187622091Z [error]     return self.pool.connect()
+2026-01-26T19:57:11.619344692Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1264, in _checkout
+2026-01-26T19:57:11.619356797Z [error]     fairy = _ConnectionRecord.checkout(pool)
+2026-01-26T19:57:11.619364263Z [error]     with util.safe_reraise():
+2026-01-26T19:57:11.619373031Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:11.619381838Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:11.619401795Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:11.619402172Z [error]            ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:11.619406411Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:11.619413446Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 447, in connect
+2026-01-26T19:57:11.619413698Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 711, in checkout
+2026-01-26T19:57:11.619417441Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+2026-01-26T19:57:11.619423967Z [error]     return self._create_connection()
+2026-01-26T19:57:11.619431474Z [error]     rec = pool._do_get()
+2026-01-26T19:57:11.619433594Z [error]     return _ConnectionFairy._checkout(self)
+2026-01-26T19:57:11.619436700Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:11.619442873Z [error]           ^^^^^^^^^^^^^^
+2026-01-26T19:57:11.619443091Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:11.619446983Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 388, in _create_connection
+2026-01-26T19:57:11.619453294Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+2026-01-26T19:57:13.206568339Z [error]     return _ConnectionRecord(self)
+2026-01-26T19:57:13.206578675Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:13.206588714Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 673, in __init__
+2026-01-26T19:57:13.206596679Z [error]     self.__connect()
+2026-01-26T19:57:13.206606276Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 899, in __connect
+2026-01-26T19:57:13.206615512Z [error]     with util.safe_reraise():
+2026-01-26T19:57:13.206624447Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:13.206633547Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:13.206642573Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:13.206651843Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 895, in __connect
+2026-01-26T19:57:13.206660898Z [error]     self.dbapi_connection = connection = pool._invoke_creator(self)
+2026-01-26T19:57:13.206725519Z [error]                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:13.206738586Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 661, in connect
+2026-01-26T19:57:13.206749776Z [error]     return dialect.connect(*cargs, **cparams)
+2026-01-26T19:57:13.206758796Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:13.206769094Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+2026-01-26T19:57:13.206778379Z [error]     return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+2026-01-26T19:57:13.206787077Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:13.206796691Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+2026-01-26T19:57:14.350916160Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+2026-01-26T19:57:14.350946693Z [error]     raise last_error or exceptions.TargetServerAttributeNotMatched(
+2026-01-26T19:57:14.350955995Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+2026-01-26T19:57:14.350968323Z [error]     conn = await _connect_addr(
+2026-01-26T19:57:14.350982791Z [error]            ^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:14.350983333Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connection.py", line 2443, in connect
+2026-01-26T19:57:14.350996898Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+2026-01-26T19:57:14.351006592Z [error]     return await connect_utils._connect(
+2026-01-26T19:57:14.351012516Z [error]     return await __connect_addr(params, True, *args)
+2026-01-26T19:57:14.351024483Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:14.351028878Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:14.351043594Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+2026-01-26T19:57:14.351068780Z [error]     await_only(creator_fn(*arg, **kw)),
+2026-01-26T19:57:14.351079394Z [error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:14.351092413Z [error]     value = await result
+2026-01-26T19:57:14.351092548Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+2026-01-26T19:57:14.351104732Z [error]     return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+2026-01-26T19:57:14.351110130Z [error]             ^^^^^^^^^^^^
+2026-01-26T19:57:14.351117744Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:14.351125715Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+2026-01-26T19:57:15.660836811Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:15.660869706Z [error]   File "/root/.nix-profile/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+2026-01-26T19:57:15.660895657Z [error]     tr, pr = await connector
+2026-01-26T19:57:15.660911105Z [error]              ^^^^^^^^^^^^^^^
+2026-01-26T19:57:15.660920960Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+2026-01-26T19:57:15.660929263Z [error]     tr, pr = await loop.create_connection(
+2026-01-26T19:57:15.660937645Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:15.660952845Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1079, in create_connection
+2026-01-26T19:57:15.660961646Z [error]     infos = await self._ensure_resolved(
+2026-01-26T19:57:15.660969855Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:15.660977612Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1455, in _ensure_resolved
+2026-01-26T19:57:15.660988005Z [error]     return await loop.getaddrinfo(host, port, family=family, type=type,
+2026-01-26T19:57:15.661155623Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:15.661171246Z [error] ^^^^^
+2026-01-26T19:57:15.661180740Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 901, in getaddrinfo
+2026-01-26T19:57:15.661189615Z [error]     return await self.run_in_executor(
+2026-01-26T19:57:16.847063225Z [error]     result = self.fn(*self.args, **self.kwargs)
+2026-01-26T19:57:16.847071001Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:16.847078701Z [error]   File "/root/.nix-profile/lib/python3.12/socket.py", line 976, in getaddrinfo
+2026-01-26T19:57:16.847085672Z [error]     for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+2026-01-26T19:57:16.847093208Z [error]                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:16.847102725Z [error] socket.gaierror: [Errno -2] Name or service not known
+2026-01-26T19:57:16.847111153Z [error] 2026-01-26 19:57:14,318 - __main__ - INFO - Initializing database...
+2026-01-26T19:57:16.847130500Z [error] 2026-01-26 19:57:14,431 - __main__ - INFO - Main database initialized successfully!
+2026-01-26T19:57:16.847138906Z [error] 2026-01-26 19:57:14,431 - __main__ - INFO - Initializing betting database...
+2026-01-26T19:57:16.847151053Z [error] Traceback (most recent call last):
+2026-01-26T19:57:16.847159064Z [error]   File "/app/main.py", line 225, in <module>
+2026-01-26T19:57:16.847166427Z [error]     asyncio.run(main())
+2026-01-26T19:57:16.847175016Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 194, in run
+2026-01-26T19:57:16.847183171Z [error]     return runner.run(main)
+2026-01-26T19:57:16.847191590Z [error]            ^^^^^^^^^^^^^^^^
+2026-01-26T19:57:16.847198599Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+2026-01-26T19:57:16.847207535Z [error]     return self._loop.run_until_complete(task)
+2026-01-26T19:57:16.847215014Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:16.847222712Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+2026-01-26T19:57:18.125319493Z [error]                ^^^^^^^^^^^^^^
+2026-01-26T19:57:18.125338124Z [error]   File "/root/.nix-profile/lib/python3.12/contextlib.py", line 210, in __aenter__
+2026-01-26T19:57:18.125349227Z [error]     return await anext(self.gen)
+2026-01-26T19:57:18.125365246Z [error]            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:18.125374828Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 1068, in begin
+2026-01-26T19:57:18.125384432Z [error]     async with conn:
+2026-01-26T19:57:18.125393440Z [error]                ^^^^
+2026-01-26T19:57:18.125404336Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/base.py", line 121, in __aenter__
+2026-01-26T19:57:18.125413260Z [error]     return await self.start(is_ctxmanager=True)
+2026-01-26T19:57:18.125424303Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:18.125437418Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 275, in start
+2026-01-26T19:57:18.125693300Z [error]     return future.result()
+2026-01-26T19:57:18.125700674Z [error]            ^^^^^^^^^^^^^^^
+2026-01-26T19:57:18.125707451Z [error]   File "/app/main.py", line 174, in main
+2026-01-26T19:57:18.125716500Z [error]     await init_betting_db()
+2026-01-26T19:57:18.125722806Z [error]   File "/app/src/database/betting_db.py", line 71, in init_betting_db
+2026-01-26T19:57:18.125729011Z [error]     async with engine.begin() as conn:
+2026-01-26T19:57:19.444382733Z [error]     await greenlet_spawn(self.sync_engine.connect)
+2026-01-26T19:57:19.444388691Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+2026-01-26T19:57:19.444394828Z [error]     result = context.throw(*sys.exc_info())
+2026-01-26T19:57:19.444403015Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:19.444408718Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3285, in connect
+2026-01-26T19:57:19.444415868Z [error]     return self._connection_cls(self)
+2026-01-26T19:57:19.444424799Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:19.444433026Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+2026-01-26T19:57:19.444439901Z [error]     self._dbapi_connection = engine.raw_connection()
+2026-01-26T19:57:19.444448745Z [error]                              ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:19.444455224Z [error] ^^
+2026-01-26T19:57:19.444461628Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3309, in raw_connection
+2026-01-26T19:57:19.444467935Z [error]     return self.pool.connect()
+2026-01-26T19:57:19.444474802Z [error]            ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:19.444481782Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 447, in connect
+2026-01-26T19:57:20.446493691Z [error]     return _ConnectionFairy._checkout(self)
+2026-01-26T19:57:20.446499849Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:20.446506238Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1264, in _checkout
+2026-01-26T19:57:20.446512466Z [error]     fairy = _ConnectionRecord.checkout(pool)
+2026-01-26T19:57:20.446519358Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:20.446527309Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 711, in checkout
+2026-01-26T19:57:20.446535275Z [error]     rec = pool._do_get()
+2026-01-26T19:57:20.446541112Z [error]           ^^^^^^^^^^^^^^
+2026-01-26T19:57:20.446547666Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+2026-01-26T19:57:20.449355845Z [error]     with util.safe_reraise():
+2026-01-26T19:57:20.449370878Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:20.449377497Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:20.449381919Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:20.449386751Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+2026-01-26T19:57:20.449391529Z [error]     return self._create_connection()
+2026-01-26T19:57:20.449396184Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:20.449400510Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 388, in _create_connection
+2026-01-26T19:57:20.449405529Z [error]     return _ConnectionRecord(self)
+2026-01-26T19:57:20.449409985Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:20.449417477Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 673, in __init__
+2026-01-26T19:57:21.372565805Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.372573314Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+2026-01-26T19:57:21.372579846Z [error]     return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+2026-01-26T19:57:21.372587400Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.372594294Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+2026-01-26T19:57:21.372605166Z [error]     await_only(creator_fn(*arg, **kw)),
+2026-01-26T19:57:21.372611516Z [error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.372689415Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+2026-01-26T19:57:21.372698556Z [error]     return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+2026-01-26T19:57:21.372705955Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.372710740Z [error]     self.__connect()
+2026-01-26T19:57:21.372715342Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+2026-01-26T19:57:21.372719469Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 899, in __connect
+2026-01-26T19:57:21.372724160Z [error]     value = await result
+2026-01-26T19:57:21.372731532Z [error]     with util.safe_reraise():
+2026-01-26T19:57:21.372742677Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.372749812Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:21.372761095Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:21.372768196Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 895, in __connect
+2026-01-26T19:57:21.372776595Z [error]     self.dbapi_connection = connection = pool._invoke_creator(self)
+2026-01-26T19:57:21.372789280Z [error]                                      
+2026-01-26T19:57:21.372796205Z [error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.372802482Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 661, in connect
+2026-01-26T19:57:21.372810011Z [error]     return dialect.connect(*cargs, **cparams)
+2026-01-26T19:57:21.374061597Z [error]             ^^^^^^^^^^^^
+2026-01-26T19:57:21.374078938Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connection.py", line 2443, in connect
+2026-01-26T19:57:21.374088263Z [error]     return await connect_utils._connect(
+2026-01-26T19:57:21.379687241Z [error]     infos = await self._ensure_resolved(
+2026-01-26T19:57:21.379697521Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.379712993Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+2026-01-26T19:57:21.379716598Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+2026-01-26T19:57:21.379727094Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.379731407Z [error]            ^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.379735871Z [error]     tr, pr = await loop.create_connection(
+2026-01-26T19:57:21.379737920Z [error]     tr, pr = await connector
+2026-01-26T19:57:21.379740888Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+2026-01-26T19:57:21.379747796Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1079, in create_connection
+2026-01-26T19:57:21.379756071Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.379756945Z [error]              ^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.379759884Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.379767604Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+2026-01-26T19:57:21.379775264Z [error]     raise last_error or exceptions.TargetServerAttributeNotMatched(
+2026-01-26T19:57:21.379776633Z [error]     return await __connect_addr(params, True, *args)
+2026-01-26T19:57:21.379948795Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+2026-01-26T19:57:21.379970678Z [error]     conn = await _connect_addr(
+2026-01-26T19:57:21.383182822Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.383192665Z [error]   File "/root/.nix-profile/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+2026-01-26T19:57:21.383201979Z [error]     result = self.fn(*self.args, **self.kwargs)
+2026-01-26T19:57:21.383210475Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.383218804Z [error]   File "/root/.nix-profile/lib/python3.12/socket.py", line 976, in getaddrinfo
+2026-01-26T19:57:21.383226986Z [error]     for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+2026-01-26T19:57:21.383234434Z [error]                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.383241534Z [error] socket.gaierror: [Errno -2] Name or service not known
+2026-01-26T19:57:21.383249468Z [error] 2026-01-26 19:57:21,097 - __main__ - INFO - Initializing database...
+2026-01-26T19:57:21.383256858Z [error] 2026-01-26 19:57:21,196 - __main__ - INFO - Main database initialized successfully!
+2026-01-26T19:57:21.383263970Z [error] 2026-01-26 19:57:21,196 - __main__ - INFO - Initializing betting database...
+2026-01-26T19:57:21.383351046Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1455, in _ensure_resolved
+2026-01-26T19:57:21.383360036Z [error]     return await loop.getaddrinfo(host, port, family=family, type=type,
+2026-01-26T19:57:21.383368841Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:21.383378544Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 901, in getaddrinfo
+2026-01-26T19:57:21.383387321Z [error]     return await self.run_in_executor(
+2026-01-26T19:57:22.114940372Z [error]   File "/root/.nix-profile/lib/python3.12/contextlib.py", line 210, in __aenter__
+2026-01-26T19:57:22.114970366Z [error]     return await anext(self.gen)
+2026-01-26T19:57:22.115763303Z [error] Traceback (most recent call last):
+2026-01-26T19:57:22.115770218Z [error]   File "/app/main.py", line 225, in <module>
+2026-01-26T19:57:22.115778578Z [error]     asyncio.run(main())
+2026-01-26T19:57:22.115785921Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 194, in run
+2026-01-26T19:57:22.115793871Z [error]     return runner.run(main)
+2026-01-26T19:57:22.115803373Z [error]            ^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.115811257Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+2026-01-26T19:57:22.115818669Z [error]     return self._loop.run_until_complete(task)
+2026-01-26T19:57:22.115826522Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.115834642Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+2026-01-26T19:57:22.115842705Z [error]     return future.result()
+2026-01-26T19:57:22.115849763Z [error]            ^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.115857403Z [error]   File "/app/main.py", line 174, in main
+2026-01-26T19:57:22.115863799Z [error]     await init_betting_db()
+2026-01-26T19:57:22.115870893Z [error]   File "/app/src/database/betting_db.py", line 71, in init_betting_db
+2026-01-26T19:57:22.115880023Z [error]     async with engine.begin() as conn:
+2026-01-26T19:57:22.115888831Z [error]                ^^^^^^^^^^^^^^
+2026-01-26T19:57:22.115910695Z [error]            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.115920816Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 1068, in begin
+2026-01-26T19:57:22.115929665Z [error]     async with conn:
+2026-01-26T19:57:22.115938127Z [error]                ^^^^
+2026-01-26T19:57:22.115948839Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/base.py", line 121, in __aenter__
+2026-01-26T19:57:22.115957976Z [error]     return await self.start(is_ctxmanager=True)
+2026-01-26T19:57:22.115966419Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.115975880Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 275, in start
+2026-01-26T19:57:22.115989598Z [error]     await greenlet_spawn(self.sync_engine.connect)
+2026-01-26T19:57:22.115998381Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+2026-01-26T19:57:22.116006633Z [error]     result = context.throw(*sys.exc_info())
+2026-01-26T19:57:22.116015025Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.116024941Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3285, in connect
+2026-01-26T19:57:22.116033164Z [error]     return self._connection_cls(self)
+2026-01-26T19:57:22.122450725Z [error] ^^^^^^
+2026-01-26T19:57:22.122465563Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3309, in raw_connection
+2026-01-26T19:57:22.122475016Z [error]     return self.pool.connect()
+2026-01-26T19:57:22.122514649Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.122525982Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+2026-01-26T19:57:22.122535571Z [error]     self._dbapi_connection = engine.raw_connection()
+2026-01-26T19:57:22.122545130Z [error]                              ^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.122563535Z [error]            ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.122574206Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 447, in connect
+2026-01-26T19:57:22.122582194Z [error]     return _ConnectionFairy._checkout(self)
+2026-01-26T19:57:22.122590501Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.122599056Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1264, in _checkout
+2026-01-26T19:57:22.122628634Z [error]     fairy = _ConnectionRecord.checkout(pool)
+2026-01-26T19:57:22.122644297Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.122652700Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 711, in checkout
+2026-01-26T19:57:22.122660579Z [error]     rec = pool._do_get()
+2026-01-26T19:57:22.122933922Z [error]     with util.safe_reraise():
+2026-01-26T19:57:22.122954766Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.122958993Z [error]           ^^^^^^^^^^^^^^
+2026-01-26T19:57:22.122963821Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.122965973Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+2026-01-26T19:57:22.122981428Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:22.122984690Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 388, in _create_connection
+2026-01-26T19:57:22.122985082Z [error]     with util.safe_reraise():
+2026-01-26T19:57:22.122999027Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:22.123000776Z [error]     return _ConnectionRecord(self)
+2026-01-26T19:57:22.123015095Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.123016872Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 673, in __init__
+2026-01-26T19:57:22.123018722Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+2026-01-26T19:57:22.123033370Z [error]     self.__connect()
+2026-01-26T19:57:22.123038043Z [error]     return self._create_connection()
+2026-01-26T19:57:22.123046381Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 899, in __connect
+2026-01-26T19:57:22.127295644Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.127319106Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:22.127376292Z [error]     return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+2026-01-26T19:57:22.128101815Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:22.128108651Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 895, in __connect
+2026-01-26T19:57:22.128116848Z [error]     self.dbapi_connection = connection = pool._invoke_creator(self)
+2026-01-26T19:57:22.128123631Z [error]                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.128130657Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 661, in connect
+2026-01-26T19:57:22.128137316Z [error]     return dialect.connect(*cargs, **cparams)
+2026-01-26T19:57:22.128144042Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.128149545Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+2026-01-26T19:57:22.128154649Z [error]     return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+2026-01-26T19:57:22.128321478Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.128326287Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+2026-01-26T19:57:22.128330727Z [error]     await_only(creator_fn(*arg, **kw)),
+2026-01-26T19:57:22.128335433Z [error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.128340110Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+2026-01-26T19:57:22.132524309Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.132532289Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+2026-01-26T19:57:22.132540566Z [error]     value = await result
+2026-01-26T19:57:22.132548366Z [error]             ^^^^^^^^^^^^
+2026-01-26T19:57:22.132556894Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connection.py", line 2443, in connect
+2026-01-26T19:57:22.132567929Z [error]     return await connect_utils._connect(
+2026-01-26T19:57:22.132575335Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.132582978Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+2026-01-26T19:57:22.132591005Z [error]     raise last_error or exceptions.TargetServerAttributeNotMatched(
+2026-01-26T19:57:22.132598106Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+2026-01-26T19:57:22.132607598Z [error]     conn = await _connect_addr(
+2026-01-26T19:57:22.132641179Z [error]            ^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.132652108Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+2026-01-26T19:57:22.132663251Z [error]     return await __connect_addr(params, True, *args)
+2026-01-26T19:57:22.132671378Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.132680514Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+2026-01-26T19:57:22.132690945Z [error]     tr, pr = await connector
+2026-01-26T19:57:22.132698631Z [error]              ^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.132706104Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+2026-01-26T19:57:22.133950533Z [error]   File "/root/.nix-profile/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+2026-01-26T19:57:22.133963826Z [error]     result = self.fn(*self.args, **self.kwargs)
+2026-01-26T19:57:22.133973687Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.133996543Z [error]   File "/root/.nix-profile/lib/python3.12/socket.py", line 976, in getaddrinfo
+2026-01-26T19:57:22.134013433Z [error]     for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+2026-01-26T19:57:22.137018780Z [error]     tr, pr = await loop.create_connection(
+2026-01-26T19:57:22.137035807Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.137044572Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1079, in create_connection
+2026-01-26T19:57:22.137052293Z [error]     infos = await self._ensure_resolved(
+2026-01-26T19:57:22.137064616Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.137073244Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1455, in _ensure_resolved
+2026-01-26T19:57:22.137083028Z [error]     return await loop.getaddrinfo(host, port, family=family, type=type,
+2026-01-26T19:57:22.137092039Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.137107692Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 901, in getaddrinfo
+2026-01-26T19:57:22.137114935Z [error]     return await self.run_in_executor(
+2026-01-26T19:57:22.137121990Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.143935406Z [error]                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:22.143941898Z [error] socket.gaierror: [Errno -2] Name or service not known
+2026-01-26T19:57:29.060748861Z [error] 2026-01-26 19:57:28,126 - __main__ - INFO - Initializing database...
+2026-01-26T19:57:29.060755939Z [error] 2026-01-26 19:57:28,258 - __main__ - INFO - Main database initialized successfully!
+2026-01-26T19:57:29.060763125Z [error] 2026-01-26 19:57:28,258 - __main__ - INFO - Initializing betting database...
+2026-01-26T19:57:29.060770158Z [error] Traceback (most recent call last):
+2026-01-26T19:57:29.060776171Z [error]   File "/app/main.py", line 225, in <module>
+2026-01-26T19:57:29.060782893Z [error]     asyncio.run(main())
+2026-01-26T19:57:29.060788668Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 194, in run
+2026-01-26T19:57:29.060794644Z [error]     return runner.run(main)
+2026-01-26T19:57:29.060800661Z [error]            ^^^^^^^^^^^^^^^^
+2026-01-26T19:57:29.060806444Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+2026-01-26T19:57:29.060813007Z [error]     return self._loop.run_until_complete(task)
+2026-01-26T19:57:29.060820883Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:29.060828515Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+2026-01-26T19:57:29.060834681Z [error]     return future.result()
+2026-01-26T19:57:29.060899653Z [error]            ^^^^^^^^^^^^^^^
+2026-01-26T19:57:29.060906548Z [error]   File "/app/main.py", line 174, in main
+2026-01-26T19:57:29.060913088Z [error]     await init_betting_db()
+2026-01-26T19:57:29.060919678Z [error]   File "/app/src/database/betting_db.py", line 71, in init_betting_db
+2026-01-26T19:57:29.060925829Z [error]     async with engine.begin() as conn:
+2026-01-26T19:57:29.060932800Z [error]                ^^^^^^^^^^^^^^
+2026-01-26T19:57:29.060943547Z [error]   File "/root/.nix-profile/lib/python3.12/contextlib.py", line 210, in __aenter__
+2026-01-26T19:57:30.180095301Z [error]     result = context.throw(*sys.exc_info())
+2026-01-26T19:57:30.180170945Z [error]     await greenlet_spawn(self.sync_engine.connect)
+2026-01-26T19:57:30.180201167Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+2026-01-26T19:57:30.180205835Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 275, in start
+2026-01-26T19:57:30.180236517Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:30.180247612Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3285, in connect
+2026-01-26T19:57:30.180250635Z [error]     return await anext(self.gen)
+2026-01-26T19:57:30.180250698Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/base.py", line 121, in __aenter__
+2026-01-26T19:57:30.180260521Z [error]            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:30.180261608Z [error]     return self._connection_cls(self)
+2026-01-26T19:57:30.180263317Z [error]     return await self.start(is_ctxmanager=True)
+2026-01-26T19:57:30.180271714Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 1068, in begin
+2026-01-26T19:57:30.180271926Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:30.180273093Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:30.180281288Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+2026-01-26T19:57:30.180286101Z [error]     async with conn:
+2026-01-26T19:57:30.180292238Z [error]     self._dbapi_connection = engine.raw_connection()
+2026-01-26T19:57:30.180296182Z [error]                ^^^^
+2026-01-26T19:57:30.180309263Z [error]                              ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:30.180315566Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3309, in raw_connection
+2026-01-26T19:57:31.092745738Z [error]     return self.pool.connect()
+2026-01-26T19:57:31.092754636Z [error]            ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.092763439Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 447, in connect
+2026-01-26T19:57:31.092773469Z [error]     return _ConnectionFairy._checkout(self)
+2026-01-26T19:57:31.092781527Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.092789755Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1264, in _checkout
+2026-01-26T19:57:31.092804885Z [error]     fairy = _ConnectionRecord.checkout(pool)
+2026-01-26T19:57:31.092814073Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.092825102Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 711, in checkout
+2026-01-26T19:57:31.092834337Z [error]     rec = pool._do_get()
+2026-01-26T19:57:31.092863868Z [error]           ^^^^^^^^^^^^^^
+2026-01-26T19:57:31.092873673Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+2026-01-26T19:57:31.092886224Z [error]     with util.safe_reraise():
+2026-01-26T19:57:31.092896613Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.092906221Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:31.101415818Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:31.101421650Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+2026-01-26T19:57:31.101427747Z [error]     return self._create_connection()
+2026-01-26T19:57:31.101434422Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.101441937Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 388, in _create_connection
+2026-01-26T19:57:31.101449545Z [error]     return _ConnectionRecord(self)
+2026-01-26T19:57:31.101457462Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.102918019Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 673, in __init__
+2026-01-26T19:57:31.103191278Z [error]     self.__connect()
+2026-01-26T19:57:31.103208968Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 899, in __connect
+2026-01-26T19:57:31.103217387Z [error]     with util.safe_reraise():
+2026-01-26T19:57:31.103226518Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.103235286Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:31.103305622Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:31.107770192Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 895, in __connect
+2026-01-26T19:57:31.107776689Z [error]     self.dbapi_connection = connection = pool._invoke_creator(self)
+2026-01-26T19:57:31.107784200Z [error]                                          ^^^^^^^^^^
+2026-01-26T19:57:31.107793963Z [error] ^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.107801849Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 661, in connect
+2026-01-26T19:57:31.107809196Z [error]     return dialect.connect(*cargs, **cparams)
+2026-01-26T19:57:31.107817073Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.107824300Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+2026-01-26T19:57:31.107832710Z [error]     return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+2026-01-26T19:57:31.112938023Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.112994204Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+2026-01-26T19:57:31.113007602Z [error]     await_only(creator_fn(*arg, **kw)),
+2026-01-26T19:57:31.113019535Z [error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.113028934Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+2026-01-26T19:57:31.113038070Z [error]     return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+2026-01-26T19:57:31.113046122Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.113054629Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+2026-01-26T19:57:31.113063502Z [error]     value = await result
+2026-01-26T19:57:31.113071834Z [error]             ^^^^^^^^^^^^
+2026-01-26T19:57:31.113078798Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connection.py", line 2443, in connect
+2026-01-26T19:57:31.113249843Z [error]     return await connect_utils._connect(
+2026-01-26T19:57:31.113712543Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.113812627Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+2026-01-26T19:57:31.113820671Z [error]     raise last_error or exceptions.TargetServerAttributeNotMatched(
+2026-01-26T19:57:31.113832088Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+2026-01-26T19:57:31.113839051Z [error]     conn = await _connect_addr(
+2026-01-26T19:57:31.113844870Z [error]            ^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.113851845Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+2026-01-26T19:57:31.113857969Z [error]     return await __connect_addr(params, True, *args)
+2026-01-26T19:57:31.113864347Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.113871426Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+2026-01-26T19:57:31.113877841Z [error]     tr, pr = await connector
+2026-01-26T19:57:31.113884470Z [error]              ^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.113891657Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+2026-01-26T19:57:31.113899287Z [error]     tr, pr = await loop.create_connection(
+2026-01-26T19:57:31.113906089Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.113917166Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1079, in create_connection
+2026-01-26T19:57:31.129921554Z [error]     infos = await self._ensure_resolved(
+2026-01-26T19:57:31.129927728Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.129934415Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1455, in _ensure_resolved
+2026-01-26T19:57:31.129943694Z [error]     return await loop.getaddrinfo(host, port, family=family, type=type,
+2026-01-26T19:57:31.129950482Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.129956836Z [error] ^^^^^^^^^^^^
+2026-01-26T19:57:31.129963941Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 901, in getaddrinfo
+2026-01-26T19:57:31.129970527Z [error]     return await self.run_in_executor(
+2026-01-26T19:57:31.129977317Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.129983984Z [error]   File "/root/.nix-profile/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+2026-01-26T19:57:31.129991961Z [error]     result = self.fn(*self.args, **self.kwargs)
+2026-01-26T19:57:31.135374619Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.135380796Z [error]   File "/root/.nix-profile/lib/python3.12/socket.py", line 976, in getaddrinfo
+2026-01-26T19:57:31.135387412Z [error]     for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+2026-01-26T19:57:31.135395177Z [error]                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.135400552Z [error] ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:31.135405946Z [error] socket.gaierror: [Errno -2] Name or service not known
+2026-01-26T19:57:35.088443309Z [error] 2026-01-26 19:57:34,954 - __main__ - INFO - Main database initialized successfully!
+2026-01-26T19:57:35.088453058Z [error] 2026-01-26 19:57:34,954 - __main__ - INFO - Initializing betting database...
+2026-01-26T19:57:35.088568854Z [error] 2026-01-26 19:57:34,812 - __main__ - INFO - Initializing database...
+2026-01-26T19:57:36.179388746Z [error]            ^^^^^^^^^^^^^^^^
+2026-01-26T19:57:36.179514514Z [error]     return await anext(self.gen)
+2026-01-26T19:57:36.179524250Z [error]            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:36.179531004Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 1068, in begin
+2026-01-26T19:57:36.179550283Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+2026-01-26T19:57:36.179573060Z [error]     return self._loop.run_until_complete(task)
+2026-01-26T19:57:36.179584879Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:36.179590806Z [error]            ^^^^^^^^^^^^^^^
+2026-01-26T19:57:36.179600976Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+2026-01-26T19:57:36.179604877Z [error]   File "/app/main.py", line 174, in main
+2026-01-26T19:57:36.179617704Z [error]     return future.result()
+2026-01-26T19:57:36.179619744Z [error]     await init_betting_db()
+2026-01-26T19:57:36.179637516Z [error]   File "/app/src/database/betting_db.py", line 71, in init_betting_db
+2026-01-26T19:57:36.179648151Z [error]     async with engine.begin() as conn:
+2026-01-26T19:57:36.179659642Z [error]                ^^^^^^^^^^^^^^
+2026-01-26T19:57:36.179666727Z [error]   File "/root/.nix-profile/lib/python3.12/contextlib.py", line 210, in __aenter__
+2026-01-26T19:57:36.180053127Z [error] Traceback (most recent call last):
+2026-01-26T19:57:36.180057533Z [error]   File "/app/main.py", line 225, in <module>
+2026-01-26T19:57:36.180062326Z [error]     asyncio.run(main())
+2026-01-26T19:57:36.180066595Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 194, in run
+2026-01-26T19:57:36.180071063Z [error]     return runner.run(main)
+2026-01-26T19:57:37.511306655Z [error]     async with conn:
+2026-01-26T19:57:37.511311850Z [error]                ^^^^
+2026-01-26T19:57:37.511317784Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/base.py", line 121, in __aenter__
+2026-01-26T19:57:37.511323640Z [error]     return await self.start(is_ctxmanager=True)
+2026-01-26T19:57:37.511329433Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:37.511336878Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 275, in start
+2026-01-26T19:57:37.511343924Z [error]     await greenlet_spawn(self.sync_engine.connect)
+2026-01-26T19:57:37.511353139Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+2026-01-26T19:57:37.511359163Z [error]     result = context.throw(*sys.exc_info())
+2026-01-26T19:57:37.511364728Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:37.511372034Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3285, in connect
+2026-01-26T19:57:37.511382444Z [error]     return self._connection_cls(self)
+2026-01-26T19:57:37.511389964Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:37.511396620Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+2026-01-26T19:57:37.511402566Z [error]     self._dbapi_connection = engine.raw_connection()
+2026-01-26T19:57:38.405053731Z [error]     with util.safe_reraise():
+2026-01-26T19:57:38.405077977Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+2026-01-26T19:57:38.405836459Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.405843974Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:38.405850178Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:38.405855702Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+2026-01-26T19:57:38.405861615Z [error]     return self._create_connection()
+2026-01-26T19:57:38.405867319Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.405873614Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 388, in _create_connection
+2026-01-26T19:57:38.405879721Z [error]     return _ConnectionRecord(self)
+2026-01-26T19:57:38.405885844Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.405967119Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 673, in __init__
+2026-01-26T19:57:38.405972711Z [error]     self.__connect()
+2026-01-26T19:57:38.405977393Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 899, in __connect
+2026-01-26T19:57:38.405981786Z [error]     with util.safe_reraise():
+2026-01-26T19:57:38.405985945Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.405990236Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:38.405995268Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:38.406000886Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 895, in __connect
+2026-01-26T19:57:38.406005303Z [error]     self.dbapi_connection = connection = pool._invoke_creator(self)
+2026-01-26T19:57:38.406413379Z [error]                              ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.406418165Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3309, in raw_connection
+2026-01-26T19:57:38.406422678Z [error]     return self.pool.connect()
+2026-01-26T19:57:38.406426738Z [error]            ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.406431027Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 447, in connect
+2026-01-26T19:57:38.406435220Z [error]     return _ConnectionFairy._checkout(self)
+2026-01-26T19:57:38.406440338Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.406444683Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1264, in _checkout
+2026-01-26T19:57:38.406449333Z [error]     fairy = _ConnectionRecord.checkout(pool)
+2026-01-26T19:57:38.406453290Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.406458572Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 711, in checkout
+2026-01-26T19:57:38.406462710Z [error]     rec = pool._do_get()
+2026-01-26T19:57:38.406466724Z [error]           ^^^^^^^^^^^^^^
+2026-01-26T19:57:38.410050379Z [error]                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.410057258Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 661, in connect
+2026-01-26T19:57:38.410066131Z [error]     return dialect.connect(*cargs, **cparams)
+2026-01-26T19:57:38.410073806Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.410082143Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+2026-01-26T19:57:38.410089692Z [error]     return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+2026-01-26T19:57:38.410096428Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.410103714Z [error] ^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.410110814Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+2026-01-26T19:57:38.410117131Z [error]     await_only(creator_fn(*arg, **kw)),
+2026-01-26T19:57:38.420413055Z [error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.420420167Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+2026-01-26T19:57:38.420426234Z [error]     return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+2026-01-26T19:57:38.420431764Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.420437419Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+2026-01-26T19:57:38.420443463Z [error]     value = await result
+2026-01-26T19:57:38.420449716Z [error]             ^^^^^^^^^^^^
+2026-01-26T19:57:38.420455484Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connection.py", line 2443, in connect
+2026-01-26T19:57:38.420461660Z [error]     return await connect_utils._connect(
+2026-01-26T19:57:38.420467744Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.420473947Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+2026-01-26T19:57:38.420481612Z [error]     raise last_error or exceptions.TargetServerAttributeNotMatched(
+2026-01-26T19:57:38.420487043Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+2026-01-26T19:57:38.420493470Z [error]     conn = await _connect_addr(
+2026-01-26T19:57:38.431403123Z [error]            ^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.431411764Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+2026-01-26T19:57:38.431419316Z [error]     return await __connect_addr(params, True, *args)
+2026-01-26T19:57:38.431427845Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.431433939Z [error] ^^^^^^^^
+2026-01-26T19:57:38.431440055Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+2026-01-26T19:57:38.431446121Z [error]     tr, pr = await connector
+2026-01-26T19:57:38.431451640Z [error]              ^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.431457490Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+2026-01-26T19:57:38.431463214Z [error]     tr, pr = await loop.create_connection(
+2026-01-26T19:57:38.431470750Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.431476366Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1079, in create_connection
+2026-01-26T19:57:38.431482135Z [error]     infos = await self._ensure_resolved(
+2026-01-26T19:57:38.443065105Z [error] socket.gaierror: [Errno -2] Name or service not known
+2026-01-26T19:57:38.443092852Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.443104591Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1455, in _ensure_resolved
+2026-01-26T19:57:38.443123825Z [error]     return await loop.getaddrinfo(host, port, family=family, type=type,
+2026-01-26T19:57:38.443129585Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.443139170Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.443143035Z [error]   File "/root/.nix-profile/lib/python3.12/socket.py", line 976, in getaddrinfo
+2026-01-26T19:57:38.443155204Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 901, in getaddrinfo
+2026-01-26T19:57:38.443157263Z [error]     for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+2026-01-26T19:57:38.443166065Z [error]     return await self.run_in_executor(
+2026-01-26T19:57:38.443168525Z [error]                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.443294740Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:38.443305712Z [error]   File "/root/.nix-profile/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+2026-01-26T19:57:38.443310994Z [error]     result = self.fn(*self.args, **self.kwargs)
+2026-01-26T19:57:42.253841260Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:42.253844322Z [error]     asyncio.run(main())
+2026-01-26T19:57:42.253851882Z [error] Traceback (most recent call last):
+2026-01-26T19:57:42.253862771Z [error] 
+2026-01-26T19:57:42.253871939Z [error]   File "/app/main.py", line 225, in <module>
+2026-01-26T19:57:42.253878141Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 194, in run
+2026-01-26T19:57:42.253881897Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+2026-01-26T19:57:42.253891256Z [error]     return runner.run(main)
+2026-01-26T19:57:42.253902599Z [error]            ^^^^^^^^^^^^^^^^
+2026-01-26T19:57:42.253914034Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+2026-01-26T19:57:42.253923909Z [error]     return self._loop.run_until_complete(task)
+2026-01-26T19:57:42.254323285Z [error] 2026-01-26 19:57:41,193 - __main__ - INFO - Initializing database...
+2026-01-26T19:57:42.254331937Z [error] 2026-01-26 19:57:41,348 - __main__ - INFO - Main database initialized successfully!
+2026-01-26T19:57:42.254336948Z [error] 2026-01-26 19:57:41,349 - __main__ - INFO - Initializing betting database...
+2026-01-26T19:57:43.446998831Z [error]            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:43.447014362Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 1068, in begin
+2026-01-26T19:57:43.447025195Z [error]     async with conn:
+2026-01-26T19:57:43.447034523Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/base.py", line 121, in __aenter__
+2026-01-26T19:57:43.447035638Z [error]                ^^^^
+2026-01-26T19:57:43.447042707Z [error]     await init_betting_db()
+2026-01-26T19:57:43.447053673Z [error]     return await self.start(is_ctxmanager=True)
+2026-01-26T19:57:43.447054218Z [error]   File "/app/src/database/betting_db.py", line 71, in init_betting_db
+2026-01-26T19:57:43.447063577Z [error]     async with engine.begin() as conn:
+2026-01-26T19:57:43.447071520Z [error]                ^^^^^^^^^^^^^^
+2026-01-26T19:57:43.447079773Z [error]   File "/root/.nix-profile/lib/python3.12/contextlib.py", line 210, in __aenter__
+2026-01-26T19:57:43.447088548Z [error]     return await anext(self.gen)
+2026-01-26T19:57:43.447169507Z [error]     return future.result()
+2026-01-26T19:57:43.447177562Z [error]            ^^^^^^^^^^^^^^^
+2026-01-26T19:57:43.447185064Z [error]   File "/app/main.py", line 174, in main
+2026-01-26T19:57:44.418086089Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.418150825Z [error]     return _ConnectionFairy._checkout(self)
+2026-01-26T19:57:44.418169045Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 275, in start
+2026-01-26T19:57:44.418183316Z [error]                              ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.418185377Z [error]     await greenlet_spawn(self.sync_engine.connect)
+2026-01-26T19:57:44.418198891Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3309, in raw_connection
+2026-01-26T19:57:44.418201891Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+2026-01-26T19:57:44.418216289Z [error]     result = context.throw(*sys.exc_info())
+2026-01-26T19:57:44.418218696Z [error]     return self.pool.connect()
+2026-01-26T19:57:44.418227935Z [error]            ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.418238292Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 447, in connect
+2026-01-26T19:57:44.418250171Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.418259980Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3285, in connect
+2026-01-26T19:57:44.418268919Z [error]     return self._connection_cls(self)
+2026-01-26T19:57:44.418278926Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.418288438Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+2026-01-26T19:57:44.418296655Z [error]     self._dbapi_connection = engine.raw_connection()
+2026-01-26T19:57:44.423144118Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.423150610Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1264, in _checkout
+2026-01-26T19:57:44.423156107Z [error]     fairy = _ConnectionRecord.checkout(pool)
+2026-01-26T19:57:44.423162523Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.423168555Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 711, in checkout
+2026-01-26T19:57:44.423173715Z [error]     rec = pool._do_get()
+2026-01-26T19:57:44.423180171Z [error]           ^^^^^^^^^^^^^^
+2026-01-26T19:57:44.423197310Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+2026-01-26T19:57:44.423206246Z [error]     with util.safe_reraise():
+2026-01-26T19:57:44.423216368Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.423227032Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:44.423233440Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:44.423239192Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+2026-01-26T19:57:44.423245515Z [error]     return self._create_connection()
+2026-01-26T19:57:44.423250689Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.423256150Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 388, in _create_connection
+2026-01-26T19:57:44.426077019Z [error]     return _ConnectionRecord(self)
+2026-01-26T19:57:44.426082543Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.426113300Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 673, in __init__
+2026-01-26T19:57:44.426119198Z [error]     self.__connect()
+2026-01-26T19:57:44.426125301Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 899, in __connect
+2026-01-26T19:57:44.426130951Z [error]     with util.safe_reraise():
+2026-01-26T19:57:44.426138267Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.426146062Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:44.426151660Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:44.426158276Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 895, in __connect
+2026-01-26T19:57:44.426173645Z [error]     self.dbapi_connection = connection = pool._invoke_creator(self)
+2026-01-26T19:57:44.426181500Z [error]                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.426187594Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 661, in connect
+2026-01-26T19:57:44.426194212Z [error]     return dialect.connect(*cargs, **cparams)
+2026-01-26T19:57:44.429421845Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+2026-01-26T19:57:44.429433649Z [error]     return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+2026-01-26T19:57:44.429445512Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.429460095Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+2026-01-26T19:57:44.429549728Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.429558391Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+2026-01-26T19:57:44.429566446Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+2026-01-26T19:57:44.429568583Z [error]     return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+2026-01-26T19:57:44.429577415Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.429579444Z [error]     await_only(creator_fn(*arg, **kw)),
+2026-01-26T19:57:44.429587587Z [error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.429639110Z [error]     value = await result
+2026-01-26T19:57:44.429646520Z [error]             ^^^^^^^^^^^^
+2026-01-26T19:57:44.429654742Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connection.py", line 2443, in connect
+2026-01-26T19:57:44.429662311Z [error]     return await connect_utils._connect(
+2026-01-26T19:57:44.432721868Z [error]            ^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.432730029Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+2026-01-26T19:57:44.432741984Z [error]     return await __connect_addr(params, True, *args)
+2026-01-26T19:57:44.432750267Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.432756937Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+2026-01-26T19:57:44.432761548Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.432764813Z [error]     tr, pr = await connector
+2026-01-26T19:57:44.432769549Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+2026-01-26T19:57:44.432772749Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+2026-01-26T19:57:44.432772946Z [error]              ^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.432781804Z [error]     conn = await _connect_addr(
+2026-01-26T19:57:44.432783374Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+2026-01-26T19:57:44.432783995Z [error]     raise last_error or exceptions.TargetServerAttributeNotMatched(
+2026-01-26T19:57:44.432791443Z [error]     tr, pr = await loop.create_connection(
+2026-01-26T19:57:44.439511870Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.439517371Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1079, in create_connection
+2026-01-26T19:57:44.439523331Z [error]     infos = await self._ensure_resolved(
+2026-01-26T19:57:44.439530701Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.439538762Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1455, in _ensure_resolved
+2026-01-26T19:57:44.439544955Z [error]     return await loop.getaddrinfo(host, port, family=family, type=type,
+2026-01-26T19:57:44.439551217Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.439556849Z [error] ^^^^^^^^^^^^^^^
+2026-01-26T19:57:44.439563140Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 901, in getaddrinfo
+2026-01-26T19:57:44.439569449Z [error]     return await self.run_in_executor(
+2026-01-26T19:57:45.288276138Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:45.288283627Z [error]   File "/root/.nix-profile/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+2026-01-26T19:57:45.288291826Z [error]     result = self.fn(*self.args, **self.kwargs)
+2026-01-26T19:57:45.288298799Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:45.288307315Z [error] ^^^^^^^^^^
+2026-01-26T19:57:45.288315065Z [error]   File "/root/.nix-profile/lib/python3.12/socket.py", line 976, in getaddrinfo
+2026-01-26T19:57:45.288323380Z [error]     for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+2026-01-26T19:57:45.288330193Z [error]                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:45.288339361Z [error] socket.gaierror: [Errno -2] Name or service not known
+2026-01-26T19:57:48.916497667Z [error] 2026-01-26 19:57:47,809 - __main__ - INFO - Initializing database...
+2026-01-26T19:57:48.916506235Z [error] 2026-01-26 19:57:47,908 - __main__ - INFO - Main database initialized successfully!
+2026-01-26T19:57:48.916513633Z [error] 2026-01-26 19:57:47,908 - __main__ - INFO - Initializing betting database...
+2026-01-26T19:57:48.916520677Z [error] Traceback (most recent call last):
+2026-01-26T19:57:48.916527817Z [error]   File "/app/main.py", line 225, in <module>
+2026-01-26T19:57:48.916534338Z [error]     asyncio.run(main())
+2026-01-26T19:57:48.916570179Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 194, in run
+2026-01-26T19:57:48.916577592Z [error]     return runner.run(main)
+2026-01-26T19:57:48.916585615Z [error]            ^^^^^^^^^^^^^^^^
+2026-01-26T19:57:48.916592751Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+2026-01-26T19:57:48.916600429Z [error]     return self._loop.run_until_complete(task)
+2026-01-26T19:57:48.916607488Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:48.916614296Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+2026-01-26T19:57:48.916621187Z [error]     return future.result()
+2026-01-26T19:57:48.916627265Z [error]            ^^^^^^^^^^^^^^^
+2026-01-26T19:57:48.916633114Z [error]   File "/app/main.py", line 174, in main
+2026-01-26T19:57:50.485916984Z [error]     await init_betting_db()
+2026-01-26T19:57:50.485924385Z [error]   File "/app/src/database/betting_db.py", line 71, in init_betting_db
+2026-01-26T19:57:50.485931076Z [error]     async with engine.begin() as conn:
+2026-01-26T19:57:50.485937497Z [error]                ^^^^^^^^^^^^^^
+2026-01-26T19:57:50.485945415Z [error]   File "/root/.nix-profile/lib/python3.12/contextlib.py", line 210, in __aenter__
+2026-01-26T19:57:50.485951832Z [error]     return await anext(self.gen)
+2026-01-26T19:57:50.485959252Z [error]            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:50.485965875Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 1068, in begin
+2026-01-26T19:57:50.485972768Z [error]     async with conn:
+2026-01-26T19:57:50.485978546Z [error]                ^^^^
+2026-01-26T19:57:50.485984382Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/base.py", line 121, in __aenter__
+2026-01-26T19:57:50.485990599Z [error]     return await self.start(is_ctxmanager=True)
+2026-01-26T19:57:50.485995754Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:50.486001673Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 275, in start
+2026-01-26T19:57:50.486007948Z [error]     await greenlet_spawn(self.sync_engine.connect)
+2026-01-26T19:57:50.486017654Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+2026-01-26T19:57:52.083084068Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3285, in connect
+2026-01-26T19:57:52.083095538Z [error]     return self._connection_cls(self)
+2026-01-26T19:57:52.083095781Z [error]            ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:52.083108141Z [error]     return _ConnectionFairy._checkout(self)
+2026-01-26T19:57:52.083109351Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 447, in connect
+2026-01-26T19:57:52.083121742Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:52.083124905Z [error]     result = context.throw(*sys.exc_info())
+2026-01-26T19:57:52.083135029Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:52.083140051Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:52.083140343Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1264, in _checkout
+2026-01-26T19:57:52.083151955Z [error]                              ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:52.083152486Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+2026-01-26T19:57:52.083157365Z [error]     fairy = _ConnectionRecord.checkout(pool)
+2026-01-26T19:57:52.083163845Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3309, in raw_connection
+2026-01-26T19:57:52.083165183Z [error]     self._dbapi_connection = engine.raw_connection()
+2026-01-26T19:57:52.083169386Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:52.083175826Z [error]     return self.pool.connect()
+2026-01-26T19:57:53.282191471Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+2026-01-26T19:57:53.282204613Z [error]     with util.safe_reraise():
+2026-01-26T19:57:53.282212021Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:53.282231221Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:53.282243660Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:53.282254409Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+2026-01-26T19:57:53.282269402Z [error]     return self._create_connection()
+2026-01-26T19:57:53.282278341Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:53.282285250Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 711, in checkout
+2026-01-26T19:57:53.282292854Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 388, in _create_connection
+2026-01-26T19:57:53.282296126Z [error]     rec = pool._do_get()
+2026-01-26T19:57:53.282307187Z [error]     return _ConnectionRecord(self)
+2026-01-26T19:57:53.282310615Z [error]           ^^^^^^^^^^^^^^
+2026-01-26T19:57:53.282327781Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:53.282335685Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 673, in __init__
+2026-01-26T19:57:53.282344084Z [error]     self.__connect()
+2026-01-26T19:57:53.282356195Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 899, in __connect
+2026-01-26T19:57:54.757299877Z [error]     with util.safe_reraise():
+2026-01-26T19:57:54.757307388Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:54.757315065Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:57:54.757322381Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:57:54.757329710Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 895, in __connect
+2026-01-26T19:57:54.757336985Z [error]     self.dbapi_connection = connection = pool._invoke_creator(self)
+2026-01-26T19:57:54.757346634Z [error]                                          ^^^^^^^^^^^^^^^^
+2026-01-26T19:57:54.757354346Z [error] ^^^^^^^^^^
+2026-01-26T19:57:54.757361702Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 661, in connect
+2026-01-26T19:57:54.757370414Z [error]     return dialect.connect(*cargs, **cparams)
+2026-01-26T19:57:54.757377958Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:54.757385363Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+2026-01-26T19:57:54.757394389Z [error]     return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+2026-01-26T19:57:56.126915362Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:56.126920150Z [error] ^^
+2026-01-26T19:57:56.126926543Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+2026-01-26T19:57:56.126930608Z [error]     await_only(creator_fn(*arg, **kw)),
+2026-01-26T19:57:56.126934825Z [error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:56.126938781Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+2026-01-26T19:57:56.126942786Z [error]     return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+2026-01-26T19:57:56.126946596Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:56.126950415Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+2026-01-26T19:57:56.126954666Z [error]     value = await result
+2026-01-26T19:57:56.126958477Z [error]             ^^^^^^^^^^^^
+2026-01-26T19:57:56.126962729Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connection.py", line 2443, in connect
+2026-01-26T19:57:56.126966494Z [error]     return await connect_utils._connect(
+2026-01-26T19:57:56.126970297Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:57.634625537Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+2026-01-26T19:57:57.634641378Z [error]     tr, pr = await loop.create_connection(
+2026-01-26T19:57:57.634649414Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:57.634656669Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1079, in create_connection
+2026-01-26T19:57:57.634694035Z [error]     raise last_error or exceptions.TargetServerAttributeNotMatched(
+2026-01-26T19:57:57.634703016Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+2026-01-26T19:57:57.634715418Z [error]     conn = await _connect_addr(
+2026-01-26T19:57:57.634724349Z [error]            ^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:57.634734412Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+2026-01-26T19:57:57.634738712Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+2026-01-26T19:57:57.634749283Z [error]     return await __connect_addr(params, True, *args)
+2026-01-26T19:57:57.634757058Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:57.634765145Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+2026-01-26T19:57:57.634773200Z [error]     tr, pr = await connector
+2026-01-26T19:57:57.634780892Z [error]              ^^^^^^^^^^^^^^^
+2026-01-26T19:57:58.814807376Z [error]     infos = await self._ensure_resolved(
+2026-01-26T19:57:58.814814425Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:58.814822145Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 1455, in _ensure_resolved
+2026-01-26T19:57:58.814829808Z [error]     return await loop.getaddrinfo(host, port, family=family, type=type,
+2026-01-26T19:57:58.814839387Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:58.814848156Z [error] ^^^^^
+2026-01-26T19:57:58.814855512Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 901, in getaddrinfo
+2026-01-26T19:57:58.814865431Z [error]     return await self.run_in_executor(
+2026-01-26T19:57:58.814876814Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:57:58.814885721Z [error]   File "/root/.nix-profile/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+2026-01-26T19:57:58.814894172Z [error]     result = self.fn(*self.args, **self.kwargs)
+2026-01-26T19:58:00.289931503Z [error]                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:00.289939103Z [error] ^^^^^^^^^^^^^
+2026-01-26T19:58:00.289946693Z [error] socket.gaierror: [Errno -2] Name or service not known
+2026-01-26T19:58:00.289954495Z [error] 2026-01-26 19:57:54,735 - __main__ - INFO - Initializing database...
+2026-01-26T19:58:00.289967324Z [error] 2026-01-26 19:57:54,938 - __main__ - INFO - Main database initialized successfully!
+2026-01-26T19:58:00.289974564Z [error] 2026-01-26 19:57:54,939 - __main__ - INFO - Initializing betting database...
+2026-01-26T19:58:00.289981616Z [error] Traceback (most recent call last):
+2026-01-26T19:58:00.289988724Z [error]   File "/app/main.py", line 225, in <module>
+2026-01-26T19:58:00.289997299Z [error]     asyncio.run(main())
+2026-01-26T19:58:00.290005394Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 194, in run
+2026-01-26T19:58:00.290012326Z [error]     return runner.run(main)
+2026-01-26T19:58:00.290018927Z [error]            ^^^^^^^^^^^^^^^^
+2026-01-26T19:58:00.290386972Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:00.290393608Z [error]   File "/root/.nix-profile/lib/python3.12/socket.py", line 976, in getaddrinfo
+2026-01-26T19:58:00.290403250Z [error]     for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+2026-01-26T19:58:01.697877014Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+2026-01-26T19:58:01.697887540Z [error]     return self._loop.run_until_complete(task)
+2026-01-26T19:58:01.697895437Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:01.697903762Z [error]   File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+2026-01-26T19:58:01.697912169Z [error]     return future.result()
+2026-01-26T19:58:01.697921137Z [error]            ^^^^^^^^^^^^^^^
+2026-01-26T19:58:01.697929249Z [error]   File "/app/main.py", line 174, in main
+2026-01-26T19:58:01.697936686Z [error]     await init_betting_db()
+2026-01-26T19:58:01.697945525Z [error]   File "/app/src/database/betting_db.py", line 71, in init_betting_db
+2026-01-26T19:58:01.697952944Z [error]     async with engine.begin() as conn:
+2026-01-26T19:58:01.697960979Z [error]                ^^^^^^^^^^^^^^
+2026-01-26T19:58:01.697969999Z [error]   File "/root/.nix-profile/lib/python3.12/contextlib.py", line 210, in __aenter__
+2026-01-26T19:58:01.697979257Z [error]     return await anext(self.gen)
+2026-01-26T19:58:01.697987259Z [error]            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:01.697995537Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 1068, in begin
+2026-01-26T19:58:01.698003693Z [error]     async with conn:
+2026-01-26T19:58:03.412332688Z [error]                ^^^^
+2026-01-26T19:58:03.412338075Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/base.py", line 121, in __aenter__
+2026-01-26T19:58:03.412342567Z [error]     return await self.start(is_ctxmanager=True)
+2026-01-26T19:58:03.412347347Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:03.412353994Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 275, in start
+2026-01-26T19:58:03.412358302Z [error]     await greenlet_spawn(self.sync_engine.connect)
+2026-01-26T19:58:03.412362401Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+2026-01-26T19:58:03.412366423Z [error]     result = context.throw(*sys.exc_info())
+2026-01-26T19:58:03.412370746Z [error]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:03.412374716Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3285, in connect
+2026-01-26T19:58:03.412379189Z [error]     return self._connection_cls(self)
+2026-01-26T19:58:03.412383556Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:03.412388055Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+2026-01-26T19:58:03.412392109Z [error]     self._dbapi_connection = engine.raw_connection()
+2026-01-26T19:58:04.608723139Z [error]                              ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:04.608730106Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3309, in raw_connection
+2026-01-26T19:58:04.608737840Z [error]     return self.pool.connect()
+2026-01-26T19:58:04.608745223Z [error]            ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:04.608751996Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 447, in connect
+2026-01-26T19:58:04.608758815Z [error]     return _ConnectionFairy._checkout(self)
+2026-01-26T19:58:04.608766639Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:04.608774788Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1264, in _checkout
+2026-01-26T19:58:04.608781908Z [error]     fairy = _ConnectionRecord.checkout(pool)
+2026-01-26T19:58:04.608790929Z [error]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:05.874763072Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 711, in checkout
+2026-01-26T19:58:05.874769671Z [error]     rec = pool._do_get()
+2026-01-26T19:58:05.874778181Z [error]           ^^^^^^^^^^^^^^
+2026-01-26T19:58:05.874785254Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+2026-01-26T19:58:05.874793245Z [error]     with util.safe_reraise():
+2026-01-26T19:58:05.874800932Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:05.874808044Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:58:05.874815558Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:58:05.874822516Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+2026-01-26T19:58:05.874831395Z [error]     return self._create_connection()
+2026-01-26T19:58:05.874838429Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:05.874845841Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 388, in _create_connection
+2026-01-26T19:58:05.874853021Z [error]     return _ConnectionRecord(self)
+2026-01-26T19:58:05.874863261Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:05.874870643Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 673, in __init__
+2026-01-26T19:58:07.252082980Z [error]     self.__connect()
+2026-01-26T19:58:07.252090310Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 899, in __connect
+2026-01-26T19:58:07.252097734Z [error]     with util.safe_reraise():
+2026-01-26T19:58:07.252104020Z [error]          ^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:07.252109949Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+2026-01-26T19:58:07.252116778Z [error]     raise exc_value.with_traceback(exc_tb)
+2026-01-26T19:58:07.252122834Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 895, in __connect
+2026-01-26T19:58:07.252128965Z [error]     self.dbapi_connection = connection = pool._invoke_creator(self)
+2026-01-26T19:58:07.252135081Z [error]                                          ^^^^^^^^^^
+2026-01-26T19:58:07.252143047Z [error] ^^^^^^^^^^^^^^^^
+2026-01-26T19:58:07.252150004Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 661, in connect
+2026-01-26T19:58:07.252156269Z [error]     return dialect.connect(*cargs, **cparams)
+2026-01-26T19:58:07.252165155Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:07.252171856Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+2026-01-26T19:58:08.489570331Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+2026-01-26T19:58:08.489582180Z [error]     return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+2026-01-26T19:58:08.489589935Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:08.489655612Z [error]     return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+2026-01-26T19:58:08.489663847Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+2026-01-26T19:58:08.489664861Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:08.489673512Z [error]     await_only(creator_fn(*arg, **kw)),
+2026-01-26T19:58:08.489681595Z [error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:08.489737612Z [error]   File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+2026-01-26T19:58:08.489744370Z [error]     value = await result
+2026-01-26T19:58:08.489751785Z [error]             ^^^^^^^^^^^^
+2026-01-26T19:58:09.766188409Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connection.py", line 2443, in connect
+2026-01-26T19:58:09.766195586Z [error]     return await connect_utils._connect(
+2026-01-26T19:58:09.766202725Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:09.766210268Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1249, in _connect
+2026-01-26T19:58:09.766218456Z [error]     raise last_error or exceptions.TargetServerAttributeNotMatched(
+2026-01-26T19:58:09.766230934Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+2026-01-26T19:58:09.766241230Z [error]     conn = await _connect_addr(
+2026-01-26T19:58:09.766249254Z [error]            ^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:09.766256860Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1054, in _connect_addr
+2026-01-26T19:58:09.766263899Z [error]     return await __connect_addr(params, True, *args)
+2026-01-26T19:58:09.766271062Z [error]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T19:58:09.766278244Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 1099, in __connect_addr
+2026-01-26T19:58:09.766287481Z [error]     tr, pr = await connector
+2026-01-26T19:58:09.766294554Z [error]              ^^^^^^^^^^^^^^^
+2026-01-26T19:58:09.766301745Z [error]   File "/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 969, in _create_ssl_connection
+2026-01-26T19:58:09.766309306Z [error]     tr, pr = await loop.create_connection(
