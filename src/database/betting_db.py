@@ -18,23 +18,36 @@ _betting_engine = None
 _betting_session = None
 
 def get_betting_database_url():
-    """Parse DATABASE_URL and handle Railway's empty port issue"""
-    import re
+    """Parse DATABASE_URL using urllib and construct clean async URL"""
+    from urllib.parse import urlparse, quote_plus
+    from sqlalchemy.engine.url import URL
     
-    url = os.environ.get('BETTING_DATABASE_URL') or os.environ.get('DATABASE_URL', '')
-    if not url:
+    raw_url = os.environ.get('BETTING_DATABASE_URL') or os.environ.get('DATABASE_URL', '')
+    if not raw_url:
         return None
     
-    if url.startswith('postgres://'):
-        url = url.replace('postgres://', 'postgresql+asyncpg://', 1)
-    elif url.startswith('postgresql://'):
-        url = url.replace('postgresql://', 'postgresql+asyncpg://', 1)
-    elif not url.startswith('postgresql+asyncpg://'):
-        url = 'postgresql+asyncpg://' + url.split('://', 1)[-1] if '://' in url else url
-    
-    url = re.sub(r'@([^/:]+):/', r'@\1/', url)
-    
-    return url
+    try:
+        if raw_url.startswith('postgres://'):
+            raw_url = raw_url.replace('postgres://', 'postgresql://', 1)
+        
+        parsed = urlparse(raw_url)
+        
+        new_url = URL.create(
+            drivername='postgresql+asyncpg',
+            username=parsed.username,
+            password=parsed.password,
+            host=parsed.hostname,
+            port=parsed.port if parsed.port else None,
+            database=parsed.path.lstrip('/') if parsed.path else None
+        )
+        return str(new_url)
+    except Exception as e:
+        logger.error(f"Error parsing DATABASE_URL: {e}, falling back to string replace")
+        if raw_url.startswith('postgres://'):
+            raw_url = raw_url.replace('postgres://', 'postgresql+asyncpg://', 1)
+        elif raw_url.startswith('postgresql://'):
+            raw_url = raw_url.replace('postgresql://', 'postgresql+asyncpg://', 1)
+        return raw_url
 
 def get_betting_engine():
     global _betting_engine
