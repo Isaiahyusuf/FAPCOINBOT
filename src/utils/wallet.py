@@ -1,23 +1,41 @@
 import os
 import base64
+import logging
 from typing import Optional, Tuple
+from decimal import Decimal, ROUND_DOWN
 from solders.keypair import Keypair
 from solders.pubkey import Pubkey
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
+logger = logging.getLogger(__name__)
+
+_cached_encryption_key = None
 
 def get_encryption_key() -> bytes:
-    secret = os.environ.get('WALLET_ENCRYPTION_KEY', 'default-key-change-in-production')
-    salt = os.environ.get('WALLET_SALT', 'fapcoin-salt').encode()
-    kdf = PBKDF2HMAC(
-        algorithm=hashes.SHA256(),
-        length=32,
-        salt=salt,
-        iterations=100000,
-    )
-    return base64.urlsafe_b64encode(kdf.derive(secret.encode()))
+    global _cached_encryption_key
+    if _cached_encryption_key:
+        return _cached_encryption_key
+    
+    key = os.environ.get('ENCRYPTION_KEY')
+    if key:
+        if len(key) == 44 and key.endswith('='):
+            _cached_encryption_key = key.encode()
+            return _cached_encryption_key
+        salt = os.environ.get('WALLET_SALT', os.environ.get('REPL_ID', 'production-salt')).encode()
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=480000,
+        )
+        _cached_encryption_key = base64.urlsafe_b64encode(kdf.derive(key.encode()))
+        return _cached_encryption_key
+    
+    logger.warning("ENCRYPTION_KEY not set! Using auto-generated key. Wallets will be LOST on restart!")
+    _cached_encryption_key = Fernet.generate_key()
+    return _cached_encryption_key
 
 
 def generate_wallet() -> Tuple[str, str]:
@@ -45,20 +63,22 @@ def validate_solana_address(address: str) -> bool:
         return False
 
 
-FEE_WINNER = 0.98
-FEE_TREASURY = 0.01
-FEE_GROUP_OWNER = 0.01
-FEE_DEV = 0.00
+FEE_WINNER = Decimal('0.98')
+FEE_TREASURY = Decimal('0.01')
+FEE_GROUP_OWNER = Decimal('0.01')
+FEE_DEV = Decimal('0.00')
 
 def calculate_bet_distribution(total_pot: float) -> dict:
-    winner_amount = total_pot * FEE_WINNER
-    treasury_amount = total_pot * FEE_TREASURY
-    group_owner_amount = total_pot * FEE_GROUP_OWNER
-    dev_amount = total_pot * FEE_DEV
+    pot = Decimal(str(total_pot))
+    
+    treasury_amount = (pot * FEE_TREASURY).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
+    group_owner_amount = (pot * FEE_GROUP_OWNER).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
+    dev_amount = (pot * FEE_DEV).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
+    winner_amount = pot - treasury_amount - group_owner_amount - dev_amount
     
     return {
-        'winner': winner_amount,
-        'treasury': treasury_amount,
-        'group_owner': group_owner_amount,
-        'dev': dev_amount
+        'winner': float(winner_amount),
+        'treasury': float(treasury_amount),
+        'group_owner': float(group_owner_amount),
+        'dev': float(dev_amount)
     }

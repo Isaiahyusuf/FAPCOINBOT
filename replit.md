@@ -1,7 +1,7 @@
 # FAPCOIN DICK BOT
 
 ## Overview
-A competitive Telegram game bot where users can grow their "length," compete on leaderboards, challenge friends in PvP, and optionally purchase growth using $FAPCOIN on Solana.
+A competitive Telegram game bot where users can grow their "length," compete on leaderboards, challenge friends in PvP, and bet real FAPCOIN tokens against each other using $FAPCOIN on Solana.
 
 ## Project Structure
 ```
@@ -9,10 +9,12 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 ├── main.py                    # Bot entry point with daily winner scheduler
 ├── src/
 │   ├── database/
-│   │   ├── models.py          # SQLAlchemy models
+│   │   ├── models.py          # SQLAlchemy models (User, UserWallet, FapcoinBet, etc.)
 │   │   └── db.py              # Database operations
-│   └── handlers/
-│       └── commands.py        # Telegram command handlers
+│   ├── handlers/
+│   │   └── commands.py        # Telegram command handlers
+│   └── utils/
+│       └── wallet.py          # Solana wallet utilities (keypair generation, encryption)
 ├── requirements.txt           # Python dependencies for Railway
 ├── Procfile                   # Railway process file
 ├── railway.toml               # Railway config
@@ -25,6 +27,8 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 - SQLAlchemy with asyncpg (PostgreSQL async driver)
 - PostgreSQL database
 - aiohttp for Solana RPC calls
+- solana/solders for Solana keypair management
+- cryptography for wallet private key encryption
 
 ## Required Environment Variables
 | Variable | Description | Required |
@@ -33,6 +37,9 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 | `DATABASE_URL` | PostgreSQL connection string | Yes |
 | `TEAM_WALLET_ADDRESS` | Solana wallet for receiving FAPCOIN | Yes |
 | `SOLANA_RPC_URL` | Solana RPC endpoint | Yes |
+| `TREASURY_WALLET` | Treasury wallet for betting fees (1%) | Yes |
+| `DEV_WALLET` | Developer wallet for fees (0%) | No |
+| `ENCRYPTION_KEY` | Fernet key for wallet encryption | Auto-generated |
 
 ## Railway Deployment
 
@@ -75,19 +82,37 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 - Winner gains bet amount, loser loses bet amount
 
 ### FAPCOIN Integration
-- `/wallet <address>` - Register Solana wallet
+- `/wallet <address>` - Register Solana wallet for purchases
 - `/buy <package>` - View and purchase growth packages
 - `/verify <tx_hash>` - Verify Solana transaction on-chain
 - Package prices: 5k-25k FAPCOIN for 20-100 cm growth
 - Double-spend protection (same tx can't be used twice)
 
+### FAPCOIN Betting System (NEW)
+- `/wallet` - View your burner wallet (auto-generated) with deposit address and balance
+- `/fapbet [amount] @user` - Challenge another user to a FAPCOIN bet
+- `/setgroupwallet [address]` - Group admins set wallet to receive 1% of bets
+- Accept/Decline buttons for bet challenges
+- Random dice roll (1-100) determines winner
+- **Fee Distribution:**
+  - 98% goes to winner
+  - 1% goes to treasury (TEAM_WALLET)
+  - 1% goes to group owner (incentivizes groups to use the bot)
+- **Burner Wallets:**
+  - Each user gets auto-generated Solana wallet
+  - Private keys encrypted with Fernet
+  - Users deposit FAPCOIN to bet
+
 ### Support
 - `/support` - Create support ticket with contact username
 
 ## Database Models
-- User: Telegram user info and Solana wallet
+- User: Telegram user info and Solana wallet (for purchases)
 - UserChat: Per-chat stats (length, paid_length, debt, last_grow)
 - Transaction: FAPCOIN purchase records (pending/confirmed)
 - DailyWinner: Daily winner records per chat
 - PvpChallenge: PvP betting records (pending/resolved/declined)
 - SupportRequest: Support ticket tracking
+- **UserWallet (NEW)**: Burner wallet with encrypted private key, balance
+- **FapcoinBet (NEW)**: Betting records with challenger, opponent, amounts, fees
+- **GroupOwnerWallet (NEW)**: Group owner wallet addresses for fee payouts
