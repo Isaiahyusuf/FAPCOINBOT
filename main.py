@@ -10,6 +10,7 @@ from aiogram.types import BotCommand, BotCommandScopeAllGroupChats, BotCommandSc
 
 from src.database.models import init_db
 from src.database import db
+from src.database.betting_db import init_betting_db
 from src.handlers.commands import router
 
 logging.basicConfig(
@@ -167,7 +168,11 @@ async def main():
     
     logger.info("Initializing database...")
     await init_db()
-    logger.info("Database initialized successfully!")
+    logger.info("Main database initialized successfully!")
+    
+    logger.info("Initializing betting database...")
+    await init_betting_db()
+    logger.info("Betting database initialized successfully!")
     
     bot = Bot(
         token=bot_token,
