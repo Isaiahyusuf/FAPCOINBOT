@@ -1,0 +1,70 @@
+Region: europe-west4]
+==============
+Using Nixpacks
+==============
+
+context: s2rq-mnaq
+╔══════════════════════════════ Nixpacks v1.38.0 ══════════════════════════════╗
+║ setup      │ python3, postgresql_16.dev, gcc                                 ║
+║──────────────────────────────────────────────────────────────────────────────║
+║ install    │ python -m venv --copies /opt/venv && . /opt/venv/bin/activate   ║
+║            │ && pip install -r requirements.txt                              ║
+║──────────────────────────────────────────────────────────────────────────────║
+║ start      │ python main.py                                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+internal
+load build definition from Dockerfile
+0ms
+
+internal
+load metadata for ghcr.io/railwayapp/nixpacks:ubuntu-1745885067
+308ms
+
+internal
+load .dockerignore
+0ms
+
+internal
+load build context
+1ms
+
+stage-0
+RUN nix-env -if .nixpacks/nixpkgs-bc8f8d1be58e8c8383e683a06e1e1e57893fff87.nix && nix-collect-garbage -d cached
+0ms
+
+stage-0
+COPY .nixpacks/nixpkgs-bc8f8d1be58e8c8383e683a06e1e1e57893fff87.nix .nixpacks/nixpkgs-bc8f8d1be58e8c8383e683a06e1e1e57893fff87.nix cached
+0ms
+
+stage-0
+WORKDIR /app/ cached
+0ms
+
+stage-0
+COPY . /app/.
+143ms
+
+stage-0
+RUN python -m venv --copies /opt/venv && . /opt/venv/bin/activate && pip install -r requirements.txt
+14s
+Successfully installed aiofiles-25.1.0 aiogram-3.24.0 aiohappyeyeballs-2.6.1 aiohttp-3.13.3 aiosignal-1.4.0 annotated-types-0.7.0 anyio-4.12.1 asyncpg-0.31.0 attrs-25.4.0 base58-2.1.1 certifi-2026.1.4 cffi-2.0.0 construct-2.10.70 construct-typing-0.7.0 cryptography-46.0.3 frozenlist-1.8.0 greenlet-3.3.1 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.11 jsonalias-0.1.1 magic-filter-1.0.12 multidict-6.7.1 propcache-0.4.1 psycopg2-binary-2.9.11 pycparser-3.0 pydantic-2.12.5 pydantic-core-2.41.5 python-dotenv-1.2.1 solana-0.36.11 solders-0.27.1 sqlalchemy-2.0.46 typing-extensions-4.15.0 typing-inspection-0.4.2 websockets-15.0.1 yarl-1.22.0
+
+stage-0
+RUN printf '\nPATH=/opt/venv/bin:$PATH' >> /root/.profile
+154ms
+
+stage-0
+COPY . /app
+39ms
+
+auth
+sharing credentials for production-europe-west4-drams3a.railway-registry.com
+0ms
+
+importing to docker
+11s
+=== Successfully Built! ===
+Run:
+docker run -it production-europe-west4-drams3a.railway-registry.com/af455b79-ff83-4ecf-8245-10147877d455:35cf9cc7-7371-4e8c-958e-eb52ad9dfc66
+Build time: 32.38 seconds
