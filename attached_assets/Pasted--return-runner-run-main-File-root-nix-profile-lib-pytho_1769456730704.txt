@@ -1,0 +1,117 @@
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/app/main.py", line 174, in main
+    engine = get_betting_engine()
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/database/betting_db.py", line 37, in get_betting_engine
+    _betting_engine = create_async_engine(url, echo=False, pool_pre_ping=True)
+                      ^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 120, in create_async_engine
+    sync_engine = _create_engine(url, **kw)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+^^^
+  File "<string>", line 2, in create_engine
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/deprecations.py", line 281, in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 564, in create_engine
+    u = _url.make_url(url)
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/url.py", line 856, in make_url
+    return _parse_url(name_or_url)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/url.py", line 919, in _parse_url
+    return URL.create(name, **components)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/url.py", line 213, in create
+    cls._assert_port(port),
+    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/url.py", line 223, in _assert_port
+    return int(port)
+           ^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''
+2026-01-26 19:43:52,700 - __main__ - INFO - Initializing database...
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/app/main.py", line 174, in main
+2026-01-26 19:43:52,766 - __main__ - INFO - Main database initialized successfully!
+2026-01-26 19:43:52,766 - __main__ - INFO - Initializing betting database...
+Traceback (most recent call last):
+  File "/app/main.py", line 225, in <module>
+    asyncio.run(main())
+  File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+    await init_betting_db()
+  File "/app/src/database/betting_db.py", line 48, in init_betting_db
+    engine = get_betting_engine()
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/database/betting_db.py", line 37, in get_betting_engine
+    _betting_engine = create_async_engine(url, echo=False, pool_pre_ping=True)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 120, in create_async_engine
+    sync_engine = _create_engine(url, **kw)
+                  ^^^^^^^^^^^^^^^^^^^
+^^^^^^
+  File "<string>", line 2, in create_engine
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/deprecations.py", line 281, in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 564, in create_engine
+    u = _url.make_url(url)
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/url.py", line 856, in make_url
+    return _parse_url(name_or_url)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/url.py", line 919, in _parse_url
+    return URL.create(name, **components)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/url.py", line 213, in create
+    cls._assert_port(port),
+    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/url.py", line 223, in _assert_port
+    return int(port)
+           ^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''
+2026-01-26 19:43:56,749 - __main__ - INFO - Initializing database...
+2026-01-26 19:43:56,835 - __main__ - INFO - Main database initialized successfully!
+2026-01-26 19:43:56,835 - __main__ - INFO - Initializing betting database...
+Traceback (most recent call last):
+  File "/app/main.py", line 225, in <module>
+    asyncio.run(main())
+  File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/root/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.nix-profile/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/app/main.py", line 174, in main
+    await init_betting_db()
+  File "/app/src/database/betting_db.py", line 48, in init_betting_db
+    engine = get_betting_engine()
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/database/betting_db.py", line 37, in get_betting_engine
+    _betting_engine = create_async_engine(url, echo=False, pool_pre_ping=True)
+                      ^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py", line 120, in create_async_engine
+    sync_engine = _create_engine(url, **kw)
+                  ^^^^^^^

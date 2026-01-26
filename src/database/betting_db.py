@@ -18,15 +18,37 @@ _betting_engine = None
 _betting_session = None
 
 def get_betting_database_url():
+    from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
+    
     url = os.environ.get('BETTING_DATABASE_URL') or os.environ.get('DATABASE_URL')
-    if url and url.startswith('postgres://'):
-        url = url.replace('postgres://', 'postgresql+asyncpg://', 1)
-    elif url and url.startswith('postgresql://') and '+asyncpg' not in url:
-        url = url.replace('postgresql://', 'postgresql+asyncpg://', 1)
-    if url and 'sslmode=' in url:
-        import re
-        url = re.sub(r'[\?&]sslmode=[^&]*', '', url)
-    return url
+    if not url:
+        return None
+    
+    if url.startswith('postgres://'):
+        url = url.replace('postgres://', 'postgresql://', 1)
+    
+    try:
+        parsed = urlparse(url)
+        
+        scheme = 'postgresql+asyncpg'
+        
+        query_params = parse_qs(parsed.query)
+        query_params.pop('sslmode', None)
+        new_query = urlencode(query_params, doseq=True)
+        
+        port = parsed.port if parsed.port else 5432
+        
+        netloc = f"{parsed.username}:{parsed.password}@{parsed.hostname}:{port}" if parsed.password else f"{parsed.username}@{parsed.hostname}:{port}"
+        
+        new_url = urlunparse((scheme, netloc, parsed.path, '', new_query, ''))
+        return new_url
+    except Exception as e:
+        logger.error(f"Error parsing database URL: {e}")
+        if url.startswith('postgres://'):
+            url = url.replace('postgres://', 'postgresql+asyncpg://', 1)
+        elif url.startswith('postgresql://') and '+asyncpg' not in url:
+            url = url.replace('postgresql://', 'postgresql+asyncpg://', 1)
+        return url
 
 def get_betting_engine():
     global _betting_engine
