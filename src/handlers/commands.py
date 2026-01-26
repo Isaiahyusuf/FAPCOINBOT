@@ -1965,19 +1965,24 @@ async def cmd_fapbet(message: Message):
     chat_id = message.chat.id
     
     if message.chat.type == ChatType.PRIVATE:
-        await message.answer("⚔️ FAPCOIN bets must be made in groups!", parse_mode=None)
+        await message.answer(
+            "⚔️ $FAPCOIN bets must be made in groups!\n\n"
+            "🚀 Powered by $FAPCOIN on Solana",
+            parse_mode=None
+        )
         return
     
     args = message.text.split()
     if len(args) < 2:
         await message.answer(
-            "⚔️ <b>FAPCOIN BET</b> ⚔️\n\n"
+            "⚔️ <b>$FAPCOIN BET</b> ⚔️\n\n"
             "Usage: /fapbet [amount] @username\n"
             "Or reply to someone: /fapbet [amount]\n\n"
             "Example: <code>/fapbet 100 @player</code>\n\n"
             "💰 98% goes to winner\n"
-            "💎 1% goes to treasury\n"
-            "👑 1% goes to group owner",
+            "💎 1% goes to team\n"
+            "👑 1% goes to group owner\n\n"
+            "🚀 Powered by $FAPCOIN on Solana",
             parse_mode=ParseMode.HTML
         )
         return
@@ -2033,7 +2038,11 @@ async def cmd_fapbet(message: Message):
     if opponent_id:
         has_pending = await db.has_pending_bet_between(chat_id, telegram_id, opponent_id)
         if has_pending:
-            await message.answer("❌ You already have a pending bet with this user!", parse_mode=None)
+            await message.answer(
+                "❌ You already have a pending $FAPCOIN bet with this user!\n\n"
+                "🚀 Powered by $FAPCOIN on Solana",
+                parse_mode=None
+            )
             return
     
     bet = await db.create_fapcoin_bet(chat_id, telegram_id, opponent_id, bet_amount, opponent_username)
@@ -2178,7 +2187,9 @@ async def callback_fapbet_decline(callback: CallbackQuery):
     if success:
         decliner = "Challenger" if telegram_id == bet.challenger_id else "Opponent"
         await callback.message.edit_text(
-            f"❌ <b>BET DECLINED</b>\n\n{decliner} declined the FAPCOIN bet.",
+            f"❌ <b>$FAPCOIN BET DECLINED</b>\n\n"
+            f"{decliner} declined the bet.\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
             parse_mode=ParseMode.HTML
         )
     await callback.answer("Bet declined")

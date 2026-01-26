@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from sqlalchemy import Column, Integer, BigInteger, String, Float, DateTime, Boolean, create_engine
+from sqlalchemy import Column, Integer, BigInteger, String, Float, DateTime, Boolean, create_engine, Index, Numeric
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -108,19 +108,23 @@ class UserWallet(Base):
 
 class FapcoinBet(Base):
     __tablename__ = 'fapcoin_bets'
+    __table_args__ = (
+        Index('ix_pending_bet_users', 'chat_id', 'challenger_id', 'opponent_id', 'status',
+              postgresql_where="status = 'pending'"),
+    )
     
     id = Column(Integer, primary_key=True)
     chat_id = Column(BigInteger, nullable=False, index=True)
     challenger_id = Column(BigInteger, nullable=False, index=True)
     opponent_id = Column(BigInteger, nullable=True, index=True)
     opponent_username = Column(String(255), nullable=True)
-    bet_amount = Column(Float, nullable=False)
+    bet_amount = Column(Numeric(18, 2), nullable=False)
     status = Column(String(50), default='pending', index=True)
     winner_id = Column(BigInteger, nullable=True)
-    winner_payout = Column(Float, nullable=True)
-    treasury_fee = Column(Float, nullable=True)
-    group_owner_fee = Column(Float, nullable=True)
-    dev_fee = Column(Float, nullable=True)
+    winner_payout = Column(Numeric(18, 2), nullable=True)
+    treasury_fee = Column(Numeric(18, 2), nullable=True)
+    group_owner_fee = Column(Numeric(18, 2), nullable=True)
+    dev_fee = Column(Numeric(18, 2), nullable=True)
     tx_signature = Column(String(128), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     resolved_at = Column(DateTime, nullable=True)
