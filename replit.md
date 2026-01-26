@@ -40,6 +40,7 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 | `MAIN_FAPCOIN_GROUP` | Group ID where all fees go to team (no group owner cut) | Yes |
 | `SOLANA_RPC_URL` | Solana RPC endpoint | Yes |
 | `TREASURY_WALLET` | Treasury wallet for betting fees (1%) | Yes |
+| `FAPCOIN_MINT` | FAPCOIN SPL token mint address on Solana | Yes |
 | `DEV_WALLET` | Developer wallet for fees (0%) | No |
 | `ENCRYPTION_KEY` | Fernet key for wallet encryption | Auto-generated |
 

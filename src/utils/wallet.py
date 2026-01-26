@@ -129,3 +129,127 @@ def calculate_bet_distribution(total_pot: float, is_main_group: bool = False) ->
         'group_owner': float(group_owner_amount),
         'dev': float(dev_amount)
     }
+
+
+FAPCOIN_MINT = os.environ.get('FAPCOIN_MINT', '')
+FAPCOIN_DECIMALS = 6
+
+
+async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[str], Optional[str]]:
+    """Send FAPCOIN tokens from main wallet to destination.
+    
+    Returns: (success, tx_signature, error_message)
+    """
+    import aiohttp
+    
+    main_wallet = get_main_wallet()
+    if not main_wallet:
+        return False, None, "Main wallet not configured"
+    
+    main_address, main_keypair = main_wallet
+    rpc_url = os.environ.get('SOLANA_RPC_URL', 'https://api.mainnet-beta.solana.com')
+    
+    if not FAPCOIN_MINT:
+        return False, None, "FAPCOIN_MINT not configured"
+    
+    if not validate_solana_address(to_address):
+        return False, None, "Invalid destination address"
+    
+    try:
+        raw_amount = int(amount * (10 ** FAPCOIN_DECIMALS))
+        
+        from solders.pubkey import Pubkey as SoldersPubkey
+        from solders.transaction import Transaction
+        from solders.message import Message
+        from solders.instruction import Instruction, AccountMeta
+        from solders.hash import Hash
+        import struct
+        
+        mint_pubkey = SoldersPubkey.from_string(FAPCOIN_MINT)
+        owner_pubkey = main_keypair.pubkey()
+        dest_pubkey = SoldersPubkey.from_string(to_address)
+        
+        TOKEN_PROGRAM_ID = SoldersPubkey.from_string("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
+        ASSOCIATED_TOKEN_PROGRAM_ID = SoldersPubkey.from_string("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL")
+        
+        def get_associated_token_address(owner: SoldersPubkey, mint: SoldersPubkey) -> SoldersPubkey:
+            seeds = [bytes(owner), bytes(TOKEN_PROGRAM_ID), bytes(mint)]
+            program_address, _ = SoldersPubkey.find_program_address(seeds, ASSOCIATED_TOKEN_PROGRAM_ID)
+            return program_address
+        
+        source_ata = get_associated_token_address(owner_pubkey, mint_pubkey)
+        dest_ata = get_associated_token_address(dest_pubkey, mint_pubkey)
+        
+        async with aiohttp.ClientSession() as session:
+            blockhash_payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "getLatestBlockhash",
+                "params": [{"commitment": "finalized"}]
+            }
+            async with session.post(rpc_url, json=blockhash_payload) as resp:
+                result = await resp.json()
+                if "error" in result:
+                    return False, None, f"RPC error: {result['error']}"
+                blockhash_str = result["result"]["value"]["blockhash"]
+            
+            check_ata_payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "getAccountInfo",
+                "params": [str(dest_ata), {"encoding": "base64"}]
+            }
+            async with session.post(rpc_url, json=check_ata_payload) as resp:
+                ata_result = await resp.json()
+                dest_ata_exists = ata_result.get("result", {}).get("value") is not None
+        
+        instructions = []
+        
+        if not dest_ata_exists:
+            create_ata_data = bytes([])
+            create_ata_accounts = [
+                AccountMeta(owner_pubkey, is_signer=True, is_writable=True),
+                AccountMeta(dest_ata, is_signer=False, is_writable=True),
+                AccountMeta(dest_pubkey, is_signer=False, is_writable=False),
+                AccountMeta(mint_pubkey, is_signer=False, is_writable=False),
+                AccountMeta(SoldersPubkey.from_string("11111111111111111111111111111111"), is_signer=False, is_writable=False),
+                AccountMeta(TOKEN_PROGRAM_ID, is_signer=False, is_writable=False),
+            ]
+            create_ata_ix = Instruction(ASSOCIATED_TOKEN_PROGRAM_ID, create_ata_data, create_ata_accounts)
+            instructions.append(create_ata_ix)
+        
+        transfer_data = bytes([3]) + struct.pack('<Q', raw_amount)
+        transfer_accounts = [
+            AccountMeta(source_ata, is_signer=False, is_writable=True),
+            AccountMeta(dest_ata, is_signer=False, is_writable=True),
+            AccountMeta(owner_pubkey, is_signer=True, is_writable=False),
+        ]
+        transfer_ix = Instruction(TOKEN_PROGRAM_ID, transfer_data, transfer_accounts)
+        instructions.append(transfer_ix)
+        
+        blockhash = Hash.from_string(blockhash_str)
+        message = Message.new_with_blockhash(instructions, owner_pubkey, blockhash)
+        tx = Transaction.new_unsigned(message)
+        tx.sign([main_keypair], blockhash)
+        
+        tx_bytes = bytes(tx)
+        tx_base64 = base64.b64encode(tx_bytes).decode('utf-8')
+        
+        async with aiohttp.ClientSession() as session:
+            send_payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "sendTransaction",
+                "params": [tx_base64, {"encoding": "base64", "skipPreflight": False}]
+            }
+            async with session.post(rpc_url, json=send_payload) as resp:
+                send_result = await resp.json()
+                if "error" in send_result:
+                    return False, None, f"Transaction failed: {send_result['error'].get('message', str(send_result['error']))}"
+                tx_signature = send_result["result"]
+                logger.info(f"FAPCOIN transfer successful: {tx_signature}")
+                return True, tx_signature, None
+                
+    except Exception as e:
+        logger.error(f"FAPCOIN transfer error: {e}")
+        return False, None, str(e)
