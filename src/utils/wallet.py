@@ -134,6 +134,76 @@ def calculate_bet_distribution(total_pot: float, is_main_group: bool = False) ->
 FAPCOIN_MINT = os.environ.get('FAPCOIN_MINT', '')
 FAPCOIN_DECIMALS = 6
 
+SYSTEM_PROGRAM_ID = "11111111111111111111111111111111"
+TOKEN_PROGRAM_ID_STR = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+ASSOCIATED_TOKEN_PROGRAM_ID_STR = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+
+
+async def get_token_balance(wallet_address: str, mint_address: str = None) -> float:
+    """Get FAPCOIN token balance for a wallet address."""
+    import aiohttp
+    
+    if mint_address is None:
+        mint_address = FAPCOIN_MINT
+    
+    if not mint_address:
+        return 0.0
+    
+    rpc_url = os.environ.get('SOLANA_RPC_URL', 'https://api.mainnet-beta.solana.com')
+    
+    try:
+        from solders.pubkey import Pubkey as SoldersPubkey
+        
+        owner_pubkey = SoldersPubkey.from_string(wallet_address)
+        mint_pubkey = SoldersPubkey.from_string(mint_address)
+        token_program = SoldersPubkey.from_string(TOKEN_PROGRAM_ID_STR)
+        ata_program = SoldersPubkey.from_string(ASSOCIATED_TOKEN_PROGRAM_ID_STR)
+        
+        seeds = [bytes(owner_pubkey), bytes(token_program), bytes(mint_pubkey)]
+        ata_address, _ = SoldersPubkey.find_program_address(seeds, ata_program)
+        
+        async with aiohttp.ClientSession() as session:
+            payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "getTokenAccountBalance",
+                "params": [str(ata_address)]
+            }
+            async with session.post(rpc_url, json=payload) as resp:
+                result = await resp.json()
+                if "error" in result or result.get("result", {}).get("value") is None:
+                    return 0.0
+                ui_amount = result["result"]["value"].get("uiAmount", 0)
+                return float(ui_amount) if ui_amount else 0.0
+    except Exception as e:
+        logger.error(f"Error getting token balance: {e}")
+        return 0.0
+
+
+async def get_sol_balance(wallet_address: str) -> float:
+    """Get SOL balance for a wallet address."""
+    import aiohttp
+    
+    rpc_url = os.environ.get('SOLANA_RPC_URL', 'https://api.mainnet-beta.solana.com')
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "getBalance",
+                "params": [wallet_address]
+            }
+            async with session.post(rpc_url, json=payload) as resp:
+                result = await resp.json()
+                if "error" in result:
+                    return 0.0
+                lamports = result.get("result", {}).get("value", 0)
+                return lamports / 1_000_000_000
+    except Exception as e:
+        logger.error(f"Error getting SOL balance: {e}")
+        return 0.0
+
 
 async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[str], Optional[str]]:
     """Send FAPCOIN tokens from main wallet to destination.
@@ -141,6 +211,7 @@ async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[s
     Returns: (success, tx_signature, error_message)
     """
     import aiohttp
+    import struct
     
     main_wallet = get_main_wallet()
     if not main_wallet:
@@ -155,6 +226,14 @@ async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[s
     if not validate_solana_address(to_address):
         return False, None, "Invalid destination address"
     
+    sol_balance = await get_sol_balance(main_address)
+    if sol_balance < 0.01:
+        return False, None, f"Insufficient SOL for gas fees (have {sol_balance:.4f} SOL, need 0.01)"
+    
+    token_balance = await get_token_balance(main_address)
+    if token_balance < amount:
+        return False, None, f"Insufficient FAPCOIN in main wallet (have {token_balance:,.2f}, need {amount:,.2f})"
+    
     try:
         raw_amount = int(amount * (10 ** FAPCOIN_DECIMALS))
         
@@ -163,14 +242,14 @@ async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[s
         from solders.message import Message
         from solders.instruction import Instruction, AccountMeta
         from solders.hash import Hash
-        import struct
         
         mint_pubkey = SoldersPubkey.from_string(FAPCOIN_MINT)
         owner_pubkey = main_keypair.pubkey()
         dest_pubkey = SoldersPubkey.from_string(to_address)
         
-        TOKEN_PROGRAM_ID = SoldersPubkey.from_string("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
-        ASSOCIATED_TOKEN_PROGRAM_ID = SoldersPubkey.from_string("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL")
+        TOKEN_PROGRAM_ID = SoldersPubkey.from_string(TOKEN_PROGRAM_ID_STR)
+        ASSOCIATED_TOKEN_PROGRAM_ID = SoldersPubkey.from_string(ASSOCIATED_TOKEN_PROGRAM_ID_STR)
+        SYSTEM_PROGRAM = SoldersPubkey.from_string(SYSTEM_PROGRAM_ID)
         
         def get_associated_token_address(owner: SoldersPubkey, mint: SoldersPubkey) -> SoldersPubkey:
             seeds = [bytes(owner), bytes(TOKEN_PROGRAM_ID), bytes(mint)]
@@ -190,7 +269,7 @@ async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[s
             async with session.post(rpc_url, json=blockhash_payload) as resp:
                 result = await resp.json()
                 if "error" in result:
-                    return False, None, f"RPC error: {result['error']}"
+                    return False, None, f"RPC error getting blockhash: {result['error']}"
                 blockhash_str = result["result"]["value"]["blockhash"]
             
             check_ata_payload = {
@@ -206,17 +285,17 @@ async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[s
         instructions = []
         
         if not dest_ata_exists:
-            create_ata_data = bytes([])
             create_ata_accounts = [
                 AccountMeta(owner_pubkey, is_signer=True, is_writable=True),
                 AccountMeta(dest_ata, is_signer=False, is_writable=True),
                 AccountMeta(dest_pubkey, is_signer=False, is_writable=False),
                 AccountMeta(mint_pubkey, is_signer=False, is_writable=False),
-                AccountMeta(SoldersPubkey.from_string("11111111111111111111111111111111"), is_signer=False, is_writable=False),
+                AccountMeta(SYSTEM_PROGRAM, is_signer=False, is_writable=False),
                 AccountMeta(TOKEN_PROGRAM_ID, is_signer=False, is_writable=False),
             ]
-            create_ata_ix = Instruction(ASSOCIATED_TOKEN_PROGRAM_ID, create_ata_data, create_ata_accounts)
+            create_ata_ix = Instruction(ASSOCIATED_TOKEN_PROGRAM_ID, bytes(), create_ata_accounts)
             instructions.append(create_ata_ix)
+            logger.info(f"Creating ATA for destination: {dest_ata}")
         
         transfer_data = bytes([3]) + struct.pack('<Q', raw_amount)
         transfer_accounts = [
@@ -240,16 +319,20 @@ async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[s
                 "jsonrpc": "2.0",
                 "id": 1,
                 "method": "sendTransaction",
-                "params": [tx_base64, {"encoding": "base64", "skipPreflight": False}]
+                "params": [tx_base64, {"encoding": "base64", "skipPreflight": False, "preflightCommitment": "confirmed"}]
             }
             async with session.post(rpc_url, json=send_payload) as resp:
                 send_result = await resp.json()
                 if "error" in send_result:
-                    return False, None, f"Transaction failed: {send_result['error'].get('message', str(send_result['error']))}"
+                    error_msg = send_result['error'].get('message', str(send_result['error']))
+                    logger.error(f"Transaction send error: {error_msg}")
+                    return False, None, f"Transaction failed: {error_msg}"
                 tx_signature = send_result["result"]
-                logger.info(f"FAPCOIN transfer successful: {tx_signature}")
+                logger.info(f"FAPCOIN transfer successful: {tx_signature} - {amount} FAPCOIN to {to_address}")
                 return True, tx_signature, None
                 
     except Exception as e:
         logger.error(f"FAPCOIN transfer error: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
         return False, None, str(e)

@@ -1690,7 +1690,7 @@ async def callback_support(callback: CallbackQuery):
 
 @router.callback_query(F.data == "action_deposit")
 async def callback_deposit(callback: CallbackQuery):
-    """Check for deposits via button"""
+    """Check for deposits via button - checks on-chain balance"""
     telegram_id = callback.from_user.id
     
     try:
@@ -1700,17 +1700,42 @@ async def callback_deposit(callback: CallbackQuery):
         keyboard = get_back_button()
         
         await callback.message.edit_text(
-            f"📥 <b>DEPOSIT CHECK</b>\n\n"
-            f"━━━━━━━━━━━━━━━━━━━━━\n"
-            f"📬 <b>Your Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
-            f"💵 <b>Current Balance:</b> {wallet.balance:,.2f} $FAPCOIN\n"
-            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-            f"📲 Send FAPCOIN tokens to your deposit address.\n"
-            f"Balance updates may take a few minutes.\n\n"
-            f"🚀 Powered by $FAPCOIN on Solana",
-            reply_markup=keyboard,
+            f"⏳ <b>Checking on-chain balance...</b>\n\n"
+            f"Please wait...",
             parse_mode=ParseMode.HTML
         )
+        
+        from src.utils.wallet import get_token_balance
+        on_chain_balance = await get_token_balance(wallet.public_key)
+        
+        if on_chain_balance > wallet.balance:
+            deposit_amount = on_chain_balance - wallet.balance
+            await db.update_wallet_balance(telegram_id, on_chain_balance)
+            
+            await callback.message.edit_text(
+                f"✅ <b>DEPOSIT FOUND!</b>\n\n"
+                f"━━━━━━━━━━━━━━━━━━━━━\n"
+                f"➕ <b>Deposited:</b> {deposit_amount:,.2f} $FAPCOIN\n"
+                f"💵 <b>New Balance:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
+                f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                f"Your balance has been updated!\n\n"
+                f"🚀 Powered by $FAPCOIN on Solana",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            await callback.message.edit_text(
+                f"📥 <b>DEPOSIT CHECK</b>\n\n"
+                f"━━━━━━━━━━━━━━━━━━━━━\n"
+                f"📬 <b>Your Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
+                f"💵 <b>Current Balance:</b> {wallet.balance:,.2f} $FAPCOIN\n"
+                f"🔗 <b>On-chain:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
+                f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                f"📲 Send FAPCOIN tokens to your deposit address above.\n\n"
+                f"🚀 Powered by $FAPCOIN on Solana",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
         await callback.answer()
     except Exception as e:
         logger.error(f"DEPOSIT callback error: {e}")
@@ -2406,7 +2431,7 @@ async def cmd_newwallet(message: Message):
 
 @router.message(Command("deposit"))
 async def cmd_deposit(message: Message):
-    """Check for new deposits to user's wallet"""
+    """Check for new deposits to user's wallet with on-chain balance check"""
     telegram_id = message.from_user.id
     
     logger.info(f"DEPOSIT command from user {telegram_id}")
@@ -2415,17 +2440,41 @@ async def cmd_deposit(message: Message):
         await db.get_or_create_user(telegram_id, message.from_user.username, message.from_user.first_name)
         wallet = await db.get_or_create_user_wallet(telegram_id)
         
-        await message.answer(
-            f"📥 <b>DEPOSIT CHECK</b>\n\n"
-            f"━━━━━━━━━━━━━━━━━━━━━\n"
-            f"📬 <b>Your Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
-            f"💵 <b>Current Balance:</b> {wallet.balance:,.2f} $FAPCOIN\n"
-            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-            f"📲 Send FAPCOIN tokens to your deposit address.\n"
-            f"Balance updates may take a few minutes.\n\n"
-            f"🚀 Powered by $FAPCOIN on Solana",
+        status_msg = await message.answer(
+            f"⏳ <b>Checking on-chain balance...</b>\n\n"
+            f"Please wait...",
             parse_mode=ParseMode.HTML
         )
+        
+        from src.utils.wallet import get_token_balance
+        on_chain_balance = await get_token_balance(wallet.public_key)
+        
+        if on_chain_balance > wallet.balance:
+            deposit_amount = on_chain_balance - wallet.balance
+            await db.update_wallet_balance(telegram_id, on_chain_balance)
+            
+            await status_msg.edit_text(
+                f"✅ <b>DEPOSIT FOUND!</b>\n\n"
+                f"━━━━━━━━━━━━━━━━━━━━━\n"
+                f"➕ <b>Deposited:</b> {deposit_amount:,.2f} $FAPCOIN\n"
+                f"💵 <b>New Balance:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
+                f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                f"Your balance has been updated!\n\n"
+                f"🚀 Powered by $FAPCOIN on Solana",
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            await status_msg.edit_text(
+                f"📥 <b>DEPOSIT CHECK</b>\n\n"
+                f"━━━━━━━━━━━━━━━━━━━━━\n"
+                f"📬 <b>Your Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
+                f"💵 <b>Current Balance:</b> {wallet.balance:,.2f} $FAPCOIN\n"
+                f"🔗 <b>On-chain:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
+                f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                f"📲 Send FAPCOIN tokens to your deposit address above.\n\n"
+                f"🚀 Powered by $FAPCOIN on Solana",
+                parse_mode=ParseMode.HTML
+            )
     except Exception as e:
         logger.error(f"DEPOSIT error: {e}")
         await message.answer(f"❌ Error checking deposits: {str(e)[:100]}", parse_mode=None)
