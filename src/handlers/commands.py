@@ -34,10 +34,7 @@ def is_owner(telegram_id: int) -> bool:
 
 
 def get_main_menu_keyboard(bot_username: str = None, is_private: bool = False):
-    if is_private or not bot_username:
-        buy_button = InlineKeyboardButton(text="💰 Buy Growth", callback_data="action_buy")
-    else:
-        buy_button = InlineKeyboardButton(text="💰 Buy Growth", url=f"https://t.me/{bot_username}?start=buy")
+    buy_button = InlineKeyboardButton(text="💰 Buy Growth", callback_data="action_buy")
     
     return InlineKeyboardMarkup(inline_keyboard=[
         [
