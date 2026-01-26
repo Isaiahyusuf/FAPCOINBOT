@@ -2129,8 +2129,13 @@ async def cmd_withdraw(message: Message):
             )
             return
         
-        if len(destination) < 32 or len(destination) > 44:
-            await message.answer("❌ Invalid Solana address", parse_mode=None)
+        if not validate_solana_address(destination):
+            await message.answer(
+                "❌ Invalid Solana wallet address!\n\n"
+                "Please provide a valid Solana address (32-44 base58 characters).\n\n"
+                "🚀 Powered by $FAPCOIN on Solana",
+                parse_mode=None
+            )
             return
         
         # TODO: Implement actual Solana transfer
