@@ -1,0 +1,20 @@
+{"message":"Starting Container","attributes":{"level":"info"},"timestamp":"2026-01-26T21:34:04.000000000Z"}
+{"message":"2026-01-26 21:34:06,948 - __main__ - INFO - Promo message task started (runs every hour)","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:07.562655464Z"}
+{"message":"2026-01-26 21:34:06,948 - aiogram.dispatcher - INFO - Start polling","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:07.562665298Z"}
+{"message":"/app/main.py:121: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:07.562672038Z"}
+{"message":"  now = datetime.utcnow()","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:07.562676396Z"}
+{"message":"2026-01-26 21:34:06,963 - aiogram.dispatcher - INFO - Run polling for bot @Fapcoindickbot id=8407392392 - 'FAPCOIN DICK GROWER'","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:07.562680786Z"}
+{"message":"2026-01-26 21:34:06,434 - __main__ - INFO - Initializing database...","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:07.563007352Z"}
+{"message":"2026-01-26 21:34:06,862 - __main__ - INFO - Main database initialized successfully!","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:07.563013175Z"}
+{"message":"2026-01-26 21:34:06,862 - __main__ - INFO - Initializing betting database...","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:07.563019926Z"}
+{"message":"2026-01-26 21:34:06,862 - src.database.betting_db - INFO - Betting tables are managed by main database init","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:07.563026319Z"}
+{"message":"2026-01-26 21:34:06,862 - __main__ - INFO - Betting database initialized successfully!","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:07.563033311Z"}
+{"message":"2026-01-26 21:34:06,948 - __main__ - INFO - Bot commands registered for groups and private chats","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:07.563040556Z"}
+{"message":"2026-01-26 21:34:06,948 - __main__ - INFO - Starting FAPCOIN DICK BOT...","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:07.563047267Z"}
+{"message":"2026-01-26 21:34:06,948 - __main__ - INFO - Daily winner selection task started (runs at 12:00 UTC)","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:07.563053942Z"}
+{"message":"2026-01-26 21:34:10,999 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:11.001202034Z"}
+{"message":"2026-01-26 21:34:11,000 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8407392392)","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:11.001208829Z"}
+{"message":"2026-01-26 21:34:12,013 - aiogram.dispatcher - INFO - Connection established (tryings = 1, bot id = 8407392392)","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:12.019121289Z"}
+{"message":"2026-01-26 21:34:12,015 - aiogram.event - INFO - Update id=590851118 is handled. Duration 1 ms by bot id=8407392392","attributes":{"level":"error"},"timestamp":"2026-01-26T21:34:12.019129599Z"}
+{"message":"2026-01-26 21:35:07,385 - __main__ - INFO - Sent promo to chat -5256315707","attributes":{"level":"error"},"timestamp":"2026-01-26T21:35:12.034706093Z"}
+{"message":"2026-01-26 21:35:08,705 - __main__ - INFO - Sent promo to chat -1003006076902","attributes":{"level":"error"},"timestamp":"2026-01-26T21:35:12.0347131
