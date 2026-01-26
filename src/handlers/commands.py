@@ -2361,11 +2361,14 @@ async def callback_fapbet_accept(callback: CallbackQuery, bot: Bot):
         await callback.answer(f"❌ Insufficient balance! Need {bet.bet_amount:,.2f} FAPCOIN", show_alert=True)
         return
     
+    from src.utils.wallet import is_main_fapcoin_group
+    
     treasury_wallet = await db.get_team_wallet() or os.environ.get('TREASURY_WALLET', '')
     dev_wallet = os.environ.get('DEV_WALLET', '')
-    group_owner_wallet = await db.get_group_owner_wallet(bet.chat_id)
+    is_main_group = is_main_fapcoin_group(bet.chat_id)
+    group_owner_wallet = None if is_main_group else await db.get_group_owner_wallet(bet.chat_id)
     
-    result = await db.accept_fapcoin_bet(bet_id, treasury_wallet, dev_wallet, group_owner_wallet)
+    result = await db.accept_fapcoin_bet(bet_id, treasury_wallet, dev_wallet, group_owner_wallet, is_main_group=is_main_group)
     
     if "error" in result:
         error = result["error"]
@@ -2402,6 +2405,11 @@ async def callback_fapbet_accept(callback: CallbackQuery, bot: Bot):
         [InlineKeyboardButton(text="🗑️ Delete My Wallet", callback_data=f"delete_wallet_{bet.challenger_id}_{telegram_id}")]
     ])
     
+    if is_main_group:
+        fee_info = f"💎 Team fee: {result['treasury_fee']:,.2f} $FAPCOIN"
+    else:
+        fee_info = f"💎 Team fee: {result['treasury_fee']:,.2f} $FAPCOIN\n👑 Group owner: {result['group_owner_fee']:,.2f} $FAPCOIN"
+    
     await callback.message.edit_text(
         f"⚔️ <b>$FAPCOIN BET RESULT!</b> ⚔️\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
@@ -2410,8 +2418,7 @@ async def callback_fapbet_accept(callback: CallbackQuery, bot: Bot):
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
         f"🏆 <b>WINNER: {winner_name}!</b>\n\n"
         f"💰 Won: <b>{result['winner_payout']:,.2f} $FAPCOIN</b>\n"
-        f"💎 Team fee: {result['treasury_fee']:,.2f} $FAPCOIN\n"
-        f"👑 Group owner: {result['group_owner_fee']:,.2f} $FAPCOIN\n\n"
+        f"{fee_info}\n\n"
         f"😢 {loser_name} lost {bet.bet_amount:,.2f} $FAPCOIN\n\n"
         f"🚀 Powered by $FAPCOIN on Solana\n\n"
         f"⚠️ Want to delete your burner wallet? Click below:",

@@ -68,11 +68,52 @@ FEE_TREASURY = Decimal('0.01')
 FEE_GROUP_OWNER = Decimal('0.01')
 FEE_DEV = Decimal('0.00')
 
-def calculate_bet_distribution(total_pot: float) -> dict:
+MAIN_FAPCOIN_GROUP = int(os.environ.get('MAIN_FAPCOIN_GROUP', '0'))
+
+def is_main_fapcoin_group(chat_id: int) -> bool:
+    """Check if the chat is the main FAPCOIN group."""
+    return chat_id == MAIN_FAPCOIN_GROUP
+
+
+def get_bot_treasury_wallet() -> Optional[Tuple[str, Keypair]]:
+    """Get the bot's treasury wallet from environment.
+    Returns (public_key, keypair) or None if not configured."""
+    private_key_base64 = os.environ.get('BOT_TREASURY_PRIVATE_KEY')
+    if not private_key_base64:
+        return None
+    
+    try:
+        private_key_bytes = base64.b64decode(private_key_base64)
+        keypair = Keypair.from_bytes(private_key_bytes)
+        public_key = str(keypair.pubkey())
+        return (public_key, keypair)
+    except Exception as e:
+        logger.error(f"Failed to load bot treasury wallet: {e}")
+        return None
+
+
+def generate_bot_treasury_wallet() -> Tuple[str, str]:
+    """Generate a new bot treasury wallet.
+    Returns (public_key, base64_private_key) for storage in environment."""
+    keypair = Keypair()
+    public_key = str(keypair.pubkey())
+    private_key_base64 = base64.b64encode(bytes(keypair)).decode()
+    return public_key, private_key_base64
+
+
+def calculate_bet_distribution(total_pot: float, is_main_group: bool = False) -> dict:
+    """Calculate bet distribution.
+    For main FAPCOIN group: 98% winner, 2% treasury (no group owner cut)
+    For other groups: 98% winner, 1% treasury, 1% group owner
+    """
     pot = Decimal(str(total_pot))
     
-    treasury_amount = (pot * FEE_TREASURY).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
-    group_owner_amount = (pot * FEE_GROUP_OWNER).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
+    if is_main_group:
+        treasury_amount = (pot * Decimal('0.02')).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
+        group_owner_amount = Decimal('0')
+    else:
+        treasury_amount = (pot * FEE_TREASURY).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
+        group_owner_amount = (pot * FEE_GROUP_OWNER).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
     dev_amount = (pot * FEE_DEV).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
     winner_amount = pot - treasury_amount - group_owner_amount - dev_amount
     

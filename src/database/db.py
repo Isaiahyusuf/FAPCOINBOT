@@ -930,7 +930,7 @@ async def get_pending_fapcoin_bet(bet_id: int) -> FapcoinBet | None:
         return result.scalar_one_or_none()
 
 
-async def accept_fapcoin_bet(bet_id: int, treasury_wallet: str, dev_wallet: str, group_owner_wallet: str = None) -> dict:
+async def accept_fapcoin_bet(bet_id: int, treasury_wallet: str, dev_wallet: str, group_owner_wallet: str = None, is_main_group: bool = False) -> dict:
     from src.utils.wallet import calculate_bet_distribution
     Session = get_session()
     async with Session() as session:
@@ -962,7 +962,7 @@ async def accept_fapcoin_bet(bet_id: int, treasury_wallet: str, dev_wallet: str,
             opponent_wallet.balance -= bet.bet_amount
             
             total_pot = bet.bet_amount * 2
-            distribution = calculate_bet_distribution(total_pot)
+            distribution = calculate_bet_distribution(total_pot, is_main_group=is_main_group)
             
             challenger_roll = random.randint(1, 100)
             opponent_roll = random.randint(1, 100)

@@ -28,3 +28,8 @@ args = "python main.py"
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[userenv]
+
+[userenv.shared]
+MAIN_FAPCOIN_GROUP = "-1003006076902"
