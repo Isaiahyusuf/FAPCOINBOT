@@ -198,6 +198,13 @@ async def cmd_start(message: Message, bot: Bot):
     )
 
 
+@router.message(Command("ping"))
+async def cmd_ping(message: Message):
+    """Simple test command - no database calls"""
+    logger.info(f"PING command from user {message.from_user.id} in chat {message.chat.id}")
+    await message.answer("🏓 Pong! Bot is working.\n\n$FAPCOIN on Solana", parse_mode=None)
+
+
 @router.message(Command("menu"))
 async def cmd_menu(message: Message, bot: Bot):
     bot_info = await bot.get_me()
