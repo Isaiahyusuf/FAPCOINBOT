@@ -202,6 +202,7 @@ async def main():
         BotCommand(command="wallet", description="💳 Your FAPCOIN wallet"),
         BotCommand(command="deposit", description="📥 Check for deposits"),
         BotCommand(command="withdraw", description="📤 Withdraw FAPCOIN"),
+        BotCommand(command="newwallet", description="🆕 Delete & create new wallet"),
         BotCommand(command="daily", description="🎲 Dick of the Day"),
         BotCommand(command="buy", description="🛒 Buy growth with FAPCOIN"),
         BotCommand(command="gift", description="🎁 Gift cm to someone"),
@@ -219,6 +220,7 @@ async def main():
         BotCommand(command="wallet", description="💳 Your FAPCOIN wallet"),
         BotCommand(command="deposit", description="📥 Check for deposits"),
         BotCommand(command="withdraw", description="📤 Withdraw FAPCOIN"),
+        BotCommand(command="newwallet", description="🆕 Delete & create new wallet"),
         BotCommand(command="support", description="🆘 Contact support"),
         BotCommand(command="help", description="❓ Show all commands"),
     ]

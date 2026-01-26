@@ -1957,6 +1957,7 @@ async def callback_wallet(callback: CallbackQuery):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📥 Check Deposit", callback_data="wallet_deposit")],
         [InlineKeyboardButton(text="📤 Withdraw", callback_data="wallet_withdraw")],
+        [InlineKeyboardButton(text="🗑️ Delete Wallet", callback_data="wallet_delete_confirm")],
         [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
     ])
     
@@ -2052,6 +2053,187 @@ async def callback_wallet_withdraw(callback: CallbackQuery):
         return
     
     await callback.answer()
+
+
+@router.callback_query(F.data == "wallet_delete_confirm")
+async def callback_wallet_delete_confirm(callback: CallbackQuery):
+    """Show wallet deletion confirmation"""
+    telegram_id = callback.from_user.id
+    
+    try:
+        wallet = await db.get_user_wallet(telegram_id)
+        if not wallet:
+            await callback.answer("You don't have a wallet to delete.", show_alert=True)
+            return
+        
+        if wallet.balance > 0:
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="⚠️ Delete Anyway (Lose Funds)", callback_data="wallet_delete_force")],
+                [InlineKeyboardButton(text="◀️ Cancel", callback_data="action_wallet")]
+            ])
+            await callback.message.edit_text(
+                f"⚠️ <b>WARNING: WALLET HAS FUNDS!</b>\n\n"
+                f"Your wallet has <b>{wallet.balance:,.2f} $FAPCOIN</b>!\n\n"
+                f"If you delete this wallet, you will <b>LOSE ALL FUNDS</b>.\n\n"
+                f"Withdraw your funds first using /withdraw\n\n"
+                f"Are you sure you want to delete?",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="✅ Yes, Delete Wallet", callback_data="wallet_delete_execute")],
+                [InlineKeyboardButton(text="◀️ Cancel", callback_data="action_wallet")]
+            ])
+            await callback.message.edit_text(
+                f"🗑️ <b>DELETE WALLET?</b>\n\n"
+                f"This will delete your current wallet:\n"
+                f"<code>{wallet.public_key}</code>\n\n"
+                f"You can create a new wallet anytime.\n\n"
+                f"Are you sure?",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
+    except Exception as e:
+        logger.error(f"WALLET_DELETE_CONFIRM error: {e}")
+        await callback.answer(f"Error: {str(e)[:50]}", show_alert=True)
+        return
+    
+    await callback.answer()
+
+
+@router.callback_query(F.data == "wallet_delete_execute")
+async def callback_wallet_delete_execute(callback: CallbackQuery):
+    """Delete wallet with zero balance"""
+    telegram_id = callback.from_user.id
+    
+    try:
+        deleted = await db.delete_user_wallet(telegram_id)
+        if deleted:
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🆕 Create New Wallet", callback_data="wallet_create_new")],
+                [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+            ])
+            await callback.message.edit_text(
+                f"✅ <b>WALLET DELETED</b>\n\n"
+                f"Your wallet has been deleted successfully.\n\n"
+                f"Click below to create a new wallet.",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            await callback.answer("Could not delete wallet. It may have funds.", show_alert=True)
+    except Exception as e:
+        logger.error(f"WALLET_DELETE_EXECUTE error: {e}")
+        await callback.answer(f"Error: {str(e)[:50]}", show_alert=True)
+    
+    await callback.answer()
+
+
+@router.callback_query(F.data == "wallet_delete_force")
+async def callback_wallet_delete_force(callback: CallbackQuery):
+    """Force delete wallet even with balance (user confirmed they want to lose funds)"""
+    telegram_id = callback.from_user.id
+    
+    try:
+        # First set balance to 0, then delete
+        await db.update_wallet_balance(telegram_id, 0.0)
+        deleted = await db.delete_user_wallet(telegram_id)
+        
+        if deleted:
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🆕 Create New Wallet", callback_data="wallet_create_new")],
+                [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+            ])
+            await callback.message.edit_text(
+                f"✅ <b>WALLET DELETED</b>\n\n"
+                f"Your wallet and all funds have been deleted.\n\n"
+                f"Click below to create a new wallet.",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            await callback.answer("Could not delete wallet.", show_alert=True)
+    except Exception as e:
+        logger.error(f"WALLET_DELETE_FORCE error: {e}")
+        await callback.answer(f"Error: {str(e)[:50]}", show_alert=True)
+    
+    await callback.answer()
+
+
+@router.callback_query(F.data == "wallet_create_new")
+async def callback_wallet_create_new(callback: CallbackQuery):
+    """Create a new wallet for the user"""
+    telegram_id = callback.from_user.id
+    
+    try:
+        # This will create a new wallet since the old one was deleted
+        wallet = await db.get_or_create_user_wallet(telegram_id)
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="📥 Check Deposit", callback_data="wallet_deposit")],
+            [InlineKeyboardButton(text="📤 Withdraw", callback_data="wallet_withdraw")],
+            [InlineKeyboardButton(text="🗑️ Delete Wallet", callback_data="wallet_delete_confirm")],
+            [InlineKeyboardButton(text="◀️ Back to Menu", callback_data="action_menu")]
+        ])
+        
+        await callback.message.edit_text(
+            f"🆕 <b>NEW WALLET CREATED!</b>\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"📥 <b>New Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
+            f"💵 <b>Balance:</b> 0.00 $FAPCOIN\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"📲 Send FAPCOIN to your new deposit address.\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    except Exception as e:
+        logger.error(f"WALLET_CREATE_NEW error: {e}")
+        await callback.answer(f"Error creating wallet: {str(e)[:50]}", show_alert=True)
+        return
+    
+    await callback.answer("New wallet created!")
+
+
+@router.message(Command("newwallet"))
+async def cmd_newwallet(message: Message):
+    """Delete old wallet and create a new one"""
+    telegram_id = message.from_user.id
+    
+    try:
+        wallet = await db.get_user_wallet(telegram_id)
+        
+        if wallet and wallet.balance > 0:
+            await message.answer(
+                f"⚠️ <b>Cannot Create New Wallet</b>\n\n"
+                f"Your current wallet has <b>{wallet.balance:,.2f} $FAPCOIN</b>.\n\n"
+                f"Please withdraw your funds first using /withdraw\n"
+                f"or use /wallet and click 'Delete Wallet' to force delete.",
+                parse_mode=ParseMode.HTML
+            )
+            return
+        
+        # Delete old wallet if exists
+        if wallet:
+            await db.delete_user_wallet(telegram_id)
+        
+        # Create new wallet
+        new_wallet = await db.get_or_create_user_wallet(telegram_id)
+        
+        await message.answer(
+            f"🆕 <b>NEW WALLET CREATED!</b>\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"📥 <b>New Deposit Address:</b>\n<code>{new_wallet.public_key}</code>\n\n"
+            f"💵 <b>Balance:</b> 0.00 $FAPCOIN\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"📲 Send FAPCOIN to your new deposit address.\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
+            parse_mode=ParseMode.HTML
+        )
+    except Exception as e:
+        logger.error(f"NEWWALLET error: {e}")
+        await message.answer(f"❌ Error: {str(e)[:100]}", parse_mode=None)
 
 
 @router.message(Command("deposit"))
