@@ -157,6 +157,13 @@ def get_database_url():
     url = os.environ.get('DATABASE_URL', '')
     if not url:
         raise ValueError("DATABASE_URL environment variable is not set")
+    
+    # Remove sslmode parameter as asyncpg handles it differently
+    if '?sslmode=' in url:
+        url = url.split('?sslmode=')[0]
+    elif '&sslmode=' in url:
+        url = url.replace('&sslmode=require', '').replace('&sslmode=prefer', '').replace('&sslmode=disable', '')
+    
     if url.startswith('postgres://'):
         url = url.replace('postgres://', 'postgresql+asyncpg://', 1)
     elif url.startswith('postgresql://'):
@@ -170,6 +177,8 @@ def get_sync_database_url():
     url = os.environ.get('DATABASE_URL', '')
     if not url:
         raise ValueError("DATABASE_URL environment variable is not set")
+    
+    # Keep sslmode for psycopg2 - it handles it correctly
     if url.startswith('postgres://'):
         url = url.replace('postgres://', 'postgresql://', 1)
     elif url.startswith('postgresql+asyncpg://'):
