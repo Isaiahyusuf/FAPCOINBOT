@@ -2104,8 +2104,9 @@ async def cmd_withdraw(message: Message):
             f"━━━━━━━━━━━━━━━━━━━━━\n\n"
             f"Usage: <code>/withdraw [amount] [solana_address]</code>\n\n"
             f"Example:\n"
-            f"<code>/withdraw 100 ABC123...XYZ</code>\n\n"
-            f"⚠️ Min: 10 FAPCOIN | Fee: ~0.1 FAPCOIN\n\n"
+            f"<code>/withdraw 500 ABC123...XYZ</code>\n\n"
+            f"⚠️ Min: 500 FAPCOIN\n"
+            f"⛽ Gas fee: Deposit ~$1 SOL first\n\n"
             f"🚀 Powered by $FAPCOIN on Solana",
             parse_mode=ParseMode.HTML
         )
