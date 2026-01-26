@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import random
 from sqlalchemy import select, update, and_, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
-from .models import User, UserChat, Transaction, DailyWinner, PvpChallenge, SupportRequest, BotSettings, UserWallet, FapcoinBet, GroupOwnerWallet, create_async_session
+from .models import User, UserChat, Transaction, DailyWinner, PvpChallenge, SupportRequest, BotSettings, UserWallet, FapcoinBet, GroupOwnerWallet, BetStats, create_async_session
 
 
 SessionLocal = None
@@ -916,67 +916,77 @@ async def accept_fapcoin_bet(bet_id: int, treasury_wallet: str, dev_wallet: str,
     from src.utils.wallet import calculate_bet_distribution
     Session = get_session()
     async with Session() as session:
-        result = await session.execute(
-            select(FapcoinBet).where(
-                and_(FapcoinBet.id == bet_id, FapcoinBet.status == 'pending')
+        async with session.begin():
+            result = await session.execute(
+                select(FapcoinBet).where(
+                    and_(FapcoinBet.id == bet_id, FapcoinBet.status == 'pending')
+                ).with_for_update()
             )
-        )
-        bet = result.scalar_one_or_none()
-        if not bet:
-            return {"error": "bet_not_found"}
-        
-        challenger_result = await session.execute(
-            select(UserWallet).where(UserWallet.telegram_id == bet.challenger_id)
-        )
-        challenger_wallet = challenger_result.scalar_one_or_none()
-        if not challenger_wallet or challenger_wallet.balance < bet.bet_amount:
-            return {"error": "challenger_insufficient_balance"}
-        
-        opponent_result = await session.execute(
-            select(UserWallet).where(UserWallet.telegram_id == bet.opponent_id)
-        )
-        opponent_wallet = opponent_result.scalar_one_or_none()
-        if not opponent_wallet or opponent_wallet.balance < bet.bet_amount:
-            return {"error": "opponent_insufficient_balance"}
-        
-        challenger_wallet.balance -= bet.bet_amount
-        opponent_wallet.balance -= bet.bet_amount
-        
-        total_pot = bet.bet_amount * 2
-        distribution = calculate_bet_distribution(total_pot)
-        
-        challenger_roll = random.randint(1, 100)
-        opponent_roll = random.randint(1, 100)
-        
-        if challenger_roll == opponent_roll:
-            challenger_wallet.balance += bet.bet_amount
-            opponent_wallet.balance += bet.bet_amount
-            bet.status = 'draw'
-            await session.commit()
-            return {
-                "draw": True,
-                "challenger_roll": challenger_roll,
-                "opponent_roll": opponent_roll
-            }
-        
-        if challenger_roll > opponent_roll:
-            winner_id = bet.challenger_id
-            winner_wallet = challenger_wallet
-        else:
-            winner_id = bet.opponent_id
-            winner_wallet = opponent_wallet
-        
-        winner_wallet.balance += distribution['winner']
-        
-        bet.status = 'resolved'
-        bet.winner_id = winner_id
-        bet.winner_payout = distribution['winner']
-        bet.treasury_fee = distribution['treasury']
-        bet.group_owner_fee = distribution['group_owner']
-        bet.dev_fee = distribution['dev']
-        bet.resolved_at = datetime.utcnow()
-        
-        await session.commit()
+            bet = result.scalar_one_or_none()
+            if not bet:
+                return {"error": "bet_not_found"}
+            
+            challenger_result = await session.execute(
+                select(UserWallet).where(UserWallet.telegram_id == bet.challenger_id).with_for_update()
+            )
+            challenger_wallet = challenger_result.scalar_one_or_none()
+            if not challenger_wallet or challenger_wallet.balance < bet.bet_amount:
+                return {"error": "challenger_insufficient_balance"}
+            
+            opponent_result = await session.execute(
+                select(UserWallet).where(UserWallet.telegram_id == bet.opponent_id).with_for_update()
+            )
+            opponent_wallet = opponent_result.scalar_one_or_none()
+            if not opponent_wallet or opponent_wallet.balance < bet.bet_amount:
+                return {"error": "opponent_insufficient_balance"}
+            
+            challenger_wallet.balance -= bet.bet_amount
+            opponent_wallet.balance -= bet.bet_amount
+            
+            total_pot = bet.bet_amount * 2
+            distribution = calculate_bet_distribution(total_pot)
+            
+            challenger_roll = random.randint(1, 100)
+            opponent_roll = random.randint(1, 100)
+            
+            if challenger_roll == opponent_roll:
+                challenger_wallet.balance += bet.bet_amount
+                opponent_wallet.balance += bet.bet_amount
+                bet.status = 'draw'
+                return {
+                    "draw": True,
+                    "challenger_roll": challenger_roll,
+                    "opponent_roll": opponent_roll
+                }
+            
+            if challenger_roll > opponent_roll:
+                winner_id = bet.challenger_id
+                winner_wallet = challenger_wallet
+            else:
+                winner_id = bet.opponent_id
+                winner_wallet = opponent_wallet
+            
+            winner_wallet.balance += distribution['winner']
+            
+            bet.status = 'resolved'
+            bet.winner_id = winner_id
+            bet.winner_payout = distribution['winner']
+            bet.treasury_fee = distribution['treasury']
+            bet.group_owner_fee = distribution['group_owner']
+            bet.dev_fee = distribution['dev']
+            bet.resolved_at = datetime.utcnow()
+            
+            stats_result = await session.execute(
+                select(BetStats).where(BetStats.chat_id == bet.chat_id).with_for_update()
+            )
+            stats = stats_result.scalar_one_or_none()
+            if not stats:
+                stats = BetStats(chat_id=bet.chat_id)
+                session.add(stats)
+            stats.total_bets += 1
+            stats.total_volume += total_pot
+            stats.total_treasury_fees += distribution['treasury']
+            stats.total_group_fees += distribution['group_owner']
         
         return {
             "winner_id": winner_id,
@@ -1044,3 +1054,63 @@ async def get_group_owner_wallet(chat_id: int) -> str | None:
         )
         group_wallet = result.scalar_one_or_none()
         return group_wallet.wallet_address if group_wallet else None
+
+
+async def get_bet_stats(chat_id: int) -> dict:
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(BetStats).where(BetStats.chat_id == chat_id)
+        )
+        stats = result.scalar_one_or_none()
+        if stats:
+            return {
+                "total_bets": stats.total_bets,
+                "total_volume": stats.total_volume,
+                "total_treasury_fees": stats.total_treasury_fees,
+                "total_group_fees": stats.total_group_fees
+            }
+        return {
+            "total_bets": 0,
+            "total_volume": 0.0,
+            "total_treasury_fees": 0.0,
+            "total_group_fees": 0.0
+        }
+
+
+async def get_global_bet_stats() -> dict:
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(
+                func.sum(BetStats.total_bets),
+                func.sum(BetStats.total_volume),
+                func.sum(BetStats.total_treasury_fees),
+                func.count(BetStats.chat_id)
+            )
+        )
+        row = result.one()
+        return {
+            "total_bets": row[0] or 0,
+            "total_volume": row[1] or 0.0,
+            "total_treasury_fees": row[2] or 0.0,
+            "total_groups": row[3] or 0
+        }
+
+
+async def has_pending_bet_between(chat_id: int, user1_id: int, user2_id: int) -> bool:
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(
+            select(FapcoinBet).where(
+                and_(
+                    FapcoinBet.chat_id == chat_id,
+                    FapcoinBet.status == 'pending',
+                    or_(
+                        and_(FapcoinBet.challenger_id == user1_id, FapcoinBet.opponent_id == user2_id),
+                        and_(FapcoinBet.challenger_id == user2_id, FapcoinBet.opponent_id == user1_id)
+                    )
+                )
+            )
+        )
+        return result.scalar_one_or_none() is not None

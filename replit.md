@@ -88,20 +88,27 @@ A competitive Telegram game bot where users can grow their "length," compete on 
 - Package prices: 5k-25k FAPCOIN for 20-100 cm growth
 - Double-spend protection (same tx can't be used twice)
 
-### FAPCOIN Betting System (NEW)
+### FAPCOIN Betting System
 - `/wallet` - View your burner wallet (auto-generated) with deposit address and balance
 - `/fapbet [amount] @user` - Challenge another user to a FAPCOIN bet
 - `/setgroupwallet [address]` - Group admins set wallet to receive 1% of bets
+- `/betstats` - View betting statistics for group and global
 - Accept/Decline buttons for bet challenges
 - Random dice roll (1-100) determines winner
+- Duplicate pending bet prevention
 - **Fee Distribution:**
   - 98% goes to winner
-  - 1% goes to treasury (TEAM_WALLET)
-  - 1% goes to group owner (incentivizes groups to use the bot)
-- **Burner Wallets:**
-  - Each user gets auto-generated Solana wallet
-  - Private keys encrypted with Fernet
-  - Users deposit FAPCOIN to bet
+  - 1% goes to team wallet (TREASURY_WALLET)
+  - 1% goes to group owner wallet (incentivizes groups to use the bot)
+- **Security Features:**
+  - Row-level database locking prevents race conditions
+  - Decimal precision for fee calculations (no floating-point drift)
+  - Encrypted private keys with Fernet (requires ENCRYPTION_KEY)
+  - Duplicate bet prevention between same users
+- **Viral Marketing:**
+  - All bet messages include "$FAPCOIN on Solana" branding
+  - Group owners earn 1% of all bets, encouraging bot adoption
+  - Global stats show total FAPCOIN volume across all groups
 
 ### Support
 - `/support` - Create support ticket with contact username

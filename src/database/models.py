@@ -110,12 +110,12 @@ class FapcoinBet(Base):
     __tablename__ = 'fapcoin_bets'
     
     id = Column(Integer, primary_key=True)
-    chat_id = Column(BigInteger, nullable=False)
-    challenger_id = Column(BigInteger, nullable=False)
-    opponent_id = Column(BigInteger, nullable=True)
+    chat_id = Column(BigInteger, nullable=False, index=True)
+    challenger_id = Column(BigInteger, nullable=False, index=True)
+    opponent_id = Column(BigInteger, nullable=True, index=True)
     opponent_username = Column(String(255), nullable=True)
     bet_amount = Column(Float, nullable=False)
-    status = Column(String(50), default='pending')
+    status = Column(String(50), default='pending', index=True)
     winner_id = Column(BigInteger, nullable=True)
     winner_payout = Column(Float, nullable=True)
     treasury_fee = Column(Float, nullable=True)
@@ -124,6 +124,18 @@ class FapcoinBet(Base):
     tx_signature = Column(String(128), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     resolved_at = Column(DateTime, nullable=True)
+
+
+class BetStats(Base):
+    __tablename__ = 'bet_stats'
+    
+    id = Column(Integer, primary_key=True)
+    chat_id = Column(BigInteger, unique=True, nullable=False)
+    total_bets = Column(Integer, default=0)
+    total_volume = Column(Float, default=0.0)
+    total_treasury_fees = Column(Float, default=0.0)
+    total_group_fees = Column(Float, default=0.0)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class GroupOwnerWallet(Base):

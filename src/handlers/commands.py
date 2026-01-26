@@ -2030,6 +2030,12 @@ async def cmd_fapbet(message: Message):
         )
         return
     
+    if opponent_id:
+        has_pending = await db.has_pending_bet_between(chat_id, telegram_id, opponent_id)
+        if has_pending:
+            await message.answer("❌ You already have a pending bet with this user!", parse_mode=None)
+            return
+    
     bet = await db.create_fapcoin_bet(chat_id, telegram_id, opponent_id, bet_amount, opponent_username)
     if not bet:
         await message.answer("❌ Failed to create bet. Check your balance.", parse_mode=None)
@@ -2046,16 +2052,17 @@ async def cmd_fapbet(message: Message):
     ])
     
     await message.answer(
-        f"⚔️ <b>FAPCOIN BET CHALLENGE!</b> ⚔️\n\n"
+        f"⚔️ <b>$FAPCOIN BET CHALLENGE!</b> ⚔️\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"👊 <b>Challenger:</b> {challenger_name}\n"
         f"🎯 <b>Opponent:</b> {opponent_display}\n"
-        f"💰 <b>Bet Amount:</b> {bet_amount:,.2f} FAPCOIN each\n"
-        f"🏆 <b>Total Pot:</b> {bet_amount * 2:,.2f} FAPCOIN\n"
+        f"💰 <b>Bet:</b> {bet_amount:,.2f} $FAPCOIN each\n"
+        f"🏆 <b>Total Pot:</b> {bet_amount * 2:,.2f} $FAPCOIN\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"💎 Winner takes 98% ({bet_amount * 2 * 0.98:,.2f})\n"
-        f"📊 1% treasury • 1% group owner\n\n"
-        f"{opponent_display}, do you accept?",
+        f"💎 Winner takes 98% ({bet_amount * 2 * 0.98:,.2f} $FAPCOIN)\n"
+        f"📊 1% team • 1% group owner\n\n"
+        f"{opponent_display}, do you accept?\n\n"
+        f"🚀 Powered by $FAPCOIN on Solana",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
@@ -2110,7 +2117,8 @@ async def callback_fapbet_accept(callback: CallbackQuery, bot: Bot):
         await callback.message.edit_text(
             f"⚔️ <b>IT'S A DRAW!</b> ⚔️\n\n"
             f"🎲 Both rolled: {result['challenger_roll']}\n\n"
-            f"FAPCOIN returned to both players!",
+            f"$FAPCOIN returned to both players!\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
             parse_mode=ParseMode.HTML
         )
         await callback.answer("It's a draw!")
@@ -2126,16 +2134,17 @@ async def callback_fapbet_accept(callback: CallbackQuery, bot: Bot):
     loser_name = opponent_name if result['winner_id'] == bet.challenger_id else challenger_name
     
     await callback.message.edit_text(
-        f"⚔️ <b>FAPCOIN BET RESULT!</b> ⚔️\n\n"
+        f"⚔️ <b>$FAPCOIN BET RESULT!</b> ⚔️\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"🎲 {challenger_name}: <b>{result['challenger_roll']}</b>\n"
         f"🎲 {opponent_name}: <b>{result['opponent_roll']}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
         f"🏆 <b>WINNER: {winner_name}!</b>\n\n"
-        f"💰 Payout: <b>{result['winner_payout']:,.2f} FAPCOIN</b>\n"
-        f"💎 Treasury: {result['treasury_fee']:,.2f}\n"
-        f"👑 Group Owner: {result['group_owner_fee']:,.2f}\n\n"
-        f"😢 {loser_name} lost {bet.bet_amount:,.2f} FAPCOIN",
+        f"💰 Won: <b>{result['winner_payout']:,.2f} $FAPCOIN</b>\n"
+        f"💎 Team fee: {result['treasury_fee']:,.2f} $FAPCOIN\n"
+        f"👑 Group owner: {result['group_owner_fee']:,.2f} $FAPCOIN\n\n"
+        f"😢 {loser_name} lost {bet.bet_amount:,.2f} $FAPCOIN\n\n"
+        f"🚀 Powered by $FAPCOIN on Solana",
         parse_mode=ParseMode.HTML
     )
     await callback.answer(f"🏆 {winner_name} wins!")
@@ -2216,6 +2225,50 @@ async def cmd_setgroupwallet(message: Message, bot: Bot):
     await message.answer(
         f"✅ <b>Group Wallet Set!</b>\n\n"
         f"Wallet: <code>{wallet_address}</code>\n\n"
-        f"You will receive 1% of all FAPCOIN bets in this group!",
+        f"You will receive 1% of all $FAPCOIN bets in this group!\n\n"
+        f"🚀 Powered by $FAPCOIN on Solana",
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(Command("betstats"))
+async def cmd_betstats(message: Message):
+    chat_id = message.chat.id
+    
+    if message.chat.type == ChatType.PRIVATE:
+        global_stats = await db.get_global_bet_stats()
+        await message.answer(
+            f"📊 <b>$FAPCOIN GLOBAL BET STATS</b> 📊\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🎲 <b>Total Bets:</b> {global_stats['total_bets']:,}\n"
+            f"💰 <b>Total Volume:</b> {global_stats['total_volume']:,.2f} $FAPCOIN\n"
+            f"💎 <b>Team Fees Earned:</b> {global_stats['total_treasury_fees']:,.2f} $FAPCOIN\n"
+            f"🌐 <b>Active Groups:</b> {global_stats['total_groups']}\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"Want to earn 1% of all bets in your group?\n"
+            f"Add the bot and use /setgroupwallet!\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    stats = await db.get_bet_stats(chat_id)
+    global_stats = await db.get_global_bet_stats()
+    group_wallet = await db.get_group_owner_wallet(chat_id)
+    
+    wallet_status = f"✅ Set: <code>{group_wallet[:8]}...{group_wallet[-4:]}</code>" if group_wallet else "❌ Not set - use /setgroupwallet"
+    
+    await message.answer(
+        f"📊 <b>$FAPCOIN BET STATS</b> 📊\n\n"
+        f"━━━ THIS GROUP ━━━\n"
+        f"🎲 <b>Total Bets:</b> {stats['total_bets']:,}\n"
+        f"💰 <b>Volume:</b> {stats['total_volume']:,.2f} $FAPCOIN\n"
+        f"👑 <b>Group Fees Earned:</b> {stats['total_group_fees']:,.2f} $FAPCOIN\n"
+        f"🏦 <b>Group Wallet:</b> {wallet_status}\n\n"
+        f"━━━ GLOBAL ━━━\n"
+        f"🌐 <b>Total Bets:</b> {global_stats['total_bets']:,}\n"
+        f"💎 <b>Total Volume:</b> {global_stats['total_volume']:,.2f} $FAPCOIN\n"
+        f"🏢 <b>Active Groups:</b> {global_stats['total_groups']}\n\n"
+        f"🚀 Powered by $FAPCOIN on Solana",
         parse_mode=ParseMode.HTML
     )
