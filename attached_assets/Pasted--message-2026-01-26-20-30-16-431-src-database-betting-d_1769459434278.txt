@@ -1,0 +1,111 @@
+{"message":"2026-01-26 20:30:16,431 - src.database.betting_db - INFO - Parsed DB URL - host: None, port: None, db: /","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.440666678Z"}
+{"message":"2026-01-26 20:30:16,431 - src.database.betting_db - INFO - Generated betting DB URL: postgresql+asyncpg://:***...:5432/","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.440671246Z"}
+{"message":"           ^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469617994Z"}
+{"message":"  File \"/app/main.py\", line 174, in main","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469628184Z"}
+{"message":"Traceback (most recent call last):","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469630353Z"}
+{"message":"    await init_betting_db()","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469635199Z"}
+{"message":"  File \"/app/src/database/betting_db.py\", line 76, in init_betting_db","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469642614Z"}
+{"message":"  File \"/app/main.py\", line 225, in <module>","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469643826Z"}
+{"message":"    async with engine.begin() as conn:","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469649546Z"}
+{"message":"    asyncio.run(main())","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469653002Z"}
+{"message":"               ^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469657197Z"}
+{"message":"  File \"/root/.nix-profile/lib/python3.12/asyncio/runners.py\", line 194, in run","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469661320Z"}
+{"message":"  File \"/root/.nix-profile/lib/python3.12/contextlib.py\", line 210, in __aenter__","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469664338Z"}
+{"message":"    return runner.run(main)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469669676Z"}
+{"message":"    return await anext(self.gen)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469672506Z"}
+{"message":"           ^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469677137Z"}
+{"message":"  File \"/root/.nix-profile/lib/python3.12/asyncio/runners.py\", line 118, in run","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469682682Z"}
+{"message":"    return self._loop.run_until_complete(task)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469689551Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469695651Z"}
+{"message":"  File \"/root/.nix-profile/lib/python3.12/asyncio/base_events.py\", line 687, in run_until_complete","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469701787Z"}
+{"message":"    return future.result()","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.469707971Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.471877321Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py\", line 1068, in begin","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.471884938Z"}
+{"message":"    async with conn:","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.471890100Z"}
+{"message":"               ^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.471895281Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/base.py\", line 121, in __aenter__","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.471900539Z"}
+{"message":"    return await self.start(is_ctxmanager=True)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.471905491Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.471949423Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/engine.py\", line 275, in start","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.471956921Z"}
+{"message":"    await greenlet_spawn(self.sync_engine.connect)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.471964304Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py\", line 201, in greenlet_spawn","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.471970039Z"}
+{"message":"    result = context.throw(*sys.exc_info())","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.471974216Z"}
+{"message":"             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.475592295Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py\", line 3285, in connect","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.475601636Z"}
+{"message":"    return self._connection_cls(self)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.475607949Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.475613587Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py\", line 143, in __init__","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.475618733Z"}
+{"message":"    self._dbapi_connection = engine.raw_connection()","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.475624258Z"}
+{"message":"                             ^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.475630598Z"}
+{"message":"^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.475637751Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py\", line 3309, in raw_connection","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.475669691Z"}
+{"message":"    return self.pool.connect()","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.475675949Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.477958855Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py\", line 447, in connect","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.477973000Z"}
+{"message":"    return _ConnectionFairy._checkout(self)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.477982449Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.477987829Z"}
+{"message":"^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.477993712Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py\", line 1264, in _checkout","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.478000212Z"}
+{"message":"    fairy = _ConnectionRecord.checkout(pool)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.478006031Z"}
+{"message":"            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.478010680Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py\", line 711, in checkout","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.478016683Z"}
+{"message":"    rec = pool._do_get()","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.478021920Z"}
+{"message":"          ^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480055289Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py\", line 177, in _do_get","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480061538Z"}
+{"message":"    with util.safe_reraise():","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480066848Z"}
+{"message":"         ^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480071124Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py\", line 224, in __exit__","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480081986Z"}
+{"message":"    raise exc_value.with_traceback(exc_tb)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480087316Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py\", line 175, in _do_get","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480091361Z"}
+{"message":"    return self._create_connection()","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480095188Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480101054Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py\", line 388, in _create_connection","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480106168Z"}
+{"message":"    return _ConnectionRecord(self)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480110054Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480114470Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py\", line 673, in __init__","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480118789Z"}
+{"message":"    self.__connect()","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.480122922Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py\", line 899, in __connect","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.482790394Z"}
+{"message":"    with util.safe_reraise():","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.482796067Z"}
+{"message":"         ^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.482801682Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py\", line 224, in __exit__","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.482806711Z"}
+{"message":"    raise exc_value.with_traceback(exc_tb)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.482811553Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py\", line 895, in __connect","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.482816378Z"}
+{"message":"    self.dbapi_connection = connection = pool._invoke_creator(self)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.482821155Z"}
+{"message":"                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.482826132Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py\", line 661, in connect","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.482831331Z"}
+{"message":"    return dialect.connect(*cargs, **cparams)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.482837076Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.485838101Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py\", line 630, in connect","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.485852023Z"}
+{"message":"    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.485860262Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.485867711Z"}
+{"message":"^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.485874230Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py\", line 955, in connect","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.485883476Z"}
+{"message":"    await_only(creator_fn(*arg, **kw)),","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.485889737Z"}
+{"message":"    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.485896092Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py\", line 132, in await_only","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.485903259Z"}
+{"message":"    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.485909374Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.485916471Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py\", line 196, in greenlet_spawn","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.485923352Z"}
+{"message":"    value = await result","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.489851166Z"}
+{"message":"            ^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.489870401Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/asyncpg/connection.py\", line 2443, in connect","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.489879213Z"}
+{"message":"    return await connect_utils._connect(","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.489887219Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.489895028Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py\", line 1249, in _connect","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.489902319Z"}
+{"message":"    raise last_error or exceptions.TargetServerAttributeNotMatched(","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.489911484Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py\", line 1218, in _connect","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.489917934Z"}
+{"message":"    conn = await _connect_addr(","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.489923912Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.489930354Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py\", line 1054, in _connect_addr","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.489937698Z"}
+{"message":"    return await __connect_addr(params, True, *args)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.489945055Z"}
+{"message":"    raise OSError('Multiple exceptions: {}'.format(","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.492572716Z"}
+{"message":"OSError: Multiple exceptions: [Errno 111] Connect call failed ('::1', 5432, 0, 0), [Errno 111] Connect call failed ('127.0.0.1', 5432)","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.492582743Z"}
+{"message":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.492608557Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py\", line 1099, in __connect_addr","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.492616532Z"}
+{"message":"    tr, pr = await connector","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.492622875Z"}
+{"message":"             ^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.492629144Z"}
+{"message":"  File \"/opt/venv/lib/python3.12/site-packages/asyncpg/connect_utils.py\", line 969, in _create_ssl_connection","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.492635559Z"}
+{"message":"    tr, pr = await loop.create_connection(","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.492641675Z"}
+{"message":"             ^^^^^^^^^^^^^^^^^^^^^^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.492647240Z"}
+{"message":"^^^^","attributes":{"level":"error"},"timestamp":"2026-01-26T20:30:16.492654060Z"}
+{"message":"  File \"/root/.nix-profile/lib/python3.12/asyncio/base_event
