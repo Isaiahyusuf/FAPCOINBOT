@@ -26,13 +26,20 @@ def get_betting_database_url():
     if not raw_url:
         return None
     
+    # Log first 50 chars with password masked for debugging
+    if '@' in raw_url:
+        safe_raw = raw_url.split('@')[0][:20] + '***@' + raw_url.split('@', 1)[1]
+    else:
+        safe_raw = raw_url[:80]
+    logger.info(f"Raw DATABASE_URL: {safe_raw}")
+    
     try:
         if raw_url.startswith('postgres://'):
             raw_url = raw_url.replace('postgres://', 'postgresql://', 1)
         
         parsed = urlparse(raw_url)
         
-        logger.info(f"Parsed DB URL - host: {parsed.hostname}, port: {parsed.port}, db: {parsed.path}")
+        logger.info(f"Parsed DB URL - scheme: {parsed.scheme}, host: {parsed.hostname}, port: {parsed.port}, path: {parsed.path}, netloc: {parsed.netloc}")
         
         new_url = URL.create(
             drivername='postgresql+asyncpg',
