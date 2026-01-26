@@ -182,10 +182,9 @@ async def main():
     dp = Dispatcher()
     
     # Add error handler to log all unhandled exceptions
-    @dp.errors()
-    async def error_handler(event, exception):
-        logger.error(f"UNHANDLED ERROR: {exception}")
-        logger.error(f"Event: {event}")
+    @dp.error()
+    async def error_handler(event, exception: Exception):
+        logger.error(f"UNHANDLED ERROR: {type(exception).__name__}: {exception}")
         import traceback
         logger.error(traceback.format_exc())
         return True

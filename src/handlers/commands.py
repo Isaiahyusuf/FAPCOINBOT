@@ -1974,7 +1974,7 @@ def extract_tx_hash(text: str) -> str | None:
     return None
 
 
-@router.message(F.text.func(lambda text: not text.startswith("/")))
+@router.message(F.text.func(lambda text: text is not None and not text.startswith("/")))
 async def catch_tx_hash(message: Message):
     import logging
     logger = logging.getLogger(__name__)
