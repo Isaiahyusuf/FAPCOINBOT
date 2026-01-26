@@ -34,8 +34,6 @@ def is_owner(telegram_id: int) -> bool:
 
 
 def get_main_menu_keyboard(bot_username: str = None, is_private: bool = False):
-    buy_button = InlineKeyboardButton(text="💰 Buy Growth", callback_data="action_buy")
-    
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="🌱 Grow", callback_data="action_grow"),
@@ -46,22 +44,31 @@ def get_main_menu_keyboard(bot_username: str = None, is_private: bool = False):
             InlineKeyboardButton(text="🎲 Daily Winner", callback_data="action_daily")
         ],
         [
-            buy_button,
+            InlineKeyboardButton(text="💰 Buy Growth", callback_data="action_buy"),
             InlineKeyboardButton(text="💝 Gift", callback_data="action_gift_info")
         ],
         [
-            InlineKeyboardButton(text="💰 FAPCOIN Wallet", callback_data="action_wallet"),
-            InlineKeyboardButton(text="⚔️ FAPCOIN Bet", callback_data="action_fapbet_info")
+            InlineKeyboardButton(text="💳 Wallet", callback_data="action_wallet"),
+            InlineKeyboardButton(text="📥 Deposit", callback_data="action_deposit")
         ],
         [
-            InlineKeyboardButton(text="📊 Bet Stats", callback_data="action_betstats"),
-            InlineKeyboardButton(text="👑 Set Group Wallet", callback_data="action_setgroupwallet")
+            InlineKeyboardButton(text="📤 Withdraw", callback_data="action_withdraw"),
+            InlineKeyboardButton(text="🆕 New Wallet", callback_data="action_newwallet")
+        ],
+        [
+            InlineKeyboardButton(text="⚔️ FAPCOIN Bet", callback_data="action_fapbet_info"),
+            InlineKeyboardButton(text="📊 Bet Stats", callback_data="action_betstats")
+        ],
+        [
+            InlineKeyboardButton(text="👑 Set Group Wallet", callback_data="action_setgroupwallet"),
+            InlineKeyboardButton(text="✅ Verify Payment", callback_data="action_verify")
         ],
         [
             InlineKeyboardButton(text="📊 My Stats", callback_data="action_stats"),
             InlineKeyboardButton(text="💳 Loan", callback_data="action_loan")
         ],
         [
+            InlineKeyboardButton(text="ℹ️ About", callback_data="action_about"),
             InlineKeyboardButton(text="❓ Help", callback_data="action_help")
         ],
         [
@@ -1675,6 +1682,168 @@ async def callback_support(callback: CallbackQuery):
         "Need help? Contact our support by joining our TG and tagging:\n\n"
         "👤 @boosteryting\n\n"
         "Click the button below to join our TG:",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action_deposit")
+async def callback_deposit(callback: CallbackQuery):
+    """Check for deposits via button"""
+    telegram_id = callback.from_user.id
+    wallet = await db.get_user_wallet(telegram_id)
+    
+    keyboard = get_back_button()
+    
+    if not wallet:
+        await callback.message.edit_text(
+            "❌ You don't have a wallet yet!\n\n"
+            "Use the 💳 Wallet button to create one first.",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer()
+        return
+    
+    from src.utils.wallet import check_fapcoin_balance
+    current_balance = await check_fapcoin_balance(wallet['address'])
+    
+    if current_balance > wallet['balance']:
+        deposit_amount = current_balance - wallet['balance']
+        await db.update_wallet_balance(telegram_id, current_balance)
+        await callback.message.edit_text(
+            f"✅ <b>DEPOSIT FOUND!</b>\n\n"
+            f"➕ Deposited: <b>{deposit_amount:,.2f} $FAPCOIN</b>\n"
+            f"💰 New Balance: <b>{current_balance:,.2f} $FAPCOIN</b>\n\n"
+            f"🚀 Powered by $FAPCOIN on Solana",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    else:
+        await callback.message.edit_text(
+            f"📥 <b>DEPOSIT CHECK</b>\n\n"
+            f"💰 Current Balance: <b>{wallet['balance']:,.2f} $FAPCOIN</b>\n\n"
+            f"No new deposits found.\n\n"
+            f"Send FAPCOIN to:\n<code>{wallet['address']}</code>",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action_withdraw")
+async def callback_withdraw(callback: CallbackQuery):
+    """Withdraw info via button"""
+    telegram_id = callback.from_user.id
+    wallet = await db.get_user_wallet(telegram_id)
+    
+    keyboard = get_back_button()
+    
+    if not wallet:
+        await callback.message.edit_text(
+            "❌ You don't have a wallet yet!\n\n"
+            "Use the 💳 Wallet button to create one first.",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer()
+        return
+    
+    await callback.message.edit_text(
+        f"📤 <b>WITHDRAW FAPCOIN</b>\n\n"
+        f"💰 Your Balance: <b>{wallet['balance']:,.2f} $FAPCOIN</b>\n\n"
+        f"To withdraw, use:\n"
+        f"<code>/withdraw [amount] [solana_address]</code>\n\n"
+        f"Example:\n"
+        f"<code>/withdraw 1000 ABC123...</code>\n\n"
+        f"⚠️ Min: 500 FAPCOIN\n"
+        f"⚠️ Requires SOL for gas fees",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action_newwallet")
+async def callback_newwallet(callback: CallbackQuery):
+    """New wallet info via button"""
+    telegram_id = callback.from_user.id
+    wallet = await db.get_user_wallet(telegram_id)
+    
+    keyboard = get_back_button()
+    
+    if wallet:
+        if wallet['balance'] > 0:
+            await callback.message.edit_text(
+                f"⚠️ <b>WARNING!</b>\n\n"
+                f"Your wallet has <b>{wallet['balance']:,.2f} $FAPCOIN</b>\n\n"
+                f"To create a new wallet, first withdraw your balance or use:\n"
+                f"<code>/newwallet</code>\n\n"
+                f"This will delete your current wallet!",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            await callback.message.edit_text(
+                f"🆕 <b>CREATE NEW WALLET</b>\n\n"
+                f"Use <code>/newwallet</code> to delete your current wallet and create a fresh one.\n\n"
+                f"⚠️ Your current wallet will be permanently deleted!",
+                reply_markup=keyboard,
+                parse_mode=ParseMode.HTML
+            )
+    else:
+        await callback.message.edit_text(
+            "ℹ️ You don't have a wallet yet.\n\n"
+            "Use the 💳 Wallet button to create one!",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action_verify")
+async def callback_verify(callback: CallbackQuery):
+    """Verify payment info via button"""
+    keyboard = get_back_button()
+    
+    await callback.message.edit_text(
+        f"✅ <b>VERIFY PAYMENT</b>\n\n"
+        f"After sending FAPCOIN for a purchase, verify your transaction:\n\n"
+        f"<code>/verify [transaction_hash]</code>\n\n"
+        f"Example:\n"
+        f"<code>/verify 5abc123...</code>\n\n"
+        f"This confirms your purchase and adds the cm to your length!",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action_about")
+async def callback_about(callback: CallbackQuery):
+    """About the bot via button"""
+    keyboard = get_back_button()
+    
+    await callback.message.edit_text(
+        f"ℹ️ <b>ABOUT FAPCOIN DICK BOT</b> ℹ️\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"🎮 <b>The Game:</b>\n"
+        f"Grow your length daily, compete on leaderboards,\n"
+        f"battle friends in PvP, and bet real $FAPCOIN!\n\n"
+        f"💰 <b>$FAPCOIN Token:</b>\n"
+        f"SPL token on Solana blockchain\n\n"
+        f"🏆 <b>Features:</b>\n"
+        f"• Daily growth (+/- random cm)\n"
+        f"• Group leaderboards\n"
+        f"• PvP betting (cm)\n"
+        f"• FAPCOIN betting (real tokens)\n"
+        f"• Daily winner selection\n"
+        f"• Growth packages for purchase\n\n"
+        f"👑 <b>Group Owners:</b>\n"
+        f"Set your wallet to earn 1% of all bets!\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"🚀 Powered by $FAPCOIN on Solana",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
