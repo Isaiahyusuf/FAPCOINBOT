@@ -2098,40 +2098,47 @@ async def cmd_withdraw(message: Message):
         return
     
     if wallet.balance < 500:
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💰 Check Wallet", callback_data="action_wallet")]
+        ])
         await message.answer(
-            f"📤 <b>WITHDRAW $FAPCOIN</b>\n\n"
-            f"━━━━━━━━━━━━━━━━━━━━━\n"
-            f"💵 <b>Balance:</b> {wallet.balance:,.2f} $FAPCOIN\n"
-            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-            f"❌ Minimum withdrawal: 500 $FAPCOIN\n\n"
-            f"Deposit more to your wallet first!\n\n"
-            f"🚀 Powered by $FAPCOIN on Solana",
+            f"📤 <b>WITHDRAWAL CENTER</b>\n\n"
+            f"┌─────────────────────┐\n"
+            f"│ 💵 Balance: <b>{wallet.balance:,.2f}</b>\n"
+            f"│ 📊 Min: <b>500 $FAPCOIN</b>\n"
+            f"└─────────────────────┘\n\n"
+            f"❌ <b>Insufficient Balance</b>\n\n"
+            f"You need at least 500 $FAPCOIN to withdraw.\n"
+            f"Deposit more to your burner wallet first!\n\n"
+            f"🚀 $FAPCOIN on Solana",
+            reply_markup=keyboard,
             parse_mode=ParseMode.HTML
         )
         return
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="500", callback_data="withdraw_amt_500"),
-            InlineKeyboardButton(text="1000", callback_data="withdraw_amt_1000"),
-            InlineKeyboardButton(text="2500", callback_data="withdraw_amt_2500")
+            InlineKeyboardButton(text="💵 500", callback_data="withdraw_amt_500"),
+            InlineKeyboardButton(text="💵 1,000", callback_data="withdraw_amt_1000"),
+            InlineKeyboardButton(text="💵 2,500", callback_data="withdraw_amt_2500")
         ],
         [
-            InlineKeyboardButton(text="5000", callback_data="withdraw_amt_5000"),
-            InlineKeyboardButton(text="MAX", callback_data="withdraw_amt_max")
+            InlineKeyboardButton(text="💵 5,000", callback_data="withdraw_amt_5000"),
+            InlineKeyboardButton(text="💰 WITHDRAW ALL", callback_data="withdraw_amt_max")
         ],
         [InlineKeyboardButton(text="❌ Cancel", callback_data="withdraw_cancel")]
     ])
     
     await message.answer(
-        f"📤 <b>WITHDRAW $FAPCOIN</b>\n\n"
-        f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"💵 <b>Available:</b> {wallet.balance:,.2f} $FAPCOIN\n"
-        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"<b>Step 1:</b> Select amount to withdraw\n\n"
-        f"⚠️ Min: 500 $FAPCOIN\n"
-        f"⛽ Make sure you have SOL for gas!\n\n"
-        f"🚀 Powered by $FAPCOIN on Solana",
+        f"📤 <b>WITHDRAWAL CENTER</b>\n\n"
+        f"┌─────────────────────┐\n"
+        f"│ 💵 Available: <b>{wallet.balance:,.2f}</b>\n"
+        f"│ 📊 Min: <b>500 $FAPCOIN</b>\n"
+        f"└─────────────────────┘\n\n"
+        f"📍 <b>STEP 1 of 3</b>\n"
+        f"Select the amount you want to withdraw:\n\n"
+        f"⚠️ Ensure you have SOL for network fees\n\n"
+        f"🚀 $FAPCOIN on Solana",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
@@ -2161,21 +2168,23 @@ async def callback_withdraw_amount(callback: CallbackQuery):
     withdrawal_state[telegram_id] = {"amount": amount, "step": "address"}
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⬅️ Back", callback_data="withdraw_back_step1")],
         [InlineKeyboardButton(text="❌ Cancel", callback_data="withdraw_cancel")]
     ])
     
     await callback.message.edit_text(
-        f"📤 <b>WITHDRAW $FAPCOIN</b>\n\n"
-        f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"💵 <b>Amount:</b> {amount:,.2f} $FAPCOIN\n"
-        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"<b>Step 2:</b> Send your Solana wallet address\n\n"
-        f"Reply with your wallet address now.\n\n"
-        f"🚀 Powered by $FAPCOIN on Solana",
+        f"📤 <b>WITHDRAWAL CENTER</b>\n\n"
+        f"┌─────────────────────┐\n"
+        f"│ 💵 Amount: <b>{amount:,.2f}</b>\n"
+        f"└─────────────────────┘\n\n"
+        f"📍 <b>STEP 2 of 3</b>\n"
+        f"Enter your Solana wallet address:\n\n"
+        f"📝 <i>Reply to this message with your address</i>\n\n"
+        f"🚀 $FAPCOIN on Solana",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
-    await callback.answer()
+    await callback.answer("✅ Amount selected")
 
 
 @router.message(F.text.regexp(r"^[1-9A-HJ-NP-Za-km-z]{32,44}$"))
@@ -2190,29 +2199,32 @@ async def handle_withdrawal_address(message: Message):
     from src.utils.wallet import validate_solana_address
     
     if not validate_solana_address(address):
-        await message.answer("❌ Invalid Solana address. Please try again.", parse_mode=None)
+        await message.answer("❌ Invalid Solana address. Please send a valid address.", parse_mode=None)
         return
     
     amount = withdrawal_state[telegram_id]["amount"]
     withdrawal_state[telegram_id]["address"] = address
     withdrawal_state[telegram_id]["step"] = "confirm"
     
+    short_addr = f"{address[:6]}...{address[-4:]}"
+    
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="✅ Confirm", callback_data="withdraw_confirm"),
-            InlineKeyboardButton(text="❌ Cancel", callback_data="withdraw_cancel")
-        ]
+        [InlineKeyboardButton(text="✅ CONFIRM WITHDRAWAL", callback_data="withdraw_confirm")],
+        [InlineKeyboardButton(text="⬅️ Back", callback_data="withdraw_back_step2")],
+        [InlineKeyboardButton(text="❌ Cancel", callback_data="withdraw_cancel")]
     ])
     
     await message.answer(
-        f"📤 <b>CONFIRM WITHDRAWAL</b>\n\n"
-        f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"💵 <b>Amount:</b> {amount:,.2f} $FAPCOIN\n"
-        f"📍 <b>To:</b>\n<code>{address}</code>\n"
-        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"<b>Step 3:</b> Confirm your withdrawal\n\n"
-        f"⚠️ This cannot be undone!\n\n"
-        f"🚀 Powered by $FAPCOIN on Solana",
+        f"📤 <b>WITHDRAWAL CENTER</b>\n\n"
+        f"┌─────────────────────┐\n"
+        f"│ 💵 Amount: <b>{amount:,.2f}</b>\n"
+        f"│ 📍 To: <b>{short_addr}</b>\n"
+        f"└─────────────────────┘\n\n"
+        f"📍 <b>STEP 3 of 3</b>\n"
+        f"Review and confirm your withdrawal:\n\n"
+        f"📬 <b>Destination:</b>\n<code>{address}</code>\n\n"
+        f"⚠️ <b>This action cannot be undone!</b>\n\n"
+        f"🚀 $FAPCOIN on Solana",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
@@ -2241,24 +2253,104 @@ async def callback_withdraw_confirm(callback: CallbackQuery):
     
     if success:
         del withdrawal_state[telegram_id]
+        short_addr = f"{address[:6]}...{address[-4:]}"
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💰 Check Wallet", callback_data="action_wallet")],
+            [InlineKeyboardButton(text="📞 Contact Support", callback_data="action_support")]
+        ])
         
         await callback.message.edit_text(
-            f"✅ <b>WITHDRAWAL SUBMITTED!</b>\n\n"
-            f"━━━━━━━━━━━━━━━━━━━━━\n"
-            f"💵 <b>Amount:</b> {amount:,.2f} $FAPCOIN\n"
-            f"📍 <b>To:</b>\n<code>{address}</code>\n"
-            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-            f"⏳ Processing... Please wait.\n\n"
-            f"Transfers are processed automatically.\n"
-            f"Contact /support if not received in 10 mins.\n\n"
-            f"🚀 Powered by $FAPCOIN on Solana",
+            f"✅ <b>WITHDRAWAL SUCCESSFUL!</b>\n\n"
+            f"┌─────────────────────┐\n"
+            f"│ 💵 Amount: <b>{amount:,.2f}</b>\n"
+            f"│ 📍 To: <b>{short_addr}</b>\n"
+            f"│ 💰 Remaining: <b>{new_balance:,.2f}</b>\n"
+            f"└─────────────────────┘\n\n"
+            f"⏳ <b>Processing your withdrawal...</b>\n\n"
+            f"Your $FAPCOIN will arrive shortly.\n"
+            f"If not received within 10 minutes,\n"
+            f"please contact support.\n\n"
+            f"📬 <b>Destination:</b>\n<code>{address}</code>\n\n"
+            f"🚀 $FAPCOIN on Solana",
+            reply_markup=keyboard,
             parse_mode=ParseMode.HTML
         )
         
         logger.info(f"WITHDRAWAL: User {telegram_id} withdrew {amount} FAPCOIN to {address}")
+        await callback.answer("✅ Withdrawal submitted!")
     else:
         await callback.answer("❌ Withdrawal failed. Try again.", show_alert=True)
+
+
+@router.callback_query(F.data == "withdraw_back_step1")
+async def callback_withdraw_back_step1(callback: CallbackQuery):
+    """Go back to step 1 - amount selection"""
+    telegram_id = callback.from_user.id
     
+    if telegram_id in withdrawal_state:
+        del withdrawal_state[telegram_id]
+    
+    wallet = await db.get_or_create_user_wallet(telegram_id)
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="💵 500", callback_data="withdraw_amt_500"),
+            InlineKeyboardButton(text="💵 1,000", callback_data="withdraw_amt_1000"),
+            InlineKeyboardButton(text="💵 2,500", callback_data="withdraw_amt_2500")
+        ],
+        [
+            InlineKeyboardButton(text="💵 5,000", callback_data="withdraw_amt_5000"),
+            InlineKeyboardButton(text="💰 WITHDRAW ALL", callback_data="withdraw_amt_max")
+        ],
+        [InlineKeyboardButton(text="❌ Cancel", callback_data="withdraw_cancel")]
+    ])
+    
+    await callback.message.edit_text(
+        f"📤 <b>WITHDRAWAL CENTER</b>\n\n"
+        f"┌─────────────────────┐\n"
+        f"│ 💵 Available: <b>{wallet.balance:,.2f}</b>\n"
+        f"│ 📊 Min: <b>500 $FAPCOIN</b>\n"
+        f"└─────────────────────┘\n\n"
+        f"📍 <b>STEP 1 of 3</b>\n"
+        f"Select the amount you want to withdraw:\n\n"
+        f"⚠️ Ensure you have SOL for network fees\n\n"
+        f"🚀 $FAPCOIN on Solana",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "withdraw_back_step2")
+async def callback_withdraw_back_step2(callback: CallbackQuery):
+    """Go back to step 2 - address entry"""
+    telegram_id = callback.from_user.id
+    
+    if telegram_id not in withdrawal_state:
+        await callback.answer("❌ Session expired. Use /withdraw to start again.", show_alert=True)
+        return
+    
+    amount = withdrawal_state[telegram_id].get("amount", 0)
+    withdrawal_state[telegram_id]["step"] = "address"
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⬅️ Back", callback_data="withdraw_back_step1")],
+        [InlineKeyboardButton(text="❌ Cancel", callback_data="withdraw_cancel")]
+    ])
+    
+    await callback.message.edit_text(
+        f"📤 <b>WITHDRAWAL CENTER</b>\n\n"
+        f"┌─────────────────────┐\n"
+        f"│ 💵 Amount: <b>{amount:,.2f}</b>\n"
+        f"└─────────────────────┘\n\n"
+        f"📍 <b>STEP 2 of 3</b>\n"
+        f"Enter your Solana wallet address:\n\n"
+        f"📝 <i>Reply to this message with your address</i>\n\n"
+        f"🚀 $FAPCOIN on Solana",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
     await callback.answer()
 
 
@@ -2270,13 +2362,77 @@ async def callback_withdraw_cancel(callback: CallbackQuery):
     if telegram_id in withdrawal_state:
         del withdrawal_state[telegram_id]
     
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💰 Check Wallet", callback_data="action_wallet")],
+        [InlineKeyboardButton(text="📤 Start Withdrawal", callback_data="action_withdraw")]
+    ])
+    
     await callback.message.edit_text(
-        "❌ <b>Withdrawal cancelled.</b>\n\n"
-        "Use /withdraw to start again.\n\n"
-        "🚀 Powered by $FAPCOIN on Solana",
+        f"❌ <b>WITHDRAWAL CANCELLED</b>\n\n"
+        f"Your withdrawal has been cancelled.\n"
+        f"No funds have been deducted.\n\n"
+        f"Use /withdraw to start again.\n\n"
+        f"🚀 $FAPCOIN on Solana",
+        reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
     await callback.answer("Cancelled")
+
+
+@router.callback_query(F.data == "action_withdraw")
+async def callback_action_withdraw(callback: CallbackQuery):
+    """Start withdrawal from button"""
+    telegram_id = callback.from_user.id
+    
+    await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
+    wallet = await db.get_or_create_user_wallet(telegram_id)
+    
+    if wallet.balance < 500:
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💰 Check Wallet", callback_data="action_wallet")]
+        ])
+        await callback.message.edit_text(
+            f"📤 <b>WITHDRAWAL CENTER</b>\n\n"
+            f"┌─────────────────────┐\n"
+            f"│ 💵 Balance: <b>{wallet.balance:,.2f}</b>\n"
+            f"│ 📊 Min: <b>500 $FAPCOIN</b>\n"
+            f"└─────────────────────┘\n\n"
+            f"❌ <b>Insufficient Balance</b>\n\n"
+            f"You need at least 500 $FAPCOIN to withdraw.\n"
+            f"Deposit more to your burner wallet first!\n\n"
+            f"🚀 $FAPCOIN on Solana",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="💵 500", callback_data="withdraw_amt_500"),
+            InlineKeyboardButton(text="💵 1,000", callback_data="withdraw_amt_1000"),
+            InlineKeyboardButton(text="💵 2,500", callback_data="withdraw_amt_2500")
+        ],
+        [
+            InlineKeyboardButton(text="💵 5,000", callback_data="withdraw_amt_5000"),
+            InlineKeyboardButton(text="💰 WITHDRAW ALL", callback_data="withdraw_amt_max")
+        ],
+        [InlineKeyboardButton(text="❌ Cancel", callback_data="withdraw_cancel")]
+    ])
+    
+    await callback.message.edit_text(
+        f"📤 <b>WITHDRAWAL CENTER</b>\n\n"
+        f"┌─────────────────────┐\n"
+        f"│ 💵 Available: <b>{wallet.balance:,.2f}</b>\n"
+        f"│ 📊 Min: <b>500 $FAPCOIN</b>\n"
+        f"└─────────────────────┘\n\n"
+        f"📍 <b>STEP 1 of 3</b>\n"
+        f"Select the amount you want to withdraw:\n\n"
+        f"⚠️ Ensure you have SOL for network fees\n\n"
+        f"🚀 $FAPCOIN on Solana",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
 
 
 @router.callback_query(F.data == "action_fapbet_info")
