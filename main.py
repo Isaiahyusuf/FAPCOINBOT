@@ -180,9 +180,21 @@ async def main():
     )
     
     dp = Dispatcher()
+    
+    # Add error handler to log all unhandled exceptions
+    @dp.errors()
+    async def error_handler(event, exception):
+        logger.error(f"UNHANDLED ERROR: {exception}")
+        logger.error(f"Event: {event}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return True
+    
     dp.include_router(router)
+    logger.info(f"Router included with {len(router.message.handlers)} message handlers")
     
     group_commands = [
+        BotCommand(command="ping", description="🏓 Test bot"),
         BotCommand(command="menu", description="🎮 Open main menu"),
         BotCommand(command="grow", description="🌱 Daily growth"),
         BotCommand(command="top", description="🏆 View leaderboard"),
