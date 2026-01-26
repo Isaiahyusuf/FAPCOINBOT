@@ -1806,15 +1806,12 @@ def extract_tx_hash(text: str) -> str | None:
     return None
 
 
-@router.message(F.text)
+@router.message(F.text.func(lambda text: not text.startswith("/")))
 async def catch_tx_hash(message: Message):
     import logging
     logger = logging.getLogger(__name__)
     
     text = message.text.strip() if message.text else ""
-    
-    if text.startswith("/"):
-        return
     
     logger.info(f"Received message from {message.from_user.id}: '{text[:50]}...'")
     
