@@ -35,3 +35,13 @@ python-dotenv>=1.2.1
 solana>=0.36.0
 solders>=0.27.0
 sqlalchemy>=2.0.45
+aiogram
+aiohttp
+asyncpg
+base58
+cryptography
+psycopg2-binary
+python-dotenv
+solana
+solders
+sqlalchemy

@@ -16,33 +16,18 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Code Test"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Bot Server"
-
-[[workflows.workflow]]
-name = "Code Test"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python3 -c \"from src.handlers.commands import router; print(f'Loaded {len(router.message.handlers)} handlers successfully')\""
-
-[workflows.workflow.metadata]
-outputType = "console"
 
 [[workflows.workflow]]
 name = "Bot Server"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python main.py"
-
-[workflows.workflow.metadata]
-outputType = "console"
 
 [userenv]
 

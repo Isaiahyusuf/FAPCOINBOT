@@ -2184,7 +2184,7 @@ async def callback_wallet(callback: CallbackQuery):
 
 @router.callback_query(F.data == "wallet_deposit")
 async def callback_wallet_deposit(callback: CallbackQuery):
-    """Check for new deposits and update balance"""
+    """Check for new deposits and update balance - fetches on-chain balance"""
     telegram_id = callback.from_user.id
     
     logger.info(f"WALLET_DEPOSIT callback from user {telegram_id}")
@@ -2192,23 +2192,53 @@ async def callback_wallet_deposit(callback: CallbackQuery):
     try:
         wallet = await db.get_or_create_user_wallet(telegram_id)
         
-        # TODO: In a real implementation, you would check the Solana blockchain
-        # for new deposits to wallet.public_key and update the balance
-        # For now, we just show the current balance
-        
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="🔄 Refresh", callback_data="wallet_deposit")],
             [InlineKeyboardButton(text="◀️ Back to Wallet", callback_data="action_wallet")]
         ])
         
+        from src.utils.wallet import get_token_balance
+        on_chain_balance = await get_token_balance(wallet.public_key)
+        
+        if on_chain_balance != wallet.balance:
+            deposit_amount = on_chain_balance - wallet.balance
+            await db.update_wallet_balance(telegram_id, on_chain_balance)
+            
+            if deposit_amount > 0:
+                await callback.message.edit_text(
+                    f"✅ <b>DEPOSIT FOUND!</b>\n\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"➕ <b>Deposited:</b> {deposit_amount:,.2f} $FAPCOIN\n"
+                    f"💵 <b>New Balance:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                    f"Your balance has been updated!\n\n"
+                    f"🚀 Powered by $FAPCOIN on Solana",
+                    reply_markup=keyboard,
+                    parse_mode=ParseMode.HTML
+                )
+                await callback.answer("Deposit found!")
+                return
+            else:
+                await callback.message.edit_text(
+                    f"📥 <b>WALLET SYNCED</b>\n\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"💵 <b>Current Balance:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                    f"Your balance is now in sync with the blockchain.",
+                    reply_markup=keyboard,
+                    parse_mode=ParseMode.HTML
+                )
+                await callback.answer("Balance synced!")
+                return
+        
         await callback.message.edit_text(
             f"📥 <b>DEPOSIT CHECK</b>\n\n"
             f"━━━━━━━━━━━━━━━━━━━━━\n"
             f"📬 <b>Your Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
-            f"💵 <b>Current Balance:</b> {wallet.balance:,.2f} $FAPCOIN\n"
+            f"💵 <b>Current Balance:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
+            f"🔗 <b>On-chain:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
             f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-            f"📲 Send FAPCOIN tokens to your deposit address.\n"
-            f"Balance updates may take a few minutes.\n\n"
+            f"📲 Send FAPCOIN tokens to your deposit address.\n\n"
             f"🚀 Powered by $FAPCOIN on Solana",
             reply_markup=keyboard,
             parse_mode=ParseMode.HTML
