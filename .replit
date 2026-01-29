@@ -33,3 +33,4 @@ outputType = "console"
 
 [userenv.shared]
 MAIN_FAPCOIN_GROUP = "-1003006076902"
+FAPCOIN_MINT = "8vGr1eX9vfpootWiUPYa5kYoGx9bTuRy2Xc4dNMrpump"
