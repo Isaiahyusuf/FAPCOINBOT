@@ -213,24 +213,48 @@ async def apply_loan(telegram_id: int, chat_id: int) -> tuple:
         return True, user_chat.length, user_chat.debt
 
 
-async def set_wallet(telegram_id: int, wallet_address: str) -> bool:
+async def get_or_create_user_wallet(telegram_id: int) -> UserWallet:
     Session = get_session()
     async with Session() as session:
-        result = await session.execute(select(User).where(User.telegram_id == telegram_id))
-        user = result.scalar_one_or_none()
-        if user:
-            user.wallet_address = wallet_address
+        result = await session.execute(select(UserWallet).where(UserWallet.telegram_id == telegram_id))
+        wallet = result.scalar_one_or_none()
+        if not wallet:
+            from src.utils.wallet import generate_wallet
+            public_key, encrypted_private_key = generate_wallet(telegram_id)
+            wallet = UserWallet(
+                telegram_id=telegram_id,
+                public_key=public_key,
+                encrypted_private_key=encrypted_private_key,
+                balance=0.0
+            )
+            session.add(wallet)
+            await session.commit()
+            await session.refresh(wallet)
+        return wallet
+
+
+async def delete_user_wallet(telegram_id: int) -> bool:
+    Session = get_session()
+    async with Session() as session:
+        result = await session.execute(select(UserWallet).where(UserWallet.telegram_id == telegram_id))
+        wallet = result.scalar_one_or_none()
+        if wallet:
+            await session.delete(wallet)
             await session.commit()
             return True
         return False
 
 
-async def get_wallet(telegram_id: int) -> str:
+async def update_wallet_balance(telegram_id: int, new_balance: float) -> bool:
     Session = get_session()
     async with Session() as session:
-        result = await session.execute(select(User).where(User.telegram_id == telegram_id))
-        user = result.scalar_one_or_none()
-        return user.wallet_address if user else None
+        result = await session.execute(select(UserWallet).where(UserWallet.telegram_id == telegram_id))
+        wallet = result.scalar_one_or_none()
+        if wallet:
+            wallet.balance = new_balance
+            await session.commit()
+            return True
+        return False
 
 
 async def create_pending_transaction(telegram_id: int, chat_id: int, package_number: int, expected_amount: float) -> Transaction:

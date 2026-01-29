@@ -1800,38 +1800,36 @@ async def callback_withdraw(callback: CallbackQuery):
 
 @router.callback_query(F.data == "action_newwallet")
 async def callback_newwallet(callback: CallbackQuery):
-    """New wallet info via button"""
     telegram_id = callback.from_user.id
-    wallet = await db.get_user_wallet(telegram_id)
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Yes, Delete & Create", callback_data="confirm_newwallet"),
+            InlineKeyboardButton(text="❌ Cancel", callback_data="action_wallet")
+        ]
+    ])
+    await callback.message.edit_text(
+        "⚠️ <b>WARNING: DELETE WALLET</b> ⚠️\n\n"
+        "Deleting your wallet will permanently remove access to any funds inside unless you have the private key backed up.\n\n"
+        "Are you sure you want to create a NEW wallet?",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "confirm_newwallet")
+async def callback_confirm_newwallet(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    await db.delete_user_wallet(telegram_id)
+    new_wallet = await db.get_or_create_user_wallet(telegram_id)
     
-    keyboard = get_back_button()
-    
-    if wallet:
-        if wallet.balance > 0:
-            await callback.message.edit_text(
-                f"⚠️ <b>WARNING!</b>\n\n"
-                f"Your wallet has <b>{wallet.balance:,.2f} $FAPCOIN</b>\n\n"
-                f"To create a new wallet, first withdraw your balance or use:\n"
-                f"<code>/newwallet</code>\n\n"
-                f"This will delete your current wallet!",
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-        else:
-            await callback.message.edit_text(
-                f"🆕 <b>CREATE NEW WALLET</b>\n\n"
-                f"Use <code>/newwallet</code> to delete your current wallet and create a fresh one.\n\n"
-                f"⚠️ Your current wallet will be permanently deleted!",
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
-    else:
-        await callback.message.edit_text(
-            "ℹ️ You don't have a wallet yet.\n\n"
-            "Use the 💳 Wallet button to create one!",
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML
-        )
+    await callback.message.edit_text(
+        f"✅ <b>New Wallet Created!</b>\n\n"
+        f"📍 <b>New Address:</b>\n<code>{new_wallet.public_key}</code>\n\n"
+        f"Please back up this info if needed.",
+        reply_markup=get_back_button(),
+        parse_mode=ParseMode.HTML
+    )
     await callback.answer()
 
 
@@ -2160,6 +2158,10 @@ async def callback_wallet(callback: CallbackQuery):
     await db.get_or_create_user(telegram_id, callback.from_user.username, callback.from_user.first_name)
     wallet = await db.get_or_create_user_wallet(telegram_id)
     
+    from src.utils.wallet import get_token_balance
+    on_chain_balance = await get_token_balance(wallet.public_key)
+    await db.update_wallet_balance(telegram_id, on_chain_balance)
+    
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📥 Check Deposit", callback_data="wallet_deposit")],
         [InlineKeyboardButton(text="📤 Withdraw", callback_data="wallet_withdraw")],
@@ -2170,13 +2172,10 @@ async def callback_wallet(callback: CallbackQuery):
     await callback.message.edit_text(
         f"💰 <b>YOUR FAPCOIN WALLET</b> 💰\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"📥 <b>Deposit Address:</b>\n<code>{wallet.public_key}</code>\n\n"
-        f"💵 <b>Balance:</b> {wallet.balance:,.2f} FAPCOIN\n"
+        f"📍 <b>Address:</b>\n<code>{wallet.public_key}</code>\n\n"
+        f"💰 <b>Balance:</b> {on_chain_balance:,.2f} FAPCOIN\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"📲 Send FAPCOIN to your deposit address,\n"
-        f"then click 'Check Deposit' to update balance.\n\n"
-        f"⛽ <b>For withdrawals:</b> Also send ~$1 SOL\n"
-        f"to cover network gas fees.",
+        f"⚠️ This is your permanent wallet. Send FAPCOIN here to use it in the bot.",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )

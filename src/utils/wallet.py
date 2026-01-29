@@ -38,7 +38,9 @@ def get_encryption_key() -> bytes:
     return _cached_encryption_key
 
 
-def generate_wallet() -> Tuple[str, str]:
+def generate_wallet(telegram_id: int) -> Tuple[str, str]:
+    """Generate a permanent wallet using Telegram ID as a seed for consistent keys if needed, 
+    though here we just generate and the caller handles storage by Telegram ID."""
     keypair = Keypair()
     public_key = str(keypair.pubkey())
     private_key_bytes = bytes(keypair)
