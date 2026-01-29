@@ -507,3 +507,173 @@ async def send_fapcoin(to_address: str, amount: float) -> Tuple[bool, Optional[s
         import traceback
         logger.error(traceback.format_exc())
         return False, None, str(e)
+
+
+async def send_fapcoin_from_user_wallet(encrypted_private_key: str, to_address: str, amount: float) -> Tuple[bool, Optional[str], Optional[str]]:
+    """Send FAPCOIN tokens from a user's wallet to destination.
+    
+    Used for admin recovery of stuck funds.
+    
+    Returns: (success, tx_signature, error_message)
+    """
+    import aiohttp
+    import struct
+    import asyncio
+    
+    rpc_url = os.environ.get('SOLANA_RPC_URL', 'https://api.mainnet-beta.solana.com')
+    
+    if not FAPCOIN_MINT:
+        return False, None, "FAPCOIN_MINT not configured"
+    
+    if not validate_solana_address(to_address):
+        return False, None, "Invalid destination address"
+    
+    try:
+        user_keypair = decrypt_private_key(encrypted_private_key)
+        user_address = str(user_keypair.pubkey())
+        
+        sol_balance = await get_sol_balance(user_address)
+        if sol_balance < 0.005:
+            return False, None, f"Insufficient SOL for gas fees in user wallet (have {sol_balance:.4f} SOL, need 0.005)"
+        
+        token_balance = await get_token_balance(user_address)
+        if token_balance < amount:
+            return False, None, f"Insufficient FAPCOIN in user wallet (have {token_balance:,.2f}, need {amount:,.2f})"
+        
+        raw_amount = int(amount * (10 ** FAPCOIN_DECIMALS))
+        
+        from solders.pubkey import Pubkey as SoldersPubkey
+        from solders.transaction import Transaction
+        from solders.message import Message
+        from solders.instruction import Instruction, AccountMeta
+        from solders.hash import Hash
+        
+        mint_pubkey = SoldersPubkey.from_string(FAPCOIN_MINT)
+        owner_pubkey = user_keypair.pubkey()
+        dest_pubkey = SoldersPubkey.from_string(to_address)
+        
+        TOKEN_PROGRAM_ID = SoldersPubkey.from_string(TOKEN_PROGRAM_ID_STR)
+        ASSOCIATED_TOKEN_PROGRAM_ID = SoldersPubkey.from_string(ASSOCIATED_TOKEN_PROGRAM_ID_STR)
+        SYSTEM_PROGRAM = SoldersPubkey.from_string(SYSTEM_PROGRAM_ID)
+        COMPUTE_BUDGET_PROGRAM = SoldersPubkey.from_string("ComputeBudget111111111111111111111111111111")
+        
+        def get_associated_token_address(owner: SoldersPubkey, mint: SoldersPubkey) -> SoldersPubkey:
+            seeds = [bytes(owner), bytes(TOKEN_PROGRAM_ID), bytes(mint)]
+            program_address, _ = SoldersPubkey.find_program_address(seeds, ASSOCIATED_TOKEN_PROGRAM_ID)
+            return program_address
+        
+        source_ata = get_associated_token_address(owner_pubkey, mint_pubkey)
+        dest_ata = get_associated_token_address(dest_pubkey, mint_pubkey)
+        
+        async with aiohttp.ClientSession() as session:
+            blockhash_payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "getLatestBlockhash",
+                "params": [{"commitment": "confirmed"}]
+            }
+            async with session.post(rpc_url, json=blockhash_payload) as resp:
+                result = await resp.json()
+                if "error" in result:
+                    return False, None, f"RPC error getting blockhash: {result['error']}"
+                blockhash_str = result["result"]["value"]["blockhash"]
+            
+            check_ata_payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "getAccountInfo",
+                "params": [str(dest_ata), {"encoding": "base64"}]
+            }
+            async with session.post(rpc_url, json=check_ata_payload) as resp:
+                ata_result = await resp.json()
+                dest_ata_exists = ata_result.get("result", {}).get("value") is not None
+        
+        instructions = []
+        
+        set_compute_limit_data = bytes([2]) + struct.pack('<I', 200000)
+        set_compute_limit_ix = Instruction(COMPUTE_BUDGET_PROGRAM, set_compute_limit_data, [])
+        instructions.append(set_compute_limit_ix)
+        
+        set_priority_fee_data = bytes([3]) + struct.pack('<Q', 50000)
+        set_priority_fee_ix = Instruction(COMPUTE_BUDGET_PROGRAM, set_priority_fee_data, [])
+        instructions.append(set_priority_fee_ix)
+        
+        if not dest_ata_exists:
+            create_ata_accounts = [
+                AccountMeta(owner_pubkey, is_signer=True, is_writable=True),
+                AccountMeta(dest_ata, is_signer=False, is_writable=True),
+                AccountMeta(dest_pubkey, is_signer=False, is_writable=False),
+                AccountMeta(mint_pubkey, is_signer=False, is_writable=False),
+                AccountMeta(SYSTEM_PROGRAM, is_signer=False, is_writable=False),
+                AccountMeta(TOKEN_PROGRAM_ID, is_signer=False, is_writable=False),
+            ]
+            create_ata_ix = Instruction(ASSOCIATED_TOKEN_PROGRAM_ID, bytes(), create_ata_accounts)
+            instructions.append(create_ata_ix)
+        
+        transfer_data = bytes([3]) + struct.pack('<Q', raw_amount)
+        transfer_accounts = [
+            AccountMeta(source_ata, is_signer=False, is_writable=True),
+            AccountMeta(dest_ata, is_signer=False, is_writable=True),
+            AccountMeta(owner_pubkey, is_signer=True, is_writable=False),
+        ]
+        transfer_ix = Instruction(TOKEN_PROGRAM_ID, transfer_data, transfer_accounts)
+        instructions.append(transfer_ix)
+        
+        blockhash = Hash.from_string(blockhash_str)
+        message = Message.new_with_blockhash(instructions, owner_pubkey, blockhash)
+        tx = Transaction.new_unsigned(message)
+        tx.sign([user_keypair], blockhash)
+        
+        tx_bytes = bytes(tx)
+        tx_base64 = base64.b64encode(tx_bytes).decode('utf-8')
+        
+        async with aiohttp.ClientSession() as session:
+            send_payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "sendTransaction",
+                "params": [tx_base64, {
+                    "encoding": "base64",
+                    "skipPreflight": False,
+                    "preflightCommitment": "confirmed",
+                    "maxRetries": 3
+                }]
+            }
+            async with session.post(rpc_url, json=send_payload) as resp:
+                send_result = await resp.json()
+                if "error" in send_result:
+                    error_msg = send_result['error'].get('message', str(send_result['error']))
+                    return False, None, f"Transaction failed: {error_msg}"
+                tx_signature = send_result["result"]
+            
+            logger.info(f"User wallet transfer sent: {tx_signature}")
+            
+            for i in range(15):
+                await asyncio.sleep(2)
+                status_payload = {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "getSignatureStatuses",
+                    "params": [[tx_signature], {"searchTransactionHistory": True}]
+                }
+                async with session.post(rpc_url, json=status_payload) as resp:
+                    status_result = await resp.json()
+                    statuses = status_result.get("result", {}).get("value", [])
+                    
+                    if statuses and statuses[0]:
+                        status = statuses[0]
+                        if status.get("err"):
+                            return False, tx_signature, f"Transaction failed: {status['err']}"
+                        
+                        confirmation = status.get("confirmationStatus", "")
+                        if confirmation in ["confirmed", "finalized"]:
+                            logger.info(f"User wallet transfer confirmed: {tx_signature}")
+                            return True, tx_signature, None
+            
+            return True, tx_signature, "Sent (confirmation pending)"
+                
+    except Exception as e:
+        logger.error(f"User wallet transfer error: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return False, None, str(e)

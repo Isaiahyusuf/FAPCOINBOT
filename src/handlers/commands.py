@@ -311,6 +311,115 @@ async def cmd_setwallet(message: Message):
     )
 
 
+@router.message(Command("recover"))
+async def cmd_recover(message: Message):
+    """Recover stuck funds from a user's wallet - owner only.
+    Usage: /recover [telegram_id] [destination_address] [amount]
+    Or: /recover [telegram_id] to check balance
+    """
+    telegram_id = message.from_user.id
+    
+    if not is_owner(telegram_id):
+        await message.answer("❌ This command is only for the bot owner.", parse_mode=None)
+        return
+    
+    args = message.text.split()
+    
+    if len(args) < 2:
+        await message.answer(
+            "🔧 <b>ADMIN RECOVERY TOOL</b>\n\n"
+            "<b>Check user wallet:</b>\n"
+            "<code>/recover [telegram_id]</code>\n\n"
+            "<b>Transfer funds:</b>\n"
+            "<code>/recover [telegram_id] [dest_address] [amount]</code>\n\n"
+            "<b>Examples:</b>\n"
+            "<code>/recover 123456789</code> - Check balance\n"
+            "<code>/recover 123456789 ABC123... 1000</code> - Transfer 1000 FAPCOIN",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    try:
+        target_telegram_id = int(args[1])
+    except ValueError:
+        await message.answer("❌ Invalid Telegram ID. Must be a number.", parse_mode=None)
+        return
+    
+    wallet = await db.get_user_wallet(target_telegram_id)
+    if not wallet:
+        await message.answer(f"❌ No wallet found for Telegram ID: {target_telegram_id}", parse_mode=None)
+        return
+    
+    from src.utils.wallet import get_token_balance, get_sol_balance
+    
+    fapcoin_balance = await get_token_balance(wallet.public_key)
+    sol_balance = await get_sol_balance(wallet.public_key)
+    
+    if len(args) == 2:
+        user = await db.get_user_by_telegram_id(target_telegram_id)
+        username = user.username if user and user.username else "Unknown"
+        first_name = user.first_name if user and user.first_name else "Unknown"
+        
+        await message.answer(
+            f"🔍 <b>WALLET INFO</b>\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"👤 <b>User:</b> {first_name} (@{username})\n"
+            f"🆔 <b>Telegram ID:</b> <code>{target_telegram_id}</code>\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"📍 <b>Address:</b>\n<code>{wallet.public_key}</code>\n\n"
+            f"💰 <b>FAPCOIN:</b> {fapcoin_balance:,.2f}\n"
+            f"◎ <b>SOL:</b> {sol_balance:.6f}\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"To transfer, use:\n"
+            f"<code>/recover {target_telegram_id} [dest_address] [amount]</code>",
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    if len(args) < 4:
+        await message.answer("❌ Missing arguments. Need: /recover [telegram_id] [dest_address] [amount]", parse_mode=None)
+        return
+    
+    dest_address = args[2]
+    try:
+        amount = float(args[3])
+    except ValueError:
+        await message.answer("❌ Invalid amount. Must be a number.", parse_mode=None)
+        return
+    
+    if amount <= 0:
+        await message.answer("❌ Amount must be positive.", parse_mode=None)
+        return
+    
+    if amount > fapcoin_balance:
+        await message.answer(f"❌ Insufficient balance. Wallet has {fapcoin_balance:,.2f} FAPCOIN.", parse_mode=None)
+        return
+    
+    if sol_balance < 0.005:
+        await message.answer(f"❌ Insufficient SOL for gas fees. Wallet has {sol_balance:.6f} SOL, needs 0.005.", parse_mode=None)
+        return
+    
+    await message.answer(f"⏳ Processing transfer of {amount:,.2f} FAPCOIN...", parse_mode=None)
+    
+    from src.utils.wallet import send_fapcoin_from_user_wallet
+    success, tx_sig, error = await send_fapcoin_from_user_wallet(wallet.encrypted_private_key, dest_address, amount)
+    
+    if success:
+        await db.update_wallet_balance(target_telegram_id, fapcoin_balance - amount)
+        await message.answer(
+            f"✅ <b>TRANSFER COMPLETE</b>\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"💰 <b>Amount:</b> {amount:,.2f} FAPCOIN\n"
+            f"📤 <b>From:</b> User {target_telegram_id}\n"
+            f"📥 <b>To:</b>\n<code>{dest_address}</code>\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔗 <b>TX:</b>\n<code>{tx_sig}</code>",
+            parse_mode=ParseMode.HTML
+        )
+    else:
+        await message.answer(f"❌ Transfer failed: {error}", parse_mode=None)
+
+
 @router.message(Command("showwallet"))
 async def cmd_showwallet(message: Message):
     """Show current team wallet - owner only."""
