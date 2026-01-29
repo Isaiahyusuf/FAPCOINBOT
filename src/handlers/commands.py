@@ -1708,21 +1708,34 @@ async def callback_deposit(callback: CallbackQuery):
         from src.utils.wallet import get_token_balance
         on_chain_balance = await get_token_balance(wallet.public_key)
         
-        if on_chain_balance > wallet.balance:
+        # Always sync with on-chain balance to ensure accuracy
+        if on_chain_balance != wallet.balance:
             deposit_amount = on_chain_balance - wallet.balance
             await db.update_wallet_balance(telegram_id, on_chain_balance)
             
-            await callback.message.edit_text(
-                f"✅ <b>DEPOSIT FOUND!</b>\n\n"
-                f"━━━━━━━━━━━━━━━━━━━━━\n"
-                f"➕ <b>Deposited:</b> {deposit_amount:,.2f} $FAPCOIN\n"
-                f"💵 <b>New Balance:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
-                f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-                f"Your balance has been updated!\n\n"
-                f"🚀 Powered by $FAPCOIN on Solana",
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML
-            )
+            if deposit_amount > 0:
+                await callback.message.edit_text(
+                    f"✅ <b>DEPOSIT FOUND!</b>\n\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"➕ <b>Deposited:</b> {deposit_amount:,.2f} $FAPCOIN\n"
+                    f"💵 <b>New Balance:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                    f"Your balance has been updated!\n\n"
+                    f"🚀 Powered by $FAPCOIN on Solana",
+                    reply_markup=keyboard,
+                    parse_mode=ParseMode.HTML
+                )
+            else:
+                # Balance decreased or synced (withdrawal or other)
+                await callback.message.edit_text(
+                    f"📥 <b>WALLET SYNCED</b>\n\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"💵 <b>Current Balance:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                    f"Your balance is now in sync with the blockchain.",
+                    reply_markup=keyboard,
+                    parse_mode=ParseMode.HTML
+                )
         else:
             await callback.message.edit_text(
                 f"📥 <b>DEPOSIT CHECK</b>\n\n"
@@ -2449,20 +2462,32 @@ async def cmd_deposit(message: Message):
         from src.utils.wallet import get_token_balance
         on_chain_balance = await get_token_balance(wallet.public_key)
         
-        if on_chain_balance > wallet.balance:
+        # Always sync with on-chain balance to ensure accuracy
+        if on_chain_balance != wallet.balance:
             deposit_amount = on_chain_balance - wallet.balance
             await db.update_wallet_balance(telegram_id, on_chain_balance)
             
-            await status_msg.edit_text(
-                f"✅ <b>DEPOSIT FOUND!</b>\n\n"
-                f"━━━━━━━━━━━━━━━━━━━━━\n"
-                f"➕ <b>Deposited:</b> {deposit_amount:,.2f} $FAPCOIN\n"
-                f"💵 <b>New Balance:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
-                f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-                f"Your balance has been updated!\n\n"
-                f"🚀 Powered by $FAPCOIN on Solana",
-                parse_mode=ParseMode.HTML
-            )
+            if deposit_amount > 0:
+                await status_msg.edit_text(
+                    f"✅ <b>DEPOSIT FOUND!</b>\n\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"➕ <b>Deposited:</b> {deposit_amount:,.2f} $FAPCOIN\n"
+                    f"💵 <b>New Balance:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                    f"Your balance has been updated!\n\n"
+                    f"🚀 Powered by $FAPCOIN on Solana",
+                    parse_mode=ParseMode.HTML
+                )
+            else:
+                # Balance decreased or synced (withdrawal or other)
+                await status_msg.edit_text(
+                    f"📥 <b>WALLET SYNCED</b>\n\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"💵 <b>Current Balance:</b> {on_chain_balance:,.2f} $FAPCOIN\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+                    f"Your balance is now in sync with the blockchain.",
+                    parse_mode=ParseMode.HTML
+                )
         else:
             await status_msg.edit_text(
                 f"📥 <b>DEPOSIT CHECK</b>\n\n"
